@@ -141,3 +141,9 @@ def run_engine(data: RawInput):
 
         "next_questions_generated": next_questions
     }
+
+
+from fastapi.staticfiles import StaticFiles
+
+app.mount("/static", StaticFiles(directory="../frontend"), 
+                                 name="frontend", html=True)
