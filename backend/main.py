@@ -3,11 +3,24 @@ import json
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
+from fastapi.middleware.cors import CORSMiddleware
 
 # =========================================================
 # Init
 # =========================================================
 app = FastAPI(title="V14.0 SJ Ontology Engine")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost",
+        "http://127.0.0.1"
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 ONTOLOGY_DIR = "./ontology/scientific_justification"
