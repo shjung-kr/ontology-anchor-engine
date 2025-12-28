@@ -145,6 +145,8 @@ def run_engine(data: RawInput):
 
 from fastapi.staticfiles import StaticFiles
 
-app.mount("/",
-    "/static", StaticFiles(directory="../frontend"), 
-                                 name="frontend", html=True)
+app.mount(
+    "/",
+    StaticFiles(directory="../frontend", html=True),
+    name="frontend"
+)
