@@ -1,0 +1,64 @@
+{
+  "pattern": {
+    "pattern_id": "exponential_trend",
+    "mathematical_form": "y = A * exp(Bx)",
+    "recognition_criteria": [
+      "semi_log_plot_linear",
+      "fit_r2 >= 0.98"
+    ],
+    "note": "Pattern defines only mathematical form, not physical meaning"
+  },
+
+  "phenomenon": {
+    "phenomenon_id": "room_temperature_iv_exponential",
+    "derived_from_measurement": "I-V_curve",
+    "observed_pattern": "exponential_trend",
+    "observed_range": {
+      "voltage": "0.1 ~ 0.5 V",
+      "temperature": "300 K ± 2 K"
+    },
+    "statement": "Measured current increases exponentially with applied voltage within observed range"
+  },
+
+  "scientific_justification": {
+    "justification_id": "room_temp_iv_transport_allowed",
+
+    "what_is_being_claimed": "Exponential I–V behavior may be interpreted as transport-dominated conduction",
+
+    "assumptions": {
+      "equilibrium": {
+        "judgement": "assumed",
+        "validation": "untested"
+      },
+      "homogeneity": {
+        "judgement": "assumed",
+        "validation": "untested"
+      },
+      "single_transport_mechanism": {
+        "judgement": "assumed",
+        "validation": "untested"
+      },
+      "temperature_stability": {
+        "judgement": "assumed",
+        "validation": "tested"
+      }
+    },
+
+    "validity_domain": {
+      "voltage": "< 0.5 V",
+      "temperature": "near room temperature",
+      "time": "initial measurement window"
+    },
+
+    "invalidated_if": [
+      "multiple_exponential_slopes_detected",
+      "strong_temperature_dependence_observed",
+      "spatial_current_inhomogeneity_detected",
+      "hysteresis_in_iv_curve"
+    ],
+
+    "explanation_mode": "conditional_causal",
+
+    "important_note": "This file does not assert correctness of the explanation. It only specifies conditions under which the explanation is scientifically admissible."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "ontology_version": "v14.0",
+  "status": "active",
+  "design_principle": [
+    "ontology_first",
+    "addon_based_evolution",
+    "explain_before_decide",
+    "human_editable"
+  ],
+  "created_for": "research_reasoning_engine",
+  "notes": "This ontology defines how scientific observations are explained, interpreted, and controlled."
+}

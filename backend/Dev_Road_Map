@@ -1,0 +1,51 @@
+PRO V14.0 -> 사고의 최소 루프
+ - 목표 : 과학적으로 증명할 수 있다.
+         * 구체적으로
+           - SJ(Scientific Justification) 하나의 데이터가 들어오면, 
+             관찰 > 패턴 > 해석 후보 > 선택 > 이유 기록
+             이 흐름이 끊김없이 작동
+             
+ - 필수 : Observation 추출
+         과학적 설명 생성
+
+* 데이터에서 LLM이 온톨로지가 선택할 수 있도록 정의해 둔 패턴 후보를 발견 또는 제안하는 구조다.
+  장점 : LLM의 강점을 100% 활용
+          - 고차원 패턴요약
+          - 다변량 관계묘사
+          - 언어적 일반화
+          - 자의적 해석(X)
+          - 중요도 판단(X)
+          - 책임있는 결정(X)
+
+* 프로세스 패턴
+Observed Pattern (LLM)
+    ∩
+Ontology-Recognizable Pattern Space
+    =
+Candidate Anchor Set
+
+* AGI는 Artifical General Intelligence의 약자이다. 범용 인공지능을 의미하며, 
+  특정 작업에 국한되지 않고 인간과 유사한 수준의 지능을 갖춘 인공지능 시스템을 지칭한다.
+
+
+
+
+
+
+PRO V14.1 -> 판단의 보조
+    - 목표 : 왜 다음 질문을 하는 지 설명할 수 있다.
+    - 추가 : RearchStyle 일부
+            QuestioningBehavior
+
+PRO V14.2 -> 판단을 돕는 버전
+    - 목표 : 이제 그만해도 된다는 근거 제시
+    - 추가 : ConfidenceAggregation
+            Stability
+            Evidence floor
+
+PRO V14.3 -> 제어 개입, 책임지는 버전
+    - 목표 : 왜 멈췄는지 설명할 수 있다.
+    - 추가 : stop_confidence_threshold
+            forced stop
+            uncertainty annotation
+

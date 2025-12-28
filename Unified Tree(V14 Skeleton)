@@ -1,0 +1,99 @@
+ResearcherOntology
+│
+├── ResearcherProfile
+│   │
+│   ├── ResearcherClassification
+│   │   │
+│   │   ├── DomainExpertise
+│   │   │   ├── MaterialsScience
+│   │   │   │   ├── Semiconductor
+│   │   │   │   │   ├── WideBandgap
+│   │   │   │   │   │   ├── GaN
+│   │   │   │   │   │   └── Ga2O3
+│   │   │   │   │   └── DevicePhysics
+│   │   │   │   └── MagneticMaterials
+│   │   │   └── Physics
+│   │   │       ├── SolidStatePhysics
+│   │   │       └── StatisticalPhysics
+│   │   │
+│   │   ├── MethodologicalBackground
+│   │   │   ├── Experimentalist
+│   │   │   │   ├── ThinFilmGrowth
+│   │   │   │   ├── DeviceFabrication
+│   │   │   │   └── ElectricalMeasurement
+│   │   │   ├── Theorist
+│   │   │   │   ├── FirstPrinciples
+│   │   │   │   ├── PhenomenologicalModel
+│   │   │   │   └── StatisticalInference
+│   │   │   └── HybridResearcher
+│   │   │
+│   │   ├── ExperimentalEnvironment
+│   │   │   ├── HighControlLab
+│   │   │   ├── SemiControlledLab
+│   │   │   └── ExploratoryLab
+│   │   │
+│   │   └── ToolingAndInfrastructure
+│   │       ├── CleanroomAccess
+│   │       ├── InSituMeasurement
+│   │       ├── HighThroughputExperiment
+│   │       └── AIAnalysisPipeline
+│   │
+│   └── ResearchStyle
+│       │
+│       ├── EvidencePreference
+│       │   ├── FeatureDominant
+│       │   ├── LiteralSensitive
+│       │   ├── OutlierRespecting
+│       │   └── AggregateTrusting
+│       │
+│       ├── InterpretationStrategy
+│       │   ├── ResidualDriven
+│       │   │   ├── ModelResidualAsSignal
+│       │   │   └── TheoryBreakExploration
+│       │   ├── MechanismSeeking
+│       │   ├── ModelConfirming
+│       │   └── PatternDiscovering
+│       │
+│       ├── UncertaintyHandling
+│       │   ├── DelayConclusion
+│       │   ├── HypothesisBranching
+│       │   ├── ConservativeAcceptance
+│       │   └── AggressivePruning
+│       │
+│       ├── QuestioningBehavior
+│       │   ├── DepthFirst
+│       │   ├── BreadthFirst
+│       │   ├── ContradictionSeeking
+│       │   └── StabilityChecking
+│       │
+│       ├── DecisionThresholdPolicy
+│       │   ├── HighThreshold
+│       │   │   ├── RequiresCoverage
+│       │   │   ├── RequiresStability
+│       │   │   └── PenalizeConflictStrongly
+│       │   ├── AdaptiveThreshold
+│       │   └── EarlyStopAllowed
+│       │
+│       └── TemporalBehavior
+│           ├── SlowConfidenceAccumulation
+│           ├── FastHypothesisSwitching
+│           └── MemoryDecaySensitive
+│
+└── InterpretationControlLayer
+    │
+    ├── ConfidenceAggregation
+    │   ├── FeatureConfidence
+    │   ├── LiteralConfidence
+    │   ├── OntologyCoverage
+    │   ├── AnswerStability
+    │   └── ConflictPenalty
+    │
+    ├── ConfidenceDynamics
+    │   ├── TimeDecay
+    │   ├── SaturationFunction
+    │   └── ReinforcementPolicy
+    │
+    └── StopCondition
+        ├── stop_confidence_threshold
+        ├── max_question_limit
+        └── forced_stop_conditions

@@ -1,0 +1,35 @@
+{
+  "evidence_preference": [
+    "feature_dominant",
+    "literal_sensitive",
+    "outlier_respecting",
+    "aggregate_trusting"
+  ],
+  "interpretation_strategy": [
+    "residual_driven",
+    "mechanism_seeking",
+    "model_confirming",
+    "pattern_discovering"
+  ],
+  "uncertainty_handling": [
+    "delay_conclusion",
+    "hypothesis_branching",
+    "conservative_acceptance"
+  ],
+  "questioning_behavior": [
+    "depth_first",
+    "breadth_first",
+    "contradiction_seeking",
+    "stability_checking"
+  ],
+  "decision_threshold_policy": [
+    "high_threshold",
+    "adaptive_threshold",
+    "early_stop_allowed"
+  ],
+  "temporal_behavior": [
+    "slow_confidence_accumulation",
+    "fast_hypothesis_switching",
+    "memory_decay_sensitive"
+  ]
+}

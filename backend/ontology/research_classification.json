@@ -1,0 +1,23 @@
+{
+  "domains": [
+    "materials_science",
+    "physics",
+    "chemistry"
+  ],
+  "methodologies": [
+    "experimentalist",
+    "theorist",
+    "hybrid_researcher"
+  ],
+  "experimental_environments": [
+    "high_control_lab",
+    "semi_controlled_lab",
+    "exploratory_lab"
+  ],
+  "tooling": [
+    "measurement_systems",
+    "fabrication_tools",
+    "computational_resources"
+  ]
+}
+

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>V14.0 SJ Ontology Engine</title>
+  <style>
+    body {
+      font-family: monospace;
+      margin: 40px;
+      background: #fafafa;
+    }
+    h2 { margin-bottom: 10px; }
+    h3 { margin-top: 30px; }
+
+    input[type="file"] {
+      margin-bottom: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+      padding: 10px;
+      background: #f4f4f4;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+
+    pre {
+      background: #f0f0f0;
+      padding: 15px;
+      border-left: 4px solid #999;
+      overflow-x: auto;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+
+    .section {
+      margin-top: 25px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>V14.0 – SJ IV Ontology Engine</h2>
+
+<p>
+<b>Input</b>: Upload raw SJ IV experimental data file (CSV / TXT / DAT).  
+No explanation, no conversation.
+</p>
+
+<!-- ================= INPUT ================= -->
+<input type="file" id="fileInput" />
+
+<div class="section">
+  <h3>Uploaded Data (Preview)</h3>
+  <textarea id="raw" readonly
+    placeholder="Uploaded experimental data will appear here"></textarea>
+</div>
+
+<button onclick="run()">Run V14 Engine</button>
+
+<!-- ================= LOGS ================= -->
+<div class="section">
+  <h3>1. LLM Pattern Recognition</h3>
+  <pre id="patternLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>2. LLM Keyword & Evidence Log</h3>
+  <pre id="keywordLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>3. Ontology Selection Log</h3>
+  <pre id="ontologyLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>4. Next Questions (Ontology-driven)</h3>
+  <pre id="questionLog">(waiting)</pre>
+</div>
+
+<script>
+const API = "http://localhost:8000/v14/run";
+
+const fileInput = document.getElementById("fileInput");
+const rawArea = document.getElementById("raw");
+
+const patternLog = document.getElementById("patternLog");
+const keywordLog = document.getElementById("keywordLog");
+const ontologyLog = document.getElementById("ontologyLog");
+const questionLog = document.getElementById("questionLog");
+
+/* -------- File upload -------- */
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    rawArea.value = e.target.result;
+  };
+  reader.readAsText(file);
+});
+
+/* -------- Run engine -------- */
+function run() {
+  if (!rawArea.value.trim()) {
+    alert("No data loaded.");
+    return;
+  }
+
+  fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ raw_data: rawArea.value })
+  })
+  .then(r => r.json())
+  .then(d => {
+    patternLog.innerText =
+      "Detected pattern:\n" + d.llm_pattern;
+
+    keywordLog.innerText =
+      JSON.stringify(d.llm_keyword_log, null, 2);
+
+    ontologyLog.innerText =
+      JSON.stringify(d.ontology_selection_log, null, 2) +
+      "\n\nSelected ontology:\n" +
+      JSON.stringify(d.selected_ontology, null, 2);
+
+    questionLog.innerText =
+      JSON.stringify(d.next_questions_generated, null, 2);
+  })
+  .catch(err => {
+    alert("Error running engine");
+    console.error(err);
+  });
+}
+</script>
+
+</body>
+</html>
+
