@@ -81,7 +81,9 @@ def select_ontology(keyword_objs):
             continue
 
         path = os.path.join(ONTOLOGY_DIR, fname)
-        ontology = json.load(open(path))
+        #ontology = json.load(open(path))
+        with open(path,"r",encoding="utf-8") as f:
+            ontology = json.load(f)
 
         ontology_keywords = [k.lower() for k in ontology.get("keywords", [])]
 
