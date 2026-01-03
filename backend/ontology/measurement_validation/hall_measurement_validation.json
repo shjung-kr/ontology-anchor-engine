@@ -1,0 +1,25 @@
+{
+  "measurement_id": "hall_measurement_validation",
+
+  "purpose":
+    "Validate Hall effect measurement data for transport parameter analysis.",
+
+  "criteria": {
+    "hall_voltage_above_noise": {
+      "noise_floor_assumed": "1e-6 V",
+      "judgement_rule": "max_hall_voltage > noise_floor"
+    },
+    "linearity_required": {
+      "judgement_rule": "hall_voltage vs magnetic_field approximately linear"
+    }
+  },
+
+  "validation_result_schema": {
+    "measurement_valid": "boolean",
+    "hall_voltage_above_noise": "satisfied | not_satisfied",
+    "linearity": "satisfied | not_satisfied"
+  },
+
+  "important_note":
+    "This validation is specific to Hall effect measurements and is not applicable to I–V curve interpretation."
+}

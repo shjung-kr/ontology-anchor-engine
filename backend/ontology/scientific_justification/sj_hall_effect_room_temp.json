@@ -1,0 +1,73 @@
+{
+  "scientific_justification": {
+    "justification_id": "sj_hall_effect_room_temp",
+
+    "what_is_being_claimed":
+      "The observed linear Hall voltage response under an applied magnetic field can be interpreted as evidence of charge-carrier transport characterized by a well-defined Hall coefficient, without asserting a specific scattering or band-structure model.",
+
+    "l1_axes": {
+      "linearity_axis": {
+        "description": "Linearity of Hall voltage with magnetic field",
+        "values": ["linear", "nonlinear"]
+      },
+      "sign_axis": {
+        "description": "Sign of Hall voltage slope with respect to magnetic field",
+        "values": ["positive", "negative"]
+      },
+      "magnitude_axis": {
+        "description": "Order of magnitude of Hall voltage signal relative to measurement noise",
+        "values": ["near_noise", "finite", "large"]
+      }
+    },
+
+    "l1_observed_coordinates": [
+      {
+        "linearity": "linear",
+        "sign": "negative",
+        "magnitude": "finite",
+        "evidence":
+          "Hall voltage exhibits a linear dependence on magnetic field with a clearly resolvable negative slope at room temperature."
+      }
+    ],
+
+    "physical_assumptions": {
+      "single_carrier_type_dominant": {
+        "judgement": "assumed",
+        "validation": "untested"
+      },
+      "steady_state_transport": {
+        "judgement": "assumed",
+        "validation": "tested"
+      },
+      "ohmic_contact_behavior": {
+        "judgement": "assumed",
+        "validation": "untested"
+      }
+    },
+
+    "parameter_interpretations": [
+      {
+        "parameter": "carrier_type",
+        "inferred_value": "electron_like",
+        "interpretation_note":
+          "A negative Hall voltage slope suggests electron-dominated charge transport."
+      },
+      {
+        "parameter": "carrier_density_order",
+        "inferred_value": "estimable",
+        "interpretation_note":
+          "The finite Hall voltage magnitude allows an order-of-magnitude estimation of carrier density."
+      }
+    ],
+
+    "validity_domain": {
+      "temperature": "near room temperature",
+      "measurement_condition": "steady_state_hall_measurement"
+    },
+
+    "explanation_mode": "conditional_parameter_based",
+
+    "important_note":
+      "This scientific justification does not assert microscopic transport mechanisms. It provides a conditional framework for interpreting Hall measurements in terms of carrier type and transport parameters only when the stated observational and measurement conditions are satisfied."
+  }
+}

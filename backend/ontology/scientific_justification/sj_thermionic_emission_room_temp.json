@@ -1,0 +1,51 @@
+{
+  "scientific_justification": {
+    "justification_id": "sj_thermionic_emission_room_temp",
+
+    "what_is_being_claimed":
+      "The observed I–V characteristic may be interpreted as thermionic emission if current magnitude and slope indicate thermally activated carrier transport across an energy barrier.",
+
+    "mechanism_proposals": [
+      {
+        "mechanism_id": "thermionic_emission",
+
+        "supported_coordinates": [
+          {
+            "regime": "low_field",
+            "slope": "gradual",
+            "magnitude": "finite"
+          },
+          {
+            "regime": "high_field",
+            "slope": "gradual",
+            "magnitude": "large"
+          }
+        ],
+
+        "physical_assumptions": {
+          "energy_barrier_present": {
+            "judgement": "assumed",
+            "validation": "untested"
+          },
+          "thermal_activation_relevant": {
+            "judgement": "assumed",
+            "validation": "untested"
+          }
+        },
+
+        "interpretation_note":
+          "Thermionic emission is conditionally proposed when current magnitude and slope are consistent with thermally activated carrier transport over an energy barrier."
+      }
+    ],
+
+    "validity_domain": {
+      "temperature": "near room temperature",
+      "measurement_condition": "steady_state_dc_iv"
+    },
+
+    "explanation_mode": "conditional_coordinate_based",
+
+    "important_note":
+      "This justification proposes thermionic emission only under conditions consistent with thermally activated transport behavior."
+  }
+}

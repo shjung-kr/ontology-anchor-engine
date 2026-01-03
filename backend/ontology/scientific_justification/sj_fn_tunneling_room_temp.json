@@ -1,0 +1,51 @@
+{
+  "scientific_justification": {
+    "justification_id": "sj_fn_tunneling_room_temp",
+
+    "what_is_being_claimed":
+      "The observed I–V characteristic may be interpreted as Fowler–Nordheim tunneling if low-field current suppression and abrupt turn-on behavior in the intermediate-field regime dominate the observed coordinate space.",
+
+    "mechanism_proposals": [
+      {
+        "mechanism_id": "fowler_nordheim_tunneling",
+
+        "supported_coordinates": [
+          {
+            "regime": "low_field",
+            "slope": "gradual",
+            "magnitude": "near_noise"
+          },
+          {
+            "regime": "intermediate_field",
+            "slope": "abrupt",
+            "magnitude": "finite"
+          }
+        ],
+
+        "physical_assumptions": {
+          "field_emission_barrier_present": {
+            "judgement": "assumed",
+            "validation": "untested"
+          },
+          "single_dominant_tunneling_path": {
+            "judgement": "assumed",
+            "validation": "untested"
+          }
+        },
+
+        "interpretation_note":
+          "Fowler–Nordheim tunneling is conditionally proposed when low-field current suppression and abrupt intermediate-field turn-on behavior dominate the observed coordinate space."
+      }
+    ],
+
+    "validity_domain": {
+      "temperature": "near room temperature",
+      "measurement_condition": "steady_state_dc_iv"
+    },
+
+    "explanation_mode": "conditional_coordinate_based",
+
+    "important_note":
+      "This justification proposes Fowler–Nordheim tunneling only if the specified coordinate conditions are satisfied. No mechanism is asserted outside this domain."
+  }
+}
