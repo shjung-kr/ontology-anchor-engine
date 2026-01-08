@@ -13,9 +13,6 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "https://api.proofence-lab.com",
-        "https://www.proofence-lab.com",
         # cloudflare pages domain
         "https://ontology-anchor-engine.pages.dev",
         ],
