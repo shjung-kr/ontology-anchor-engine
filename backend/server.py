@@ -16,7 +16,7 @@ app.add_middleware(
         # cloudflare pages domain
         "https://ontology-anchor-engine.pages.dev",
         ],
-    allow_credentials=True,
+    
     allow_methods=["*"],
     allow_headers=["*"],
 )
