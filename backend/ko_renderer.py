@@ -3,6 +3,7 @@ from label_ko import L1_KEYWORD_KO, SJ_ONTOLOGY_KO
 from typing import Dict, List
 
 
+
 def render_l1_keywords_ko(l1_keywords):
     rendered = []
 
@@ -97,4 +98,23 @@ def render_l1_state_ko(l1_state: Dict) -> str:
 
     return "\n".join(lines)
 
-    
+def render_assumptions_ko(assumptions: List[Dict]) -> str:
+    if not assumptions:
+        return (
+            "【관측 가정】\n"
+            "- 본 관측은 별도의 해석 가정 없이 수행되었습니다."
+        )
+
+    lines = []
+    lines.append("【관측에 사용된 해석 가정】")
+
+    for a in assumptions:
+        lines.append(f"- {a.get('statement')}")
+
+    lines.append(
+        "\n※ 위 가정은 관측을 성립시키기 위해 사용된 기준이며, "
+        "이후 평가 단계에서 적용 여부를 선택할 수 있습니다."
+    )
+
+    return "\n".join(lines)
+

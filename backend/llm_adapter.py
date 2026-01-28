@@ -55,7 +55,11 @@ def llm_analyze_numeric(raw_data: str) -> Dict[str, Any]:
                     "content": (
                         "You are a scientific observation assistant.\n"
                         "You ONLY describe observable patterns in numeric data.\n"
-                        "You NEVER interpret mechanisms or models."
+                        "You NEVER interpret mechanisms or models,\n\n"
+                        "In addition, you MUST explicitly state any criteria or thresholds\n"
+                        "you relied on to describe patterns (e.g. range definitions,\n"
+                        "noise assumptions, qualitative thresholds).\n"
+                        "These are NOT mechanisms, but observation assumptions."
                     )
                 },
                 {
@@ -67,7 +71,16 @@ def llm_analyze_numeric(raw_data: str) -> Dict[str, Any]:
         )
 
         content = response.choices[0].message.content
-        return _parse_llm_output(content)
+        parsed = _parse_llm_output(content)
+        
+
+        assumptions =_extract_observation_assumptions(content) 
+
+        return{
+            "pattern": parsed.get("pattern",""),
+            "keywords": parsed.get("keywords",[]),
+            "assumptions": assumptions
+        }
 
     except Exception as e:
         # ---------- Safe fallback ----------
@@ -77,6 +90,43 @@ def llm_analyze_numeric(raw_data: str) -> Dict[str, Any]:
             "error": str(e)
         }
 
+#========================================================
+# Extract observation assumptions
+#========================================================
+def _extract_observation_assumptions(content: str) -> List[Dict[str, Any]]:
+    """
+    Extract explicit observation assumptions from LLM output.
+    These assumptions define HOW observations were categorized,
+    not WHY they occur.
+    """
+
+    # 초기 버전: rule / prompt 기반 단순 추출
+    # (나중에 LLM 2-pass로 고도화 가능)
+
+    assumptions = []
+
+    if "below" in content or "low-field" in content:
+        assumptions.append({
+            "assumption_id": "A_REGIME_LOW",
+            "statement": "Low-field region was defined using a lower-range threshold",
+            "impact_axis": ["regime"]
+        })
+
+    if "abrupt" in content or "sharp" in content:
+        assumptions.append({
+            "assumption_id": "A_SLOPE_ABRUPT",
+            "statement": "Abrupt slope was identified based on qualitative rate of change",
+            "impact_axis": ["slope"]
+        })
+
+    if "noise" in content:
+        assumptions.append({
+            "assumption_id": "A_MAG_NOISE",
+            "statement": "Lower magnitude values were treated as near noise floor",
+            "impact_axis": ["magnitude"]
+        })
+
+    return assumptions
 
 # =========================================================
 # Prompt builder

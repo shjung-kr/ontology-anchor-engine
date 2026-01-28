@@ -7,7 +7,8 @@ from llm_adapter import llm_analyze_numeric
 from ko_renderer import (
     render_l1_state_ko,
     render_sj_proposal_ko
-)
+    , render_assumptions_ko
+    )
 
 ONTOLOGY_DIR = "./ontology/scientific_justification"
 MEASUREMENT_RULE_DIR = "./ontology/measurement_validation"
@@ -126,33 +127,46 @@ def evaluate_scientific_justification(l1_state: Dict) -> List[Dict]:
 # 4. ENTRY POINT
 # =========================================================
 def run_l1_engine(raw_data: str) -> Dict:
-    # 1. Measurement gate
-    validation = validate_measurement(raw_data)
-    if not validation["valid"]:
+    try:
+        # 1. Measurement gate
+        validation = validate_measurement(raw_data)
+        if not validation["valid"]:
+            return {
+                "error": "Measurement validation failed",
+                "details": validation
+            }
+
+        # 2. LLM observation
+        llm_result = llm_analyze_numeric(raw_data)
+
+        # 3. Build L1 coordinate
+        l1_state = build_l1_state(llm_result["keywords"])
+
+        # 4. SJ evaluation
+        sj_proposals = evaluate_scientific_justification(l1_state)
+        print("ASSUMPTIONS:", llm_result.get("assumptions"))
+
+
         return {
-            "error": "Measurement validation failed",
-            "details": validation
+            "measurement_validation": validation,
+            "llm_pattern": llm_result["pattern"],
+            "llm_keywords": llm_result["keywords"],
+            "assumptions": llm_result.get("assumptions", []),
+            "l1_state": l1_state,
+            "sj_proposals": sj_proposals,
+            
+            #---------- 상요자에게 보여줄 최종 서술
+            "system_narrative": "\n\n".join([
+                render_l1_state_ko(l1_state),
+                render_assumptions_ko(llm_result.get("assumptions", [])),
+                render_sj_proposal_ko(sj_proposals)
+            ]),                        
+            # ---- UI logs ----
+            "L1 좌표 요약": render_l1_state_ko(l1_state),
+            "과학적 정당화 제안": render_sj_proposal_ko(sj_proposals)
         }
-
-    # 2. LLM observation
-    llm_result = llm_analyze_numeric(raw_data)
-
-    # 3. Build L1 coordinate
-    l1_state = build_l1_state(llm_result["keywords"])
-
-    # 4. SJ evaluation
-    sj_proposals = evaluate_scientific_justification(l1_state)
-
-    return {
-        "llm_pattern": llm_result["pattern"],
-        "llm_keywords": llm_result["keywords"],
-
-        "measurement_validation": validation,
-
-        "l1_state": l1_state,
-        "sj_proposals": sj_proposals,
-
-        # ---- UI logs ----
-        "L1 좌표 요약": render_l1_state_ko(l1_state),
-        "과학적 정당화 제안": render_sj_proposal_ko(sj_proposals)
-    }
+    except Exception as e:
+        return {
+            "error": "L1 SJ engine failed",
+            "details": str(e)
+        }

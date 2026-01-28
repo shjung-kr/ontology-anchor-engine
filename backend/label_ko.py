@@ -13,7 +13,9 @@ L1_KEYWORD_KO = {
     "moderate_voltage_dependence": "중간 수준의 전압 의존성",
     "weak_voltage_dependence": "약한 전압 의존성",
 
-    "generic_dependence": "일반적인 의존성"
+    "generic_dependence": "일반적인 의존성",
+    "INJECTION_DOMINATED_CONDUCTION": "전류 주입에 의해 지배되는 전도 메커니즘",
+    "RECOMBINATION_LIMITED_CURRENT": "재결합 과정에 의해 제한되는 전류 거동",
 }
 
 SJ_ONTOLOGY_KO = {
