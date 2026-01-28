@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>V14.0 – L1 Scientific Justification Engine</title>
+
+  <style>
+    body {
+      font-family: monospace;
+      margin: 40px;
+      background: #fafafa;
+    }
+
+    h2 {
+      margin-bottom: 6px;
+    }
+
+    h3 {
+      margin-top: 32px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 14px;
+      color: #444;
+    }
+
+    input[type="file"] {
+      margin-top: 10px;
+      margin-bottom: 12px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+      padding: 10px;
+      background: #f4f4f4;
+      border: 1px solid #ccc;
+      resize: vertical;
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    pre {
+      background: #f0f0f0;
+      padding: 14px;
+      border-left: 4px solid #666;
+      overflow-x: auto;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    button {
+      margin-top: 14px;
+      padding: 8px 18px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .section {
+      margin-top: 26px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #666;
+    }
+
+    hr {
+      margin-top: 30px;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>V14.0 – L1 Scientific Justification Engine</h2>
+<p>
+<strong>Pipeline:</strong><br/>
+L0 Data → Measurement Validation → LLM Observation → L1 Coordinate → SJ Proposal
+</p>
+
+<hr />
+
+<!-- ================= INPUT ================= -->
+<div class="section">
+  <h3>Input: Experimental Numeric Data (L0)</h3>
+  <input type="file" id="fileInput" />
+  <p class="hint">
+    Upload raw numeric experimental data (TXT / CSV).  
+    The file content itself is treated as L0 data.
+  </p>
+
+  <textarea id="rawData" readonly
+    placeholder="Uploaded raw data preview will appear here"></textarea>
+</div>
+
+<button onclick="runEngine()">Run L1 Engine</button>
+
+<hr />
+
+<!-- ================= OUTPUT ================= -->
+
+<div class="section">
+  <h3>0. Measurement Validation</h3>
+  <pre id="measurementLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>1. LLM Pattern Observation</h3>
+  <pre id="patternLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>2. LLM Keywords & Evidence</h3>
+  <pre id="llmKeywordLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>2.5 Observation Assumptions</h3>
+  <pre id="assumptionLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>3. L1 Coordinate State (4-axis)</h3>
+  <pre id="l1StateLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>4. Scientific Justification Proposals</h3>
+  <pre id="sjLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>한글 요약 로그</h3>
+  <pre id="koLog">(waiting)</pre>
+</div>
+
+
+<script>
+/* ================= CONFIG ================= */
+const API_URL = "http://localhost:8000/v14/run";
+
+/* ================= ELEMENTS ================= */
+const fileInput = document.getElementById("fileInput");
+const rawArea = document.getElementById("rawData");
+
+const measurementLog = document.getElementById("measurementLog");
+const patternLog = document.getElementById("patternLog");
+const llmKeywordLog = document.getElementById("llmKeywordLog");
+const l1StateLog = document.getElementById("l1StateLog");
+const sjLog = document.getElementById("sjLog");
+const koLog = document.getElementById("koLog");
+const assumptionLog = document.getElementById("assumptionLog");
+
+/* ================= FILE LOAD ================= */
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    rawArea.value = e.target.result;
+  };
+  reader.readAsText(file);
+});
+
+/* ================= RUN ENGINE ================= */
+function runEngine() {
+  fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      raw_data: document.getElementById("rawData").value
+    })
+  })
+  .then(async (res) => {
+    const text = await res.text();
+
+    // 🔑 JSON 여부 안전 판별
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("❌ Server returned non-JSON response:");
+      console.error(text);
+      throw new Error("Server did not return JSON");
+    }
+  })
+  .then((d) => {
+
+    /* 0. Measurement validation */
+    document.getElementById("measurementLog").innerText =
+      JSON.stringify(d.measurement_validation || {}, null, 2);
+
+    /* 1. LLM pattern */
+    document.getElementById("patternLog").innerText =
+      JSON.stringify(d.llm_pattern || "(none)", null, 2);
+
+    /* 2. LLM keywords */
+    document.getElementById("llmKeywordLog").innerText =
+      JSON.stringify(d.llm_keywords || [], null, 2);
+
+    /* 2.5 Assumptions (optional, safe) */
+    const assumptionLog = document.getElementById("assumptionLog");
+    if (assumptionLog) {
+      assumptionLog.innerText =
+        JSON.stringify(d.assumptions || [], null, 2);
+    }
+
+    /* 3. L1 state */
+    document.getElementById("l1StateLog").innerText =
+      JSON.stringify(d.l1_state || {}, null, 2);
+
+    /* 4. SJ proposals */
+    document.getElementById("sjLog").innerText =
+      JSON.stringify(d.sj_proposals || [], null, 2);
+
+    /* Korean rendered logs */
+    document.getElementById("koLog").innerText =
+      (d["L1 좌표 요약"] || "") +
+      "\n\n" +
+      (d["과학적 정당화 제안"] || "");
+
+  })
+  .catch((err) => {
+    alert("Engine error – see console");
+    console.error("❗ Engine error:", err);
+  });
+}
+</script>
+
+</body>
+</html>

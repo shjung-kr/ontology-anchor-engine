@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>V14.1 – L1 Scientific Justification Engine</title>
+  <title>L1 Scientific Justification Engine</title>
 
   <style>
     body {
@@ -13,11 +13,6 @@
 
     h2 {
       margin-bottom: 6px;
-    }
-
-    h3 {
-      margin-top: 32px;
-      margin-bottom: 8px;
     }
 
     p {
@@ -41,113 +36,72 @@
       font-size: 13px;
     }
 
-    pre {
-      background: #f0f0f0;
-      padding: 14px;
-      border-left: 4px solid #666;
-      overflow-x: auto;
-      font-size: 13px;
-      white-space: pre-wrap;
-    }
-
     button {
-      margin-top: 14px;
+      margin-top: 16px;
       padding: 8px 18px;
       font-size: 14px;
       cursor: pointer;
-    }
-
-    .section {
-      margin-top: 26px;
-    }
-
-    .hint {
-      font-size: 12px;
-      color: #666;
     }
 
     hr {
       margin-top: 30px;
       margin-bottom: 30px;
     }
+
+    /* ===== Chat-like system output ===== */
+
+    .chat {
+      background: #000;
+      color: #00ff66;
+      padding: 18px;
+      border-left: 4px solid #00ff66;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.45;
+      min-height: 120px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #666;
+    }
   </style>
 </head>
 
 <body>
 
-<h2>V14.1 – L1 Scientific Justification Engine</h2>
+<h2>L1 Scientific Justification Engine</h2>
 <p>
-<strong>Pipeline:</strong><br/>
-L0 Data → Measurement Validation → LLM Observation → L1 Coordinate → SJ Proposal
+<strong>Pipeline:</strong>
+L0 Data → LLM Observation → L1 Coordinate → SJ Proposal
 </p>
 
 <hr />
 
-<!-- ================= INPUT ================= -->
-<div class="section">
-  <h3>Input: Experimental Numeric Data (L0)</h3>
+<div>
   <input type="file" id="fileInput" />
-  <p class="hint">
-    Upload raw numeric experimental data (TXT / CSV).  
-    The file content itself is treated as L0 data.
-  </p>
+  <p class="hint">Upload raw numeric experimental data (TXT / CSV)</p>
 
   <textarea id="rawData" readonly
     placeholder="Uploaded raw data preview will appear here"></textarea>
 </div>
 
-<button onclick="runEngine()">Run L1 Engine</button>
+<button onclick="runEngine()">Run Engine</button>
 
 <hr />
 
-<!-- ================= OUTPUT ================= -->
-
-<div class="section">
-  <h3>0. Measurement Validation</h3>
-  <pre id="measurementLog">(waiting)</pre>
-</div>
-
-<div class="section">
-  <h3>1. LLM Pattern Observation</h3>
-  <pre id="patternLog">(waiting)</pre>
-</div>
-
-<div class="section">
-  <h3>2. LLM Keywords & Evidence</h3>
-  <pre id="llmKeywordLog">(waiting)</pre>
-</div>
-
-<div class="section">
-  <h3>3. L1 Coordinate State (4-axis)</h3>
-  <pre id="l1StateLog">(waiting)</pre>
-</div>
-
-<div class="section">
-  <h3>4. Scientific Justification Proposals</h3>
-  <pre id="sjLog">(waiting)</pre>
-</div>
-
-<div class="section">
-  <h3>한글 요약 로그</h3>
-  <pre id="koLog">(waiting)</pre>
+<!-- ===== Chat-like Output ===== -->
+<div id="chatLog" class="chat">
+(waiting)
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const API_URL = "https://api.proofence-lab.com/v14/run";
-
-/* ================= ELEMENTS ================= */
+const API_URL = "http://localhost:8000/v14/run";
 const fileInput = document.getElementById("fileInput");
 const rawArea = document.getElementById("rawData");
+const chatLog = document.getElementById("chatLog");
 
-const measurementLog = document.getElementById("measurementLog");
-const patternLog = document.getElementById("patternLog");
-const llmKeywordLog = document.getElementById("llmKeywordLog");
-const l1StateLog = document.getElementById("l1StateLog");
-const sjLog = document.getElementById("sjLog");
-const koLog = document.getElementById("koLog");
-
-/* ================= FILE LOAD ================= */
+/* File load */
 fileInput.addEventListener("change", () => {
   const file = fileInput.files[0];
   if (!file) return;
@@ -159,48 +113,65 @@ fileInput.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
-/* ================= RUN ENGINE ================= */
+/* Run engine */
 function runEngine() {
+  chatLog.innerText = "Running analysis...\n";
+
   fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ raw_data: rawArea.value })
   })
-  .then(res => res.json())
+  .then(async res => {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(text);
+    }
+  })
   .then(d => {
+    let output = "";
 
-    /* 0. Measurement validation */
-    measurementLog.innerText =
-      JSON.stringify(d.measurement_validation || {}, null, 2);
+    output += "SYSTEM:\n";
+    output += "Numeric data has been observed.\n\n";
 
-    /* 1. LLM pattern */
-    patternLog.innerText =
-      JSON.stringify(d.llm_pattern || "(none)", null, 2);
+    output += "L1 coordinate state:\n";
+    output += JSON.stringify(d.l1_state || {}, null, 2) + "\n\n";
 
-    /* 2. LLM keywords */
-    llmKeywordLog.innerText =
-      JSON.stringify(d.llm_keywords || [], null, 2);
+    output += "Observation assumptions (proposed):\n";
+    if ((d.assumptions || []).length === 0) {
+      output += "- None required for this observation.\n\n";
+    } else {
+      d.assumptions.forEach(a => {
+        output += `- ${a.statement} [${a.assumption_id}]\n`;
+      });
+      output += "\n";
+    }
 
-    /* 3. L1 state */
-    l1StateLog.innerText =
-      JSON.stringify(d.l1_state || {}, null, 2);
+    output += "Scientific justification candidates:\n";
+    if ((d.sj_proposals || []).length === 0) {
+      output += "- No sufficient ontology match found.\n";
+      output += "  Judgment is intentionally withheld.\n";
+    } else {
+      d.sj_proposals.forEach((sj, i) => {
+        output += `${i + 1}. ${sj.mechanism_id} `;
+        output += `(match score: ${sj.score})\n`;
+      });
+    }
 
-    /* 4. SJ proposals */
-    sjLog.innerText =
-      JSON.stringify(d.sj_proposals || [], null, 2);
+    output += "\nSYSTEM:\n";
+    output += "This stage presents observations and explanation candidates only.\n";
+    output += "No scoring or decision has been performed.";
 
-    /* Korean rendered logs */
-    koLog.innerText =
-      (d["L1 좌표 요약"] || "") +
-      "\n\n" +
-      (d["과학적 정당화 제안"] || "");
-
+    chatLog.innerText = d.system_narrative || "(no output)";
   })
   .catch(err => {
-    alert("Engine error (see console)");
-    console.error(err);
+    chatLog.innerText =
+      "SYSTEM:\nAnalysis failed.\n\n" + err.message;
   });
 }
+
 </script>
 
 </body>
