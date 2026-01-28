@@ -10,8 +10,8 @@ from ko_renderer import (
     , render_assumptions_ko
     )
 
-ONTOLOGY_DIR = "./ontology/04 scientific_justification"
-MEASUREMENT_RULE_DIR = "./ontology/02 measurement_validation"
+ONTOLOGY_DIR = "./ontology/04_scientific_justification"
+MEASUREMENT_RULE_DIR = "./ontology/02_measurement_validation"
 
 # =========================================================
 # 1. Measurement validation (gate)
@@ -155,7 +155,7 @@ def run_l1_engine(raw_data: str) -> Dict:
             "l1_state": l1_state,
             "sj_proposals": sj_proposals,
             
-            #---------- 상요자에게 보여줄 최종 서술
+            #---------- 상용자에게 보여줄 최종 서술
             "system_narrative": "\n\n".join([
                 render_l1_state_ko(l1_state),
                 render_assumptions_ko(llm_result.get("assumptions", [])),
