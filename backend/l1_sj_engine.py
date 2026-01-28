@@ -10,8 +10,8 @@ from ko_renderer import (
     , render_assumptions_ko
     )
 
-ONTOLOGY_DIR = "./ontology/scientific_justification"
-MEASUREMENT_RULE_DIR = "./ontology/measurement_validation"
+ONTOLOGY_DIR = "./ontology/04 scientific_justification"
+MEASUREMENT_RULE_DIR = "./ontology/02 measurement_validation"
 
 # =========================================================
 # 1. Measurement validation (gate)
