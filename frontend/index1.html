@@ -11,24 +11,12 @@
       background: #fafafa;
     }
 
-    h2 {
-      margin-bottom: 6px;
-    }
+    h2 { margin-bottom: 6px; }
+    h3 { margin-top: 32px; margin-bottom: 8px; }
 
-    h3 {
-      margin-top: 32px;
-      margin-bottom: 8px;
-    }
+    p { font-size: 14px; color: #444; }
 
-    p {
-      font-size: 14px;
-      color: #444;
-    }
-
-    input[type="file"] {
-      margin-top: 10px;
-      margin-bottom: 12px;
-    }
+    input[type="file"] { margin-top: 10px; margin-bottom: 12px; }
 
     textarea {
       width: 100%;
@@ -57,19 +45,46 @@
       cursor: pointer;
     }
 
-    .section {
-      margin-top: 26px;
-    }
+    .section { margin-top: 26px; }
+    .hint { font-size: 12px; color: #666; }
 
-    .hint {
-      font-size: 12px;
-      color: #666;
-    }
+    hr { margin-top: 30px; margin-bottom: 30px; }
 
-    hr {
-      margin-top: 30px;
-      margin-bottom: 30px;
+    /* ----- Pretty blocks ----- */
+    .box {
+      background: #f0f0f0;
+      border-left: 4px solid #666;
+      padding: 12px 14px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font-size: 13px;
     }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .muted { color: #666; }
+    .small { font-size: 12px; }
+    .row { margin-top: 6px; }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      background: #fafafa;
+      margin: 2px 4px 2px 0;
+    }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .subttl { margin: 10px 0 4px; font-weight: bold; }
   </style>
 </head>
 
@@ -88,7 +103,7 @@ L0 Data → Measurement Validation → LLM Observation → L1 Coordinate → SJ 
   <h3>Input: Experimental Numeric Data (L0)</h3>
   <input type="file" id="fileInput" />
   <p class="hint">
-    Upload raw numeric experimental data (TXT / CSV).  
+    Upload raw numeric experimental data (TXT / CSV).
     The file content itself is treated as L0 data.
   </p>
 
@@ -119,7 +134,9 @@ L0 Data → Measurement Validation → LLM Observation → L1 Coordinate → SJ 
 
 <div class="section">
   <h3>2.5 Observation Assumptions</h3>
+  <!-- 기존 pre 유지 + 아래에 사람이 읽는 버전도 함께 -->
   <pre id="assumptionLog">(waiting)</pre>
+  <div id="assumptionPretty" class="box" style="margin-top:10px;">(waiting)</div>
 </div>
 
 <div class="section">
@@ -129,14 +146,16 @@ L0 Data → Measurement Validation → LLM Observation → L1 Coordinate → SJ 
 
 <div class="section">
   <h3>4. Scientific Justification Proposals</h3>
+  <!-- 원본 JSON -->
   <pre id="sjLog">(waiting)</pre>
+  <!-- 사람이 읽는 출력 -->
+  <div id="sjPretty" style="margin-top:10px;">(waiting)</div>
 </div>
 
 <div class="section">
   <h3>한글 요약 로그</h3>
   <pre id="koLog">(waiting)</pre>
 </div>
-
 
 <script>
 /* ================= CONFIG ================= */
@@ -145,14 +164,6 @@ const API_URL = "http://localhost:8000/v14/run";
 /* ================= ELEMENTS ================= */
 const fileInput = document.getElementById("fileInput");
 const rawArea = document.getElementById("rawData");
-
-const measurementLog = document.getElementById("measurementLog");
-const patternLog = document.getElementById("patternLog");
-const llmKeywordLog = document.getElementById("llmKeywordLog");
-const l1StateLog = document.getElementById("l1StateLog");
-const sjLog = document.getElementById("sjLog");
-const koLog = document.getElementById("koLog");
-const assumptionLog = document.getElementById("assumptionLog");
 
 /* ================= FILE LOAD ================= */
 fileInput.addEventListener("change", () => {
@@ -166,8 +177,159 @@ fileInput.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
+/* ================= UTIL ================= */
+function safeStringify(x) {
+  try { return JSON.stringify(x, null, 2); }
+  catch (e) { return String(x); }
+}
+
+function isStringArray(x) {
+  return Array.isArray(x) && x.every(v => typeof v === "string");
+}
+
+function asArray(x) {
+  return Array.isArray(x) ? x : (x == null ? [] : [x]);
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function pills(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return "<span class='muted'>(none)</span>";
+  return ids.map(id => `<span class="pill">${escapeHtml(id)}</span>`).join("");
+}
+
+function renderAssumptionsPretty(assumptions) {
+  // 백엔드: ["measurement_assumption.xxx", ...] 또는 [{...}]도 방어
+  if (!assumptions || (Array.isArray(assumptions) && assumptions.length === 0)) {
+    return "(none)";
+  }
+
+  // 가장 흔한 형태: 문자열 ID 리스트
+  if (isStringArray(assumptions)) {
+    return [
+      "Assumptions (IDs):",
+      ...assumptions.map((id, i) => `  ${i+1}. ${id}`)
+    ].join("\n");
+  }
+
+  // 혹시 객체 리스트로 내려오더라도 안전하게 표시
+  if (Array.isArray(assumptions)) {
+    return [
+      "Assumptions (objects):",
+      ...assumptions.map((a, i) => `  ${i+1}. ${safeStringify(a)}`)
+    ].join("\n");
+  }
+
+  // 그 외
+  return safeStringify(assumptions);
+}
+
+function renderSjProposalCard(p, idx) {
+  // p가 null/문자열/etc일 수도 있으니 방어
+  if (!p || typeof p !== "object") {
+    return `
+      <div class="card">
+        <div><b>Proposal #${idx+1}</b></div>
+        <div class="muted small">Non-object proposal:</div>
+        <div class="box">${escapeHtml(safeStringify(p))}</div>
+      </div>
+    `;
+  }
+
+  const claim = p.claim_concept ?? "(no claim_concept)";
+  const mechanismsByRegime = Array.isArray(p.mechanism_by_regime) ? p.mechanism_by_regime : [];
+
+  // 레짐별 메커니즘 HTML
+  const mbrHtml = (mechanismsByRegime.length === 0)
+    ? `<div class="muted">(no mechanism_by_regime)</div>`
+    : mechanismsByRegime.map((mr) => {
+        const regime = (mr && typeof mr === "object") ? (mr.regime ?? "(no regime)") : "(invalid regime)";
+        const mechs = (mr && typeof mr === "object") ? asArray(mr.mechanisms) : [];
+        const mechIds = mechs.filter(x => typeof x === "string");
+        return `
+          <div class="row">
+            <div><b>Regime:</b> <span class="pill">${escapeHtml(regime)}</span></div>
+            <div class="row"><b>Mechanisms:</b> ${pills(mechIds)}</div>
+          </div>
+        `;
+      }).join("");
+
+  // 보조 필드들
+  const meas = isStringArray(p.measurement_conditions) ? p.measurement_conditions : asArray(p.measurement_conditions).filter(x => typeof x === "string");
+  const obs  = isStringArray(p.observed_features) ? p.observed_features : asArray(p.observed_features).filter(x => typeof x === "string");
+  const req  = isStringArray(p.required_features) ? p.required_features : asArray(p.required_features).filter(x => typeof x === "string");
+  const asmp = isStringArray(p.assumptions) ? p.assumptions : asArray(p.assumptions).filter(x => typeof x === "string");
+
+  return `
+    <div class="card">
+      <div><b>Proposal #${idx+1}</b></div>
+
+      <div class="row">
+        <div class="subttl">Claim Concept</div>
+        <div>${escapeHtml(claim)}</div>
+      </div>
+
+      <div class="row">
+        <div class="subttl">Mechanism by Regime</div>
+        ${mbrHtml}
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="subttl">Measurement Conditions</div>
+          <div>${pills(meas)}</div>
+        </div>
+        <div>
+          <div class="subttl">Assumptions</div>
+          <div>${pills(asmp)}</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="subttl">Observed Features</div>
+          <div>${pills(obs)}</div>
+        </div>
+        <div>
+          <div class="subttl">Required Features</div>
+          <div>${pills(req)}</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="subttl">Raw Proposal JSON</div>
+        <div class="box">${escapeHtml(safeStringify(p))}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSjPretty(sjProposals) {
+  const arr = Array.isArray(sjProposals) ? sjProposals : (sjProposals ? [sjProposals] : []);
+  if (arr.length === 0) return `<div class="muted">(none)</div>`;
+  return arr.map((p, idx) => renderSjProposalCard(p, idx)).join("");
+}
+
 /* ================= RUN ENGINE ================= */
 function runEngine() {
+  // clear outputs quickly
+  measurementLog.innerText = "(running...)";
+  patternLog.innerText = "(running...)";
+  llmKeywordLog.innerText = "(running...)";
+  assumptionLog.innerText = "(running...)";
+  document.getElementById("assumptionPretty").innerText = "(running...)";
+  l1StateLog.innerText = "(running...)";
+  sjLog.innerText = "(running...)";
+  document.getElementById("sjPretty").innerHTML = "(running...)";
+  koLog.innerText = "(running...)";
+
   fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -177,8 +339,6 @@ function runEngine() {
   })
   .then(async (res) => {
     const text = await res.text();
-
-    // 🔑 JSON 여부 안전 판별
     try {
       return JSON.parse(text);
     } catch (e) {
@@ -192,35 +352,30 @@ function runEngine() {
     console.log("✅ Engine response:", d);
 
     /* 0. Measurement validation */
-    document.getElementById("measurementLog").innerText =
-      JSON.stringify(d.measurement_validation || {}, null, 2);
+    measurementLog.innerText = safeStringify(d.measurement_validation || {});
 
     /* 1. LLM pattern */
-    document.getElementById("patternLog").innerText =
-      JSON.stringify(d.llm_pattern || "(none)", null, 2);
+    patternLog.innerText = safeStringify(d.llm_pattern || "(none)");
 
     /* 2. LLM keywords */
-    document.getElementById("llmKeywordLog").innerText =
-      JSON.stringify(d.llm_keywords || [], null, 2);
+    llmKeywordLog.innerText = safeStringify(d.llm_keywords || []);
 
-    /* 2.5 Assumptions (optional, safe) */
-    const assumptionLog = document.getElementById("assumptionLog");
-    if (assumptionLog) {
-      assumptionLog.innerText =
-        JSON.stringify(d.assumptions || [], null, 2);
-    }
+    /* 2.5 Assumptions */
+    assumptionLog.innerText = safeStringify(d.assumptions || []);
+    document.getElementById("assumptionPretty").innerText =
+      renderAssumptionsPretty(d.assumptions);
 
     /* 3. L1 state */
-    document.getElementById("l1StateLog").innerText =
-      JSON.stringify(d.l1_state || {}, null, 2);
+    l1StateLog.innerText = safeStringify(d.l1_state || {});
     console.log("L1 State:", d.l1_state || {});
 
     /* 4. SJ proposals */
-    document.getElementById("sjLog").innerText =
-      JSON.stringify(d.sj_proposals || [], null, 2);
+    sjLog.innerText = safeStringify(d.sj_proposals || []);
+    document.getElementById("sjPretty").innerHTML =
+      renderSjPretty(d.sj_proposals);
 
     /* Korean rendered logs */
-    document.getElementById("koLog").innerText =
+    koLog.innerText =
       (d["L1 좌표 요약"] || "") +
       "\n\n" +
       (d["과학적 정당화 제안"] || "");

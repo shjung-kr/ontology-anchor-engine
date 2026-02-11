@@ -20,7 +20,7 @@ ONTOLOGY_DIR = os.path.join(ONTO_BASE, "04_scientific_justification")
 # ✅ assumptions / validation rules 폴더 (프로젝트에 맞게 조정)
 ASSUMPTIONS_DIRS = [
     os.path.join(ONTO_BASE, "03_assumptions"),                 # 권장
-    os.path.join(ONTO_BASE, "02_measurement_validation"),      # rule+assumption 같이 둘 수도 있으면
+    os.path.join(ONTO_BASE, "02_measurement_validations"),      # rule+assumption 같이 둘 수도 있으면
 ]
 MEASUREMENT_RULE_DIR = os.path.join(ONTO_BASE, "02_measurement_validation")
 
