@@ -1,0 +1,18 @@
+{
+  "id": "iv_features.field_enhanced_current",
+  "label": "Field-enhanced current",
+  "description": "High-|V| region shows strong field dependence: large decade change and steep log-log slope.",
+  "criteria": {
+    "source": "infer_iv_features_from_numeric",
+    "rule": "high.delta_decades_robust >= 2.0 AND high.mean_slope_log_absI_per_logV >= 2.0",
+    "inputs": [
+      "regimes[name=high_|V|].delta_decades_robust",
+      "regimes[name=high_|V|].mean_slope_log_absI_per_logV"
+    ]
+  },
+  "example_observed": {
+    "high_delta_decades_robust": 3.7142671614704508,
+    "high_mean_slope_log_absI_per_logV": 6.786017612854363,
+    "decision": "field_enhanced_current (true)"
+  }
+}

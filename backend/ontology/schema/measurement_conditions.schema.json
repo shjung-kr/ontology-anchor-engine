@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Measurement Condition ID Schema",
+  "description": "Enumeration of valid measurement condition identifiers defined in the measurement_conditions lexicon.",
+  "type": "string",
+  "enum": [
+    "measurement_condition.steady_state_dc_iv",
+    "measurement_condition.pulsed_iv",
+    "measurement_condition.sweep_iv"
+  ]
+}

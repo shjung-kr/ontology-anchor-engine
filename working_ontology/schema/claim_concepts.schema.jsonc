@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Claim Concept ID Schema",
+  "type": "string",
+
+  "description": "Enumeration of valid claim concept identifiers defined in the claim_concepts lexicon.",
+
+  "enum": [
+     "iv_interpretation.ohmic_transport",
+            "iv_interpretation.schottky-type",
+            "iv_interpretation.space_charge_limited",
+            "iv_interpretation.direct_tunneling",
+            "iv_interpretation.fn_tunneling_asserted",
+            "iv_interpretation.leakage_dominated",
+            "iv_interpretation.trap_assisted_transport",
+            "iv_interpretation.poole_frenkel_emission",
+            "iv_interpretation.thermionic_emission",
+            "iv_interpretation.hopping_conduction",
+            "iv_interpretation.ionic_conduction",
+            "iv_interpretation.breakdown_conduction",
+            "iv_interpretation.filamentary_conduction",
+            "iv_interpretation.NDR_conduction"
+  ]
+}

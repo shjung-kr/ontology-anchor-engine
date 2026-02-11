@@ -1,0 +1,41 @@
+{
+    "$schema": "../schema/sj.schema.json",
+
+    "scientific_justification": {
+              
+        "claim_concept": "",
+       
+        "measurement_conditions": [
+            "",
+            
+        ],
+
+        "observed_features": [
+            "",
+        ],
+
+        "required_features": [
+            "",
+        ],
+
+        "mechanism_by_regime" : [
+            {
+                "regime" : "",
+                "mechanisms" : [
+                    ""
+                ]
+            },
+            {
+                "regime" : "",
+                "mechanisms" : [
+                    ""
+                ]
+            }
+        ],
+
+        "explanation_notes": {
+            "en": "",
+            "ko" : ""
+        }
+    }
+}

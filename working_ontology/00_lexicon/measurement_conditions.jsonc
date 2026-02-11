@@ -1,0 +1,232 @@
+{ 
+  // Definitions of measurement conditions related to I–V measurements.
+
+  //1. Steady-state DC I–V measurement : 일정 전압값을 인가하여 얻은 전류값
+  "measurement_conditions.steady_state_dc_iv": {
+  "category": "measurement_conditions",
+  "aliases": [
+    "steady state dc iv",
+      "steady-state dc iv",
+      "steady state iv",
+      "steady-state iv",
+      "quasi steady iv",
+      "point by point iv",
+      "point-by-point iv",
+      "dc point measurement",
+      "settling time",
+      "settle time",
+      "dwell time",
+      "delay time",
+      "hold time per step",
+      "integration time",
+      "정상상태 dc iv",
+      "정상상태 iv",
+      "준정상상태 iv",
+      "점별 iv",
+      "포인트 측정 iv",
+      "정착시간",
+      "드웰 타임",
+      "딜레이 타임",
+      "스텝마다 홀드"
+  ],
+  "patterns": [
+    "steady\\s*-?\\s*state\\s*(dc\\s*)?(iv|i\\s*-\\s*v)",
+      "quasi\\s*-?\\s*steady\\s*(iv|i\\s*-\\s*v)",
+      "point\\s*-?\\s*by\\s*-?\\s*point\\s*(iv|i\\s*-\\s*v)",
+      "(settle|settling|dwell|delay|integration)\\s*(time)?",
+      "(hold\\s*time)\\s*(per\\s*(step|point))?",
+      "(정상\\s*상태|준\\s*정상\\s*상태).*(iv|i\\s*-\\s*v)",
+      "(점별|포인트)\\s*(iv|i\\s*-\\s*v)",
+      "(정착\\s*시간|드웰\\s*타임|딜레이\\s*타임)"
+  ],
+  "priority": 90,
+  "negatives":[
+    "pulsed",
+      "pulse",
+      "cv",
+      "c-v",
+      "capacitance",
+      "펄스",
+      "cv",
+      "커패시턴스"
+  ],
+  "note": "DC I-V measured in (quasi) steady-state with settling/dwell/delay per point. Independent of whether a sweep exists."
+  },
+
+  //2. Pulsed I–V measurement : 짧은 펄스 전압을 인가하여 얻은 전류값
+  "measurement_conditions.pulsed_iv": {
+  "category": "measurement_conditions",
+
+  // 사람이/LLM이 흔히 쓰는 표현들
+  "aliases": [
+    "pulsed iv",
+    "pulse iv",
+    "pulsed i-v",
+    "pulse i-v",
+    "iv pulse",
+    "pulse mode iv",
+    "pulse measurement",
+    "pulsed measurement",
+    "pulse train iv",
+    "gate pulse iv",
+    "stress pulse iv",
+    "transient iv (pulsed)",
+    "fast pulse iv",
+
+    "펄스 iv",
+    "펄스 i-v",
+    "펄스 측정",
+    "펄스 모드",
+    "펄스 구동",
+    "펄스 바이어스",
+    "펄스 전압 인가",
+    "펄스 전류 인가",
+    "펄스 트레인",
+    "펄스열",
+    "게이트 펄스",
+    "펄스 스트레스",
+    "과도(iv) 펄스"
+  ],
+
+  // 정규식: 펄스 폭/듀티/주기/주파수 같은 “펄스 파라미터”가 나오면 강하게 매칭
+  "patterns": [
+    // pulsed + iv
+    "\\bpuls(e|ed)\\b.*\\b(iv|i\\s*-\\s*v)\\b",
+    "\\b(iv|i\\s*-\\s*v)\\b.*\\bpuls(e|ed)\\b",
+
+    // pulse mode / pulse measurement
+    "\\bpulse\\b\\s*(mode|measurement|bias|train|driving|drive)?",
+
+    // pulse parameters
+    "(pulse\\s*width|\\bpw\\b|t\\s*on|\\bton\\b|on\\s*time|\\btoff\\b|off\\s*time)",
+    "(duty\\s*cycle|\\bduty\\b)",
+    "(pulse\\s*(period|frequency)|\\bperiod\\b|\\bfreq(uency)?\\b).*pulse",
+
+    // trigger / generator hints
+    "(pulse\\s*generator|function\\s*generator|awg|arbitrary\\s*waveform)",
+
+    // korean pulse keywords
+    "(펄스).*(iv|i\\s*-\\s*v|측정|구동|바이어스|전압|전류)",
+    "(펄스\\s*폭|온\\s*타임|오프\\s*타임|듀티\\s*사이클|펄스\\s*주기|펄스\\s*주파수|펄스\\s*트레인|펄스열)"
+  ],
+
+  // 충돌 시 우선순위
+  "priority": 85,
+
+  // 펄스가 아닌 “연속 DC 스윕/정상상태”로 보이는 표현이 있으면 매칭 약화
+  "negatives": [
+    "steady state",
+    "steady-state",
+    "dc iv (no pulse)",
+    "continuous sweep",
+    "ramp",
+    "smu sweep only",
+    "no pulse",
+    "정상상태",
+    "연속 스윕",
+    "램프",
+    "펄스 아님"
+  ],
+
+  "notes": "I-V measured using voltage/current pulses (pulse width/duty/period specified or implied). Used to reduce self-heating/trapping or probe transient response."
+},
+
+//3. I–V sweep measurement (obtain an I-V curve by sweeping V or I)
+"measurement_conditions.sweep_iv": {
+  "category": "measurement_conditions",
+
+  "aliases": [
+    "iv sweep",
+    "i-v sweep",
+    "sweep iv",
+    "swept iv",
+    "iv curve",
+    "i-v curve",
+    "iv scan",
+    "iv tracing",
+    "trace iv",
+    "sweep measurement",
+    "dc sweep",
+    "smu sweep",
+    "voltage sweep",
+    "v sweep",
+    "current sweep",
+    "i sweep",
+    "ramp iv",
+    "stepped iv",
+    "step sweep",
+    "step sweep iv",
+    "sweep from -10v to 5v",
+    "forward sweep",
+    "reverse sweep",
+
+    "iv 스윕",
+    "i-v 스윕",
+    "스윕 iv",
+    "iv 커브",
+    "i-v 커브",
+    "iv 곡선",
+    "스윕 측정",
+    "스캔 측정",
+    "트레이싱",
+    "램프 측정",
+    "스텝 스윕",
+    "전압 스윕",
+    "전류 스윕",
+    "-10v에서 5v까지 스윕",
+    "정방향 스윕",
+    "역방향 스윕"
+  ],
+
+  "patterns": [
+    // explicit IV sweep / scan / tracing
+    "\\b(i\\s*-\\s*v|iv)\\b\\s*(sweep|scan|trace|tracing)",
+    "(sweep|scan|trace|tracing)\\s*\\b(i\\s*-\\s*v|iv)\\b",
+
+    // voltage/current sweep language
+    "(voltage|v)\\s*(sweep|ramp|scan)",
+    "(current|i)\\s*(sweep|scan)",
+
+    // stepped/step sweep
+    "(step|stepped)\\s*(sweep|scan)",
+    "step\\s*size|v\\s*step|i\\s*step",
+
+    // range forms: from -10 V to 5 V
+    "sweep\\s*(from|start).*\\s*(to|stop).*\\s*[-+]?\\d+(\\.\\d+)?\\s*V",
+    "[-+]?\\d+(\\.\\d+)?\\s*V\\s*(to|~|∼|-)\\s*[-+]?\\d+(\\.\\d+)?\\s*V",
+
+    // korean
+    "(IV|I\\s*-\\s*V)\\s*(스윕|스캔|트레이싱|커브|곡선)",
+    "(전압|전류)\\s*(스윕|램프|스캔|스텝)",
+    "(-?\\d+(\\.\\d+)?\\s*V)\\s*(에서|부터).*(까지).*스윕"
+  ],
+
+  "priority": 80,
+
+  "negatives": [
+    // do NOT confuse with fixed-bias (I@V) or hold-only tests
+    "constant voltage",
+    "fixed voltage",
+    "voltage hold",
+    "constant current",
+    "current hold",
+    "i@v",
+    "current at v",
+    "전압 고정",
+    "고정 전압",
+    "홀드",
+    "전류 고정",
+    "i@v",
+    "전류만 측정",
+
+    // do NOT confuse with CV
+    "cv",
+    "c-v",
+    "capacitance",
+    "커패시턴스",
+    "cv 측정"
+  ],
+
+  "notes": "Protocol tag for obtaining an I-V curve by sweeping stimulus (V or I). Does NOT imply forward/reverse; those should be separate tags or inferred from data segments."
+  }
+}

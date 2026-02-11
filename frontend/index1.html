@@ -189,6 +189,8 @@ function runEngine() {
   })
   .then((d) => {
 
+    console.log("✅ Engine response:", d);
+
     /* 0. Measurement validation */
     document.getElementById("measurementLog").innerText =
       JSON.stringify(d.measurement_validation || {}, null, 2);
@@ -211,6 +213,7 @@ function runEngine() {
     /* 3. L1 state */
     document.getElementById("l1StateLog").innerText =
       JSON.stringify(d.l1_state || {}, null, 2);
+    console.log("L1 State:", d.l1_state || {});
 
     /* 4. SJ proposals */
     document.getElementById("sjLog").innerText =

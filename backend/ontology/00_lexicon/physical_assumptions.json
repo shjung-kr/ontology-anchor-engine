@@ -1,0 +1,79 @@
+{
+  "physical_assumption.room_temperature_operation": {
+    "category": "physical_assumption",
+    "labels": {
+      "en": "Room-temperature operation",
+      "ko": "상온 동작 가정"
+    },
+    "definition": {
+      "en": "An assumption that the device operates near room temperature such that thermal equilibrium conditions apply and no extreme cryogenic or high-temperature effects dominate the transport behavior.",
+      "ko": "소자가 상온 근처에서 동작하여 열적 평형 조건이 성립하며 극저온 또는 고온 효과가 수송 거동을 지배하지 않는다고 가정하는 전제."
+    }
+  },
+  "physical_assumption.intrinsic_material_transport_dominant": {
+    "category": "physical_assumption",
+    "labels": {
+      "en": "Intrinsic material transport dominant",
+      "ko": "재료 고유 수송 지배 가정"
+    },
+    "definition": {
+      "en": "An assumption that the observed current is primarily governed by intrinsic transport mechanisms of the material rather than extrinsic artifacts such as measurement circuitry or parasitic leakage paths.",
+      "ko": "관측된 전류가 측정 회로나 기생 누설 경로와 같은 외부 인공 요소가 아닌 재료의 고유 수송 메커니즘에 의해 주로 지배된다고 가정하는 전제."
+    }
+  },
+  "physical_assumption.effective_potential_barrier_present": {
+    "category": "physical_assumption",
+    "labels": {
+      "en": "Presence of an effective potential barrier",
+      "ko": "유효 퍼텐셜 장벽 존재 가정"
+    },
+    "definition": {
+      "en": "An assumption that an effective potential barrier exists at interfaces or contacts, enabling barrier-controlled transport mechanisms such as Schottky emission, thermionic emission, or tunneling to be considered.",
+      "ko": "계면 또는 접촉부에 유효한 퍼텐셜 장벽이 존재하여 쇼트키 방출, 열전자 방출, 터널링과 같은 장벽 지배 수송 메커니즘을 고려할 수 있다고 가정하는 전제."
+    }
+  },
+  "physical_assumption.single_dominant_transport_mechanism": {
+    "category": "physical_assumption",
+    "labels": {
+      "en": "Single dominant transport mechanism",
+      "ko": "단일 지배 수송 메커니즘 가정"
+    },
+    "definition": {
+      "en": "An assumption that a single transport mechanism dominates the I–V behavior within a given voltage regime, allowing alternative mechanisms to be treated as secondary effects.",
+      "ko": "특정 전압 구간 내에서 하나의 수송 메커니즘이 I–V 거동을 지배하며, 다른 메커니즘들은 부차적인 효과로 취급할 수 있다고 가정하는 전제."
+    }
+  },
+  "physical_assumption.negligible_self_heating": {
+    "category": "physical_assumption",
+    "labels": {
+      "en": "Negligible self-heating effects",
+      "ko": "자가 발열 무시 가능 가정"
+    },
+    "definition": {
+      "en": "An assumption that Joule heating and self-heating effects are sufficiently small so that the measured I–V characteristics reflect intrinsic transport behavior rather than thermally induced artifacts.",
+      "ko": "줄 발열 및 자가 발열 효과가 충분히 작아 측정된 I–V 특성이 열적 인공 효과가 아닌 본질적인 수송 거동을 반영한다고 가정하는 전제."
+    }
+  },
+  "physical_assumption.uniform_current_distribution": {
+    "category": "physical_assumption",
+    "labels": {
+      "en": "Uniform current distribution",
+      "ko": "균일한 전류 분포 가정"
+    },
+    "definition": {
+      "en": "An assumption that current is distributed approximately uniformly across the active device area, except in cases explicitly interpreted as filamentary or localized conduction.",
+      "ko": "필라멘터리 또는 국소 전도로 명시적으로 해석되는 경우를 제외하고, 활성 소자 영역 전반에 걸쳐 전류가 대체로 균일하게 분포한다고 가정하는 전제."
+    }
+  },
+  "physical_assumption.steady_state_transport": {
+    "category": "physical_assumption",
+    "labels": {
+      "en": "Steady-state transport condition",
+      "ko": "정상상태 수송 가정"
+    },
+    "definition": {
+      "en": "An assumption that the I–V measurements represent steady-state transport behavior, with transient, capacitive, or time-dependent effects being negligible.",
+      "ko": "I–V 측정이 과도, 용량성, 시간 의존 효과가 무시될 수 있는 정상상태 수송 거동을 반영한다고 가정하는 전제."
+    }
+  }
+}

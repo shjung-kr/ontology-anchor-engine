@@ -1,0 +1,185 @@
+{
+  "version": "1.0",
+  "items": [
+    {
+      "id": "measurement_assumption.current_noise_floor_present",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Current noise floor may be present",
+        "ko": "전류 노이즈 플로어 존재 가능 가정"
+      },
+      "definition": {
+        "en": "Assume that very small measured currents may be influenced by the instrument noise floor or measurement resolution limits, potentially distorting low-current behavior.",
+        "ko": "아주 작은 전류 값이 계측기 노이즈 플로어 또는 분해능 한계의 영향을 받아 저전류 구간 거동이 왜곡될 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "measurement_assumption.compliance_or_clamp_may_limit_current",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Compliance or clamp may limit current",
+        "ko": "컴플라이언스/클램프에 의한 전류 제한 가능 가정"
+      },
+      "definition": {
+        "en": "Assume that current compliance settings or instrument clamping may cap the current, creating artificial saturation or regime changes in the I–V curve.",
+        "ko": "전류 컴플라이언스 설정 또는 클램프 동작으로 전류가 인위적으로 제한되어 I–V 곡선에서 가짜 포화/레짐 변화가 나타날 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "measurement_assumption.series_resistance_may_distort_high_bias",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Series resistance may distort high-bias region",
+        "ko": "직렬저항이 고바이어스 구간을 왜곡할 수 있다는 가정"
+      },
+      "definition": {
+        "en": "Assume that contact/lead/device series resistance may become significant at high bias, altering the apparent slope and masking intrinsic transport behavior.",
+        "ko": "접촉/리드/소자 직렬저항이 고바이어스에서 커져 기울기를 바꾸고 본질적인 수송 거동을 가릴 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "measurement_assumption.parasitic_leakage_paths_may_exist",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Parasitic leakage paths may exist",
+        "ko": "기생 누설 경로 존재 가능 가정"
+      },
+      "definition": {
+        "en": "Assume that unintended leakage paths (edge leakage, surface conduction, pinholes) may contribute to measured current, especially in low-current regimes.",
+        "ko": "엣지 누설/표면 전도/핀홀 등 의도치 않은 누설 경로가 특히 저전류 구간에서 측정 전류에 기여할 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "measurement_assumption.transient_or_capacitive_current_may_contribute",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Transient or capacitive current may contribute",
+        "ko": "과도/용량성 전류 기여 가능 가정"
+      },
+      "definition": {
+        "en": "Assume that transient, displacement, or capacitive effects may contribute to measured current if the sweep rate or settling time is insufficient.",
+        "ko": "스윕 속도 또는 안정화 시간이 충분하지 않으면 과도/변위/용량성 효과가 측정 전류에 섞일 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "measurement_assumption.hysteresis_or_time_dependence_may_be_present",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Hysteresis or time dependence may be present",
+        "ko": "히스테리시스/시간 의존성 존재 가능 가정"
+      },
+      "definition": {
+        "en": "Assume that trap charging/discharging or ionic motion may cause hysteresis or time-dependent drift, making I–V non-unique for the same voltage.",
+        "ko": "트랩 충방전 또는 이온 이동 등으로 히스테리시스/시간 의존 드리프트가 발생해 같은 전압에서 I–V가 유일하지 않을 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "physical_assumption.effective_potential_barrier_present",
+      "category": "physical_assumption",
+      "labels": {
+        "en": "Presence of an effective potential barrier",
+        "ko": "유효 퍼텐셜 장벽 존재 가정"
+      },
+      "definition": {
+        "en": "Assume an effective potential barrier exists at an interface/contact, enabling barrier-controlled transport mechanisms such as tunneling to be considered.",
+        "ko": "계면/접촉부에 유효 퍼텐셜 장벽이 존재하여 터널링 등 장벽 지배 수송 메커니즘을 고려할 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "fn_assumption.high_field_barrier_thinning_applies",
+      "category": "fn_assumption",
+      "labels": {
+        "en": "High-field barrier thinning applies",
+        "ko": "고전계 장벽 박화(얇아짐) 적용 가정"
+      },
+      "definition": {
+        "en": "Assume that sufficiently high electric field tilts and thins the barrier so that field-emission (Fowler–Nordheim-like) tunneling becomes a plausible transport mechanism.",
+        "ko": "충분히 높은 전계가 장벽을 기울이고 얇게 만들어 장방출(포울러-노르드하임 유사) 터널링이 가능한 메커니즘이 된다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "fn_assumption.field_estimation_e_equals_v_over_t",
+      "category": "fn_assumption",
+      "labels": {
+        "en": "Field estimation E≈V/t is acceptable",
+        "ko": "전계 E≈V/t 근사 가능 가정"
+      },
+      "definition": {
+        "en": "Assume the effective electric field can be approximated from applied voltage and an effective thickness (E≈V/t), ignoring strong non-uniform field distribution.",
+        "ko": "강한 비균일 전계 분포를 무시하고 유효 두께 t를 사용해 전계를 E≈V/t로 근사할 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "fn_assumption.field_enhancement_factor_beta_effectively_constant",
+      "category": "fn_assumption",
+      "labels": {
+        "en": "Field enhancement factor β is effectively constant",
+        "ko": "필드 증강계수 β가 유효 구간에서 상수라는 가정"
+      },
+      "definition": {
+        "en": "Assume a single effective field enhancement factor β can represent local field concentration over the analyzed voltage regime.",
+        "ko": "분석 전압 구간에서 국부 전계 집중을 하나의 유효 β로 대표할 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "fn_assumption.barrier_height_and_effective_mass_representable",
+      "category": "fn_assumption",
+      "labels": {
+        "en": "Barrier height and effective mass are representable",
+        "ko": "장벽 높이/유효질량을 대표값으로 둘 수 있다는 가정"
+      },
+      "definition": {
+        "en": "Assume the barrier height (φ) and effective mass (m*) can be treated as effective constants for fitting/interpretation within the regime.",
+        "ko": "해당 구간에서 피팅/해석을 위해 장벽 높이 φ와 유효질량 m*를 유효 상수(대표값)로 취급할 수 있다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "fn_assumption.fn_plot_linearity_indicates_dominant_fn_like_mechanism",
+      "category": "fn_assumption",
+      "labels": {
+        "en": "FN-plot linearity implies dominant FN-like mechanism",
+        "ko": "FN 플롯 선형성이 FN 유사 지배 메커니즘을 시사한다는 가정"
+      },
+      "definition": {
+        "en": "Assume that approximate linearity in a Fowler–Nordheim-style plot supports FN-like tunneling dominance in that regime, treating alternatives as secondary unless contradicted.",
+        "ko": "포울러-노르드하임 플롯에서의 근사적 선형성이 해당 구간에서 FN 유사 터널링 지배를 지지하며, 반증이 없으면 대안 메커니즘은 부차적이라고 가정하는 전제."
+      }
+    },
+    {
+      "id": "fn_assumption.negligible_self_heating_in_fn_regime",
+      "category": "fn_assumption",
+      "labels": {
+        "en": "Self-heating is negligible in FN regime",
+        "ko": "FN 구간에서 자가발열 무시 가능 가정"
+      },
+      "definition": {
+        "en": "Assume Joule heating does not significantly alter the local temperature or transport parameters in the analyzed high-field regime.",
+        "ko": "분석하는 고전계 구간에서 줄 발열이 국부 온도나 수송 파라미터를 유의미하게 바꾸지 않는다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "fn_assumption.trap_assisted_contributions_are_minor_or_separable",
+      "category": "fn_assumption",
+      "labels": {
+        "en": "Trap-assisted contributions are minor or separable",
+        "ko": "트랩 보조 성분이 작거나 분리 가능하다는 가정"
+      },
+      "definition": {
+        "en": "Assume trap-assisted tunneling or charge trapping effects are minor, or can be separated from the FN-like contribution within the regime of interest.",
+        "ko": "관심 구간에서 트랩 보조 터널링(TAT) 또는 트랩핑 효과가 작거나 FN 유사 성분과 분리 가능하다고 가정하는 전제."
+      }
+    },
+    {
+      "id": "fn_assumption.uniform_current_distribution_or_area_effective_constant",
+      "category": "fn_assumption",
+      "labels": {
+        "en": "Current distribution is uniform or effective area is constant",
+        "ko": "전류 분포가 균일하거나 유효 면적이 일정하다는 가정"
+      },
+      "definition": {
+        "en": "Assume the effective emission/conduction area does not change dramatically with bias, avoiding strong filamentary switching within the analyzed regime.",
+        "ko": "분석 구간에서 유효 방출/전도 면적이 바이어스에 따라 급격히 변하지 않아(강한 필라멘트 스위칭이 없어) 해석이 가능하다고 가정하는 전제."
+      }
+    }
+  ]
+}

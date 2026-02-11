@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IV Feature ID Schema",
+  "description": "Enumeration of valid I–V feature identifiers defined in the iv_features lexicon.",
+  "type": "string",
+
+  "enum": [
+    "iv_features.sublinear_iv_regime",
+    "iv_features.linear_iv_regime",
+    "iv_features.nonlinear_iv_regime",
+    "iv_features.exponential_iv_regime",
+    "iv_features.superlinear_iv_transition",
+    "iv_features.high_slope_iv_regime",
+    "iv_features.negative_differential_resistance",
+    "iv_features.field_enhanced_current",
+    "iv_features.constant_conductance_behavior"
+  ]
+}

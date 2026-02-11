@@ -1,0 +1,359 @@
+{
+   
+  "iv_features.sublinear_iv_regime": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Sublinear I–V regime",
+      "ko": "준선형 이하 I–V 구간"
+    },
+
+    "definition": {
+      "en": "An I–V regime in which the increase in current is sublinear with respect to the applied voltage, corresponding to a small first derivative dI/dV over the observed range.",
+      "ko": "관측된 구간에서 전압 증가에 비해 전류 증가가 선형보다 느리게 나타나는 I–V 구간으로, dI/dV가 작게 유지되는 특성을 보임."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "sublinear",
+      "first_derivative": "low",
+      "second_derivative": "approximately_zero_or_negative"
+    }
+  },
+
+
+  "iv_features.linear_iv_regime": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Linear I–V regime",
+      "ko": "선형 I–V 구간"
+    },
+
+    "definition": {
+      "en": "An I–V regime characterized by an approximately linear relationship between current and voltage, corresponding to a nearly constant first derivative dI/dV.",
+      "ko": "전류와 전압이 거의 선형 관계를 이루는 I–V 구간으로, dI/dV가 거의 일정하게 유지되는 특성을 보임."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "linear",
+      "first_derivative": "constant",
+      "second_derivative": "approximately_zero"
+    }
+  },
+
+
+  "iv_features.nonlinear_iv_regime": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Nonlinear I–V regime",
+      "ko": "비선형 I–V 구간"
+    },
+
+    "definition": {
+      "en": "An I–V regime in which the relationship between current and voltage is nonlinear, indicated by a varying first derivative dI/dV over the observed range.",
+      "ko": "관측된 구간에서 전류와 전압 사이의 관계가 비선형적으로 나타나는 I–V 구간으로, dI/dV가 변화하는 특성을 보임."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "nonlinear",
+      "first_derivative": "varying",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.exponential_iv_regime": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Exponential I–V regime",
+      "ko": "지수적 I–V 구간"
+    },
+
+    "definition": {
+      "en": "An I–V regime in which the current increases exponentially with applied voltage, corresponding to a rapidly increasing first derivative and a positive second derivative.",
+      "ko": "전압 증가에 따라 전류가 지수적으로 증가하는 I–V 구간으로, dI/dV가 빠르게 증가하며 d²I/dV²가 양의 값을 가지는 특성을 보임."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "exponential",
+      "first_derivative": "increasing",
+      "second_derivative": "positive"
+    }
+  },
+
+
+  "iv_features.superlinear_iv_transition": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Superlinear I–V transition",
+      "ko": "초선형 I–V 전이 구간"
+    },
+
+    "definition": {
+      "en": "A transition region in which the current increases faster than linearly with voltage, characterized by a rapidly increasing slope over a narrow voltage range.",
+      "ko": "좁은 전압 범위에서 전류 증가율이 선형을 초과하며 기울기가 급격히 커지는 I–V 전이 구간."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "superlinear",
+      "first_derivative": "rapidly_increasing",
+      "second_derivative": "positive_and_large"
+    }
+  },
+
+
+  "iv_features.high_slope_iv_regime": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "High-slope I–V regime",
+      "ko": "고기울기 I–V 구간"
+    },
+
+    "definition": {
+      "en": "An I–V regime characterized by a very large first derivative dI/dV, indicating strong current response to small changes in applied voltage.",
+      "ko": "작은 전압 변화에도 전류가 크게 반응하는 매우 큰 dI/dV를 특징으로 하는 I–V 구간."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "steep",
+      "first_derivative": "very_large",
+      "second_derivative": "context_dependent"
+    }
+    
+  },
+
+  
+  "iv_features.negative_differential_resistance": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Negative differential resistance (NDR)",
+      "ko": "음의 미분 저항 (NDR)"
+    },
+
+    "definition": {
+      "en": "An I–V behavior in which the current decreases with increasing applied voltage over a finite voltage range, corresponding to a negative first derivative dI/dV.",
+      "ko": "일정 전압 구간에서 전압이 증가함에도 불구하고 전류가 감소하는 I–V 거동으로, dI/dV가 음의 값을 가지는 특성."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "non_monotonic",
+      "first_derivative": "negative",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.rectifying_iv_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Rectifying I–V behavior",
+      "ko": "정류성 I–V 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where current flows preferentially in one direction, resulting in asymmetric current response for positive and negative applied voltages.",
+      "ko": "한 방향으로 전류가 우선적으로 흐르며, 양의 전압과 음의 전압에 대해 비대칭적인 전류 반응을 나타내는 I–V 거동."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "asymmetric",
+      "first_derivative": "direction_dependent",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.hysteretic_iv_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Hysteretic I–V behavior",
+      "ko": "히스테리시스 I–V 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where the current response depends on the history of applied voltage, resulting in different current values for increasing and decreasing voltage sweeps.",
+      "ko": "전압의 이력에 따라 전류 반응이 달라지며, 전압 상승 및 하강 시 서로 다른 전류 값을 나타내는 I–V 거동."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "history_dependent",
+      "first_derivative": "path_dependent",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.temperature_dependent_iv_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Temperature-dependent I–V behavior",
+      "ko": "온도 의존적 I–V 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where the current response varies significantly with temperature, indicating thermally activated transport mechanisms.",
+      "ko": "온도에 따라 전류 반응이 크게 달라지며, 열 활성화된 수송 메커니즘을 나타내는 I–V 거동."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "temperature_sensitive",
+      "first_derivative": "temperature_dependent",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.noise_dominated_iv_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Noise-dominated I–V behavior",
+      "ko": "잡음 지배적 I–V 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where the current response is significantly affected by electrical noise, leading to fluctuations that obscure the underlying transport characteristics.",
+      "ko": "전기적 잡음에 의해 전류 반응이 크게 영향을 받아, 기본적인 수송 특성을 가리는 변동이 나타나는 I–V 거동."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "noise_influenced",
+      "first_derivative": "fluctuating",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.leakage_current_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Leakage current behavior",
+      "ko": "누설 전류 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior characterized by a small but non-negligible current flow at low applied voltages, often due to defects or impurities in the material.",
+      "ko": "낮은 전압에서 작지만 무시할 수 없는 전류 흐름이 나타나는 I–V 거동으로, 종종 재료 내 결함이나 불순물로 인해 발생함."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "low_level_current",
+      "first_derivative": "small_but_nonzero",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.persistent_photoconductivity_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Persistent photoconductivity behavior",
+      "ko": "지속성 광전도 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where the current remains elevated for an extended period after exposure to light, indicating long-lived photo-generated charge carriers.",
+      "ko": "빛에 노출된 후 오랜 기간 동안 전류가 상승 상태를 유지하는 I–V 거동으로, 장기간 존재하는 광생성 전하 운반자를 나타냄."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "light_sensitive",
+      "first_derivative": "time_dependent",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.temperature_independent_iv_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Temperature-independent I–V behavior",
+      "ko": "온도 비의존적 I–V 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where the current response shows minimal variation with temperature changes, suggesting transport mechanisms that are not thermally activated.",
+      "ko": "온도 변화에 따른 전류 반응이 거의 변하지 않는 I–V 거동으로, 열 활성화되지 않은 수송 메커니즘을 시사함."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "temperature_insensitive",
+      "first_derivative": "temperature_independent",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.poorly_defined_iv_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Poorly defined I–V behavior",
+      "ko": "명확하지 않은 I–V 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where the current response cannot be clearly characterized due to irregularities, inconsistencies, or lack of reproducibility in the measurements.",
+      "ko": "측정에서 불규칙성, 일관성 부족 또는 재현성 부족으로 인해 전류 반응을 명확하게 특성화할 수 없는 I–V 거동."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "irregular",
+      "first_derivative": "inconsistent",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.field_enhanced_current":{
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Field-enhanced current",
+      "ko": "전계 강화 전류"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where the current increases significantly with increasing electric field, often due to mechanisms such as tunneling or field-assisted emission.",
+      "ko": "전기장이 증가함에 따라 전류가 크게 증가하는 I–V 거동으로, 터널링 또는 전계 보조 방출과 같은 메커니즘에 기인함."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "field_sensitive",
+      "first_derivative": "increasing_with_field",
+      "second_derivative": "context_dependent"
+    }
+  },
+
+
+  "iv_features.constant_conductance_behavior": {
+    "category": "iv_features",
+
+    "labels": {
+      "en": "Constant conductance behavior",
+      "ko": "일정 전도도 거동"
+    },
+
+    "definition": {
+      "en": "An I–V behavior where the conductance (dI/dV) remains constant over a range of applied voltages, indicating ohmic-like transport characteristics.",
+      "ko": "일정 전압 범위에서 전도도(dI/dV)가 일정하게 유지되는 I–V 거동으로, 옴의 법칙과 유사한 수송 특성을 나타냄."
+    },
+
+    "mathematical_characteristics": {
+      "current_voltage_relation": "ohmic_like",
+      "first_derivative": "constant",
+      "second_derivative": "approximately_zero"
+    }
+  }
+}

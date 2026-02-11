@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Physical Assumption ID Schema",
+  "type": "string",
+  "enum": [
+    "physical_assumptions.room_temperature_operation",
+    "physical_assumptions.intrinsic_material_transport_dominant",
+    "physical_assumptions.effective_potential_barrier_present",
+    "physical_assumptions.single_dominant_transport_mechanism",
+    "physical_assumptions.negligible_self_heating",
+    "physical_assumptions.uniform_current_distribution",
+    "physical_assumptions.steady_state_transport"
+  ]
+}

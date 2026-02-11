@@ -137,7 +137,7 @@ function runEngine() {
     output += "Numeric data has been observed.\n\n";
 
     output += "L1 coordinate state:\n";
-    output += JSON.stringify(d.l1_state || {}, null, 2) + "\n\n";
+    output += JSON.stringify(d || {}, null, 2) + "\n\n";
 
     output += "Observation assumptions (proposed):\n";
     if ((d.assumptions || []).length === 0) {

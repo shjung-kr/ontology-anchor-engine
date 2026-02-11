@@ -1,0 +1,19 @@
+{
+  "id": "iv_features.nonlinear_iv_regime",
+  "label": "Nonlinear I-V regime",
+  "description": "I-V behavior is considered nonlinear when log-log slope differs significantly from ~1.",
+  "criteria": {
+    "source": "infer_iv_features_from_numeric",
+    "rule": "slope_ref >= 1.20",
+    "slope_ref_definition": "Prefer low_|V| slope if available, else high_|V| slope",
+    "inputs": [
+      "regimes[*].mean_slope_log_absI_per_logV"
+    ]
+  },
+  "example_observed": {
+    "low_mean_slope_log_absI_per_logV": 1.539538710748374,
+    "high_mean_slope_log_absI_per_logV": 6.786017612854363,
+    "selected_slope_ref": 1.539538710748374,
+    "decision": "nonlinear (>=1.20)"
+  }
+}

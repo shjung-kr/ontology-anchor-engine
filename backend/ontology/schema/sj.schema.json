@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Scientific Justification Schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "sj_id": {
+      "type": "string"
+    },
+    "scientific_justification": {
+      "type": "object",
+      "properties": {
+        "claim_concept": {
+          "$ref": "./claim_concepts.schema.json"
+        },
+        "measurement_conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "./measurement_conditions.schema.json"
+          }
+        },
+        "observed_features": {
+          "type": "array",
+          "items": {
+            "$ref": "./iv_features.schema.json"
+          }
+        },
+        "required_features": {
+          "type": "array",
+          "items": {
+            "$ref": "./iv_features.schema.json"
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "$ref": "./physical_assumptions.schema.json"
+          }
+        },
+        "mechanism_by_regime": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "regime": {
+                "type": "string"
+              },
+              "mechanisms": {
+                "type": "array",
+                "items": {
+                  "$ref": "./electrical_mechanisms.schema.json"
+                }
+              }
+            },
+            "required": [
+              "regime",
+              "mechanisms"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "explanation_notes": {
+          "type": "object",
+          "properties": {
+            "en": {
+              "type": "string"
+            },
+            "ko": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "claim_concept"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "scientific_justification"
+  ],
+  "additionalProperties": false
+}

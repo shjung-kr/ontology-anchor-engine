@@ -1,0 +1,109 @@
+{
+  "version": "1.0.0",
+  "namespace": "measurement_validations",
+
+  "global": {
+    "min_points": 20,
+    "max_nan_ratio": 0.05,
+    "min_unique_v_points": 5,
+    "min_unique_i_points": 5
+  },
+
+  "rules": [
+    // =========================================================
+    // 0) Common gates (always apply)
+    // =========================================================
+    {
+      "id": "validation.common.basic_integrity",
+      "applies_to": ["*"],
+      "level": "error",
+      "checks": [
+        { "fn": "min_points", "field": "V", "min": 20 },
+        { "fn": "max_nan_ratio", "fields": ["V", "I"], "max": 0.05 },
+        { "fn": "finite_ratio", "fields": ["V", "I"], "min": 0.99 }
+      ],
+      "on_fail": {
+        "reason": "Data integrity is insufficient (too few points / too many NaN or inf).",
+        "suggestion": "Check parsing, headers, and export settings; ensure V and I columns are numeric and dense."
+      }
+    },
+
+    {
+      "id": "validation.common.dynamic_range",
+      "applies_to": ["*"],
+      "level": "warn",
+      "checks": [
+        { "fn": "not_all_equal", "field": "V" },
+        { "fn": "not_all_equal", "field": "I" }
+      ],
+      "on_fail": {
+        "reason": "Signal appears constant (no sweep/variation) or clipped.",
+        "suggestion": "Verify measurement actually varied bias or that compliance/clipping did not flatten current."
+      }
+    },
+
+    // =========================================================
+    // 1) sweep_iv gates
+    // =========================================================
+    {
+      "id": "validation.sweep_iv.has_sweep",
+      "applies_to": ["measurement_conditions.sweep_iv"],
+      "level": "error",
+      "checks": [
+        { "fn": "min_unique", "field": "V", "min": 5 }
+      ],
+      "on_fail": {
+        "reason": "sweep_iv requires V to change across multiple points.",
+        "suggestion": "If you applied a fixed voltage and only read current, use measurement_conditions.constant_voltage_dc_current instead."
+      },
+      "emitted_assumptions": [
+                            "measurement_assumption.current_noise_floor_present"
+                          ]
+    },
+
+    {
+      "id": "validation.sweep_iv.monotonic_or_segmented",
+      "applies_to": ["measurement_conditions.sweep_iv"],
+      "level": "info",
+      "checks": [
+        { "fn": "classify_sweep_monotonicity", "field": "V" }
+      ],
+      "on_pass": {
+        "emit": ["sweep_profile"] // e.g., forward_only / reverse_only / bidirectional / nonmonotonic
+      },
+      "notes": "Not a strict failure; used to annotate sweep profile."
+    },
+
+    // =========================================================
+    // 2) steady_state_dc_iv gates (meta-driven, weak data-only)
+    // =========================================================
+    {
+      "id": "validation.steady_state.meta_present",
+      "applies_to": ["measurement_conditions.steady_state_dc_iv"],
+      "level": "warn",
+      "checks": [
+        { "fn": "metadata_any_present", "keys": ["dwell_time", "settling_time", "delay_time", "integration_time"] }
+      ],
+      "on_fail": {
+        "reason": "Steady-state cannot be reliably validated from V-I arrays alone without dwell/settle metadata.",
+        "suggestion": "Add dwell/settle time in metadata. If unknown, keep the tag but mark confidence low."
+      }
+    },
+
+    // =========================================================
+    // 3) pulsed_iv gates (meta-driven)
+    // =========================================================
+    {
+      "id": "validation.pulsed.meta_present",
+      "applies_to": ["measurement_conditions.pulsed_iv"],
+      "level": "warn",
+      "checks": [
+        { "fn": "metadata_any_present", "keys": ["pulse_width", "duty_cycle", "pulse_period", "pulse_frequency"] }
+      ],
+      "on_fail": {
+        "reason": "Pulsed I-V is best validated with pulse parameter metadata (width/duty/period).",
+        "suggestion": "Attach pulse parameters; otherwise treat pulsed_iv as user-asserted (low confidence)."
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+    "$schema": "../schema/sj.schema.json",
+
+    "scientific_justification": {
+              
+        "claim_concept": "iv_interpretation.ohmic_transport",
+       
+        "measurement_conditions": [
+            "measurement_condition.forward_bias",
+            "measurement_condition.steady_state_dc_iv"
+        ],
+
+        "observed_features": [
+            "iv_features.linear_iv_regime",
+            "iv_features.constant_conductance_behavior"
+        ],
+
+        "required_features": [
+            "iv_features.linear_iv_regime"
+        ],
+
+        "mechanism_by_regime" : [
+            {
+                "regime" : "iv_regimes.low_field_regime",
+                "mechanisms" : [
+                    "electrical_mechanism.bulk_transport_mechanism"
+                ]
+            }
+            
+        ],
+
+        "explanation_notes": {
+            "en": "Under steady-state DC measurement conditions at room temperature, the I–V transport is interpreted as ohmic in both the low- and high-voltage regimes, as evidenced by a linear I–V relationship whose slope corresponds to a constant electrical resistance of the device.",
+            "ko" : "상온에서 수행된 정상 상태 DC 측정 조건 하에서, 저전압 및 고전압 영역 모두에서 I–V 수송은 소자의 전기적 저항이 일정함을 의미하는 선형적인 I–V 관계가 관찰됨에 따라 옴의 법칙에 지배되는 거동으로 해석된다."
+        }
+    }
+}
