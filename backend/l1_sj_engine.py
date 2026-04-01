@@ -17,12 +17,13 @@ IV_REGIMES_DIR = os.path.join(ONTO_BASE, "01_iv_regimes")
 IV_FEATURES_DIR = os.path.join(ONTO_BASE, "02_iv_features")
 ONTOLOGY_DIR = os.path.join(ONTO_BASE, "04_scientific_justification")
 
-# ✅ assumptions / validation rules 폴더 (프로젝트에 맞게 조정)
+# ✅ assumptions / validation rules 폴더
 ASSUMPTIONS_DIRS = [
-    os.path.join(ONTO_BASE, "03_assumptions"),                 # 권장
-    os.path.join(ONTO_BASE, "02_measurement_validations"),      # rule+assumption 같이 둘 수도 있으면
+    os.path.join(ONTO_BASE, "00_lexicon"),
+    os.path.join(ONTO_BASE, "03_assumptions"),
+    os.path.join(ONTO_BASE, "02_measurement_validations"),
 ]
-MEASUREMENT_RULE_DIR = os.path.join(ONTO_BASE, "02_measurement_validation")
+MEASUREMENT_RULE_DIR = os.path.join(ONTO_BASE, "02_measurement_validations")
 
 # =========================================================
 # 0) Helpers
@@ -54,6 +55,69 @@ def _load_json_files(dir_path: str) -> List[Tuple[str, Dict[str, Any]]]:
         except Exception:
             continue
     return out
+
+
+def _extract_statement_from_definition(obj: Dict[str, Any]) -> Optional[str]:
+    statement = obj.get("statement")
+    if isinstance(statement, str) and statement.strip():
+        return statement.strip()
+
+    definition = obj.get("definition")
+    if isinstance(definition, dict):
+        for lang in ("ko", "en"):
+            val = definition.get(lang)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+    elif isinstance(definition, str) and definition.strip():
+        return definition.strip()
+
+    labels = obj.get("labels")
+    if isinstance(labels, dict):
+        for lang in ("ko", "en"):
+            val = labels.get(lang)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+
+    for key in ("description", "label", "summary"):
+        val = obj.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+
+    return None
+
+
+def _coerce_assumption_definition(
+    assumption_id: str,
+    obj: Dict[str, Any],
+    source_file: str,
+) -> Optional[Dict[str, Any]]:
+    if not isinstance(assumption_id, str) or not assumption_id.strip() or not isinstance(obj, dict):
+        return None
+
+    statement = _extract_statement_from_definition(obj)
+    if not statement:
+        return None
+
+    impact_axis = obj.get("impact_axis")
+    if not isinstance(impact_axis, list):
+        impact_axis = []
+
+    card = {
+        "assumption_id": assumption_id.strip(),
+        "statement": statement,
+        "impact_axis": impact_axis,
+        "_source_file": source_file,
+    }
+
+    labels = obj.get("labels")
+    if isinstance(labels, dict):
+        card["labels"] = labels
+
+    for extra_key in ("severity", "source", "description_ko", "note", "tags", "category"):
+        if extra_key in obj:
+            card[extra_key] = obj[extra_key]
+
+    return card
 
 
 # =========================================================
@@ -102,57 +166,20 @@ def load_registry_from_folders() -> Dict[str, Any]:
             if not (isinstance(aid, str) and aid.strip()):
                 return
             aid = aid.strip()
-
-            # statement/definition 결정
-            statement = a.get("statement")
-            if not (isinstance(statement, str) and statement.strip()):
-                # lexicon 스타일이면 definition.ko/en 또는 labels.ko/en에서 뽑기
-                if isinstance(a.get("definition"), dict):
-                    ko = a["definition"].get("ko")
-                    en = a["definition"].get("en")
-                    if isinstance(ko, str) and ko.strip():
-                        statement = ko
-                    elif isinstance(en, str) and en.strip():
-                        statement = en
-                if not (isinstance(statement, str) and statement.strip()):
-                    if isinstance(a.get("labels"), dict):
-                        ko = a["labels"].get("ko")
-                        en = a["labels"].get("en")
-                        if isinstance(ko, str) and ko.strip():
-                            statement = ko
-                        elif isinstance(en, str) and en.strip():
-                            statement = en
-
-            if not (isinstance(statement, str) and statement.strip()):
-                # fallback 후보
-                for k in ("description", "label", "summary"):
-                    v = a.get(k)
-                    if isinstance(v, str) and v.strip():
-                        statement = v
-                        break
-
-            # impact_axis
-            impact_axis = a.get("impact_axis")
-            if not isinstance(impact_axis, list):
-                impact_axis = []
-
-            if not (isinstance(statement, str) and statement.strip()):
-                return
-
-            card = {
-                "assumption_id": aid,
-                "statement": statement.strip(),
-                "impact_axis": impact_axis,
-                "_source_file": source_file,
-            }
-
-            for extra_key in ("severity", "source", "description_ko", "note", "tags", "category"):
-                if extra_key in a:
-                    card[extra_key] = a[extra_key]
-
-            reg["assumptions"][aid] = card
+            card = _coerce_assumption_definition(aid, a, source_file)
+            if card:
+                reg["assumptions"][aid] = card
 
         for path, obj in _load_json_files(dir_path):
+            if isinstance(obj, dict):
+                # dict-mapping lexicon 스타일:
+                # { "physical_assumption.xxx": {...}, ... }
+                for k, v in obj.items():
+                    if isinstance(k, str) and isinstance(v, dict):
+                        card = _coerce_assumption_definition(k, v, path)
+                        if card:
+                            reg["assumptions"][k] = card
+
             # (A) 단일 assumption일 수 있음
             looks_like_single = False
             if isinstance(obj, dict):
@@ -384,6 +411,28 @@ def build_l1_state(
     }
 
 
+def _normalize_assumption_card(assumption_id: str, registry: Dict[str, Any]) -> Dict[str, Any]:
+    ref = registry.get("assumptions", {}).get(assumption_id)
+    if isinstance(ref, dict):
+        card = {
+            "assumption_id": assumption_id,
+            "statement": ref.get("statement", assumption_id),
+            "impact_axis": ref.get("impact_axis", []),
+        }
+        if isinstance(ref.get("labels"), dict):
+            card["labels"] = ref["labels"]
+        for extra_key in ("severity", "source", "description_ko", "note", "tags", "category"):
+            if extra_key in ref:
+                card[extra_key] = ref[extra_key]
+        return card
+
+    return {
+        "assumption_id": assumption_id,
+        "statement": assumption_id,
+        "impact_axis": [],
+    }
+
+
 # =========================================================
 # 4) SJ ontology evaluation (✅ assumptions도 SJ에서 불러다 씀)
 # =========================================================
@@ -411,7 +460,10 @@ def evaluate_scientific_justification(l1_state: Dict[str, Any]) -> List[Dict[str
             proposals.append({
                 "ontology_file": fname,
                 "claim_concept": claim,
+                "mechanism_id": claim,
                 "score": score,
+                "required_features": sorted(list(required_features)),
+                "observed_features": sj.get("observed_features", []) or [],
                 "matched_features": sorted(list(matched)),
                 "explanation_notes": sj.get("explanation_notes", {}),
                 # ✅ SJ가 이미 가지고 있는 assumption id 리스트를 그대로 유지
@@ -429,13 +481,16 @@ def evaluate_scientific_justification(l1_state: Dict[str, Any]) -> List[Dict[str
 def build_derived_assumptions(
     measurement_validation: Dict[str, Any],
     sj_top: Optional[Dict[str, Any]],
+    registry: Dict[str, Any],
 ) -> Dict[str, Any]:
     v_assumptions = measurement_validation.get("emitted_assumptions", []) or []
     sj_assumptions = (sj_top or {}).get("sj_assumptions", []) or []
     merged = _unique_preserve_order(list(v_assumptions) + list(sj_assumptions))
+    cards = [_normalize_assumption_card(aid, registry) for aid in merged]
 
     return {
-        "assumptions": merged,
+        "assumptions": cards,
+        "assumption_ids": merged,
         "assumptions_meta": {
             "from_validation": list(v_assumptions),
             "from_sj": list(sj_assumptions),
@@ -467,7 +522,8 @@ def render_system_narrative_ko(
         sj_text = "제안 가능한 과학적 정당화가 발견되지 않았습니다."
 
     assumps = derived.get("assumptions", []) or []
-    a_text = f"- assumptions: {', '.join(assumps) if assumps else '(none)'}"
+    assump_ids = [a.get("assumption_id", "") for a in assumps if isinstance(a, dict)]
+    a_text = f"- assumptions: {', '.join(assump_ids) if assump_ids else '(none)'}"
 
     narrative = (
         f"{l1_summary}\n"
@@ -516,7 +572,7 @@ def run_l1_engine(raw_data: str) -> Dict[str, Any]:
     sj_top = sj_proposals[0] if sj_proposals else None
 
     # 6) ✅ derived assumptions = validation + sj
-    derived = build_derived_assumptions(measurement_validation, sj_top)
+    derived = build_derived_assumptions(measurement_validation, sj_top, registry)
 
     # 7) narrative
     narrative_pack = render_system_narrative_ko(
@@ -535,6 +591,7 @@ def run_l1_engine(raw_data: str) -> Dict[str, Any]:
         "llm_assumptions": llm_assumptions,
         # ✅ 이제 이게 "공식" assumptions 출력
         "assumptions": derived.get("assumptions", []),
+        "assumption_ids": derived.get("assumption_ids", []),
         "assumptions_meta": derived.get("assumptions_meta", {}),
         "l1_state": l1_state,
         "sj_proposals": sj_proposals,

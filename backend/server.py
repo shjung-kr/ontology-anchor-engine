@@ -1,11 +1,16 @@
 # main.py
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 
 from backend.l1_sj_engine import run_l1_engine
+
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR.parent / "frontend"
 
 app = FastAPI(title="V14.0 SJ Ontology Engine")
 
@@ -31,6 +36,6 @@ def run_engine(data: RawInput):
     
 app.mount(
     "/",
-    StaticFiles(directory="../frontend", html=True),
+    StaticFiles(directory=str(FRONTEND_DIR), html=True),
     name="frontend"
 )
