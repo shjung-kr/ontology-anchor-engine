@@ -1,0 +1,8 @@
+# Core runtime dependencies
+fastapi>=0.135,<0.136
+openai>=1.0.0
+pydantic>=2.0.0
+uvicorn>=0.42,<0.43
+
+# Used by scripts/build_ontology.py
+json5>=0.9.0

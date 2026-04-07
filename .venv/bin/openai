@@ -1,4 +1,4 @@
-#!/home/shjung/projects/ontology-engine/ontology-anchor-engine/.venv/bin/python
+#!/home/shjung/projects/ontology-anchor-engine/.venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
