@@ -6,3 +6,16 @@ uvicorn>=0.42,<0.43
 
 # Used by scripts/build_ontology.py
 json5>=0.9.0
+
+
+# virtualenv For windows: .\.venv\scripts\activate.ps1
+#            For macOS/Linux: source .venv/bin/activate
+# pip install -r requirements.txt
+# To run the server:
+# uvicorn backend.server:app --reload
+# To run the build_ontology script:
+# git clone 
+# git add .
+# git commit -m "Your commit message"
+# git push origin main
+# git remote -v 현재 레포 보고 싶을 때
