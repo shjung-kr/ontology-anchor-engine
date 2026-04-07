@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 
-from backend.l1_sj_engine import run_l1_engine
+from l1_sj_engine import run_l1_engine
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
