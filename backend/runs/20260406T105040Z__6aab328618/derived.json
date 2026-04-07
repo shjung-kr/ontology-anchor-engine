@@ -1,0 +1,42 @@
+{
+  "metrics": {
+    "absI_decades_span": 9.047772155167719,
+    "v_knee": 1.9298245614035086,
+    "v_knee_criterion": "percentile_split_30"
+  },
+  "regimes": [
+    {
+      "name": "low_|V|",
+      "v_range": [
+        0.2,
+        1.9298245614035086
+      ],
+      "delta_decades_robust": 4.146740218740408,
+      "mean_slope_log_absI_per_logV": 8.354126736074935
+    },
+    {
+      "name": "high_|V|",
+      "v_range": [
+        1.944360902255639,
+        6.0
+      ],
+      "delta_decades_robust": 4.6384746120940115,
+      "mean_slope_log_absI_per_logV": 8.946058242881692
+    }
+  ],
+  "llm_pattern": "|I| spans about 9.05 decades across the dataset; a regime split is detected near |V|=1.93; the low-field log-log slope is 8.35, indicating super-linear scaling",
+  "llm_keywords": [
+    {
+      "keyword": "broad current dynamic range",
+      "evidence": "|I| spans approximately 9.05 decades."
+    },
+    {
+      "keyword": "super-linear",
+      "evidence": "Representative log-log slope is 8.35."
+    },
+    {
+      "keyword": "field-enhanced current rise",
+      "evidence": "High-field regime spans 4.64 decades with slope 8.95."
+    }
+  ]
+}

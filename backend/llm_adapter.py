@@ -1,290 +1,277 @@
 # backend/llm_adapter.py
 """
-LLM Adapter for L1 Observation (Scientific Justification)
+LLM Adapter for L1 Observation.
 
-Role:
-- L0 numeric data -> L1 observation
-- NO interpretation
-- NO ontology awareness
-- NO model/mechanism naming
+This module must remain usable without OpenAI installed or configured.
+Numeric fallbacks are the source of truth; the LLM is optional enrichment.
 """
 
-import os
-import json
-import re
-import math
-import hashlib
-import time
 import csv
+import hashlib
+import json
+import math
+import os
+import re
+import time
+from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
-from openai import OpenAI
+from backend.measurement_validations.parser import parse_vi
 
-# =========================================================
-# Init OpenAI client
-# =========================================================
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+try:
+    from openai import OpenAI
+except Exception:
+    OpenAI = None
+
+BASE_DIR = Path(__file__).resolve().parent
+RUNS_DIR = BASE_DIR / "runs"
+PROMPTS_DIR = BASE_DIR.parent / "prompts"
+DEFAULT_MODEL = "gpt-4.1-mini"
 
 
-# =========================================================
-# Public API
-# =========================================================
+def _get_openai_client():
+    if OpenAI is None:
+        return None
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    try:
+        return OpenAI(api_key=api_key)
+    except Exception:
+        return None
+
+
 def llm_analyze_numeric(raw_data: str) -> Dict[str, Any]:
     """
     Entry point used by L1 engine.
-
-    Output:
-        {
-            "pattern": str,
-            "keywords": [{"keyword": str, "evidence": str}],
-            "metrics": {
-                "absI_decades_span": float,
-                "v_knee": float|None,
-                "v_knee_criterion": str|None
-            },
-            "regimes": [
-                {"name":"low_|V|",  "v_range":[...,...], "delta_decades_robust":..., "mean_slope_log_absI_per_logV":...},
-                {"name":"high_|V|", "v_range":[...,...], "delta_decades_robust":..., "mean_slope_log_absI_per_logV":...}
-            ],
-            "assumptions": [ ... ]
-        }
+    Returns a stable schema even when the LLM path is unavailable.
     """
-    parsed: Dict[str, Any] = {"pattern": "", "keywords": [], "metrics": {}}
+    span_raw = compute_absI_decades_span_from_raw(raw_data, low_clip_percent=5.0)
+    reg = compute_regimes_from_raw(raw_data)
+    regimes = reg.get("regimes", []) or []
+    threshold = reg.get("threshold") or {}
+
+    fallback = _build_numeric_observation(raw_data, span_raw, regimes, threshold)
+    parsed: Dict[str, Any] = {
+        "pattern": fallback["pattern"],
+        "keywords": fallback["keywords"],
+        "metrics": fallback["metrics"],
+        "regimes": regimes,
+    }
     assumptions: List[Dict[str, Any]] = []
+    llm_trace: Dict[str, Any] = {
+        "used_llm": False,
+        "status": "numeric_fallback",
+        "model": DEFAULT_MODEL,
+    }
 
-    user_prompt = _build_prompt(raw_data)
+    client = _get_openai_client()
     system_prompt = _build_system_prompt_observation_only()
+    user_prompt = _build_prompt(raw_data)
 
-    try:
-        # Prefer structured JSON output if supported
+    if client is not None:
         try:
-            response = client.chat.completions.create(
-                model="gpt-4.1-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=0.0,
-                response_format={"type": "json_object"},
-            )
-        except Exception:
-            response = client.chat.completions.create(
-                model="gpt-4.1-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=0.0,
-            )
+            try:
+                response = client.chat.completions.create(
+                    model=DEFAULT_MODEL,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    temperature=0.0,
+                    response_format={"type": "json_object"},
+                )
+            except Exception:
+                response = client.chat.completions.create(
+                    model=DEFAULT_MODEL,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    temperature=0.0,
+                )
 
-        content = response.choices[0].message.content or ""
-        parsed = _parse_llm_output(content)
+            content = response.choices[0].message.content or ""
+            llm_parsed = _parse_llm_output(content)
+            metrics = llm_parsed.get("metrics", {})
+            if not isinstance(metrics, dict):
+                metrics = {}
 
-        # ---------- code-based backfill/normalization (CODE is source of truth) ----------
-        span_raw = compute_absI_decades_span_from_raw(raw_data, low_clip_percent=5.0)
+            metrics["v_knee"] = threshold.get("v_knee")
+            metrics["v_knee_criterion"] = threshold.get("criterion")
 
-        reg = compute_regimes_from_raw(raw_data)
-        regimes = reg.get("regimes", []) or []
-        threshold = reg.get("threshold") or {}
+            try:
+                llm_val = float(metrics.get("absI_decades_span")) if "absI_decades_span" in metrics else None
+            except Exception:
+                llm_val = None
+            metrics["absI_decades_span"] = float(span_raw if llm_val is None or abs(llm_val - span_raw) > 1.0 else llm_val)
 
-        metrics = parsed.get("metrics", {})
-        if not isinstance(metrics, dict):
-            metrics = {}
+            parsed = {
+                "pattern": str(llm_parsed.get("pattern") or fallback["pattern"]),
+                "keywords": llm_parsed.get("keywords") or fallback["keywords"],
+                "metrics": metrics,
+                "regimes": regimes,
+            }
+            llm_trace = {
+                "used_llm": True,
+                "status": "ok",
+                "model": DEFAULT_MODEL,
+                "raw_response": content,
+            }
+        except Exception as exc:
+            llm_trace = {
+                "used_llm": False,
+                "status": "fallback_after_llm_error",
+                "model": DEFAULT_MODEL,
+                "error": str(exc),
+            }
+            parsed = fallback
 
-        # add threshold info
-        metrics["v_knee"] = threshold.get("v_knee")
-        metrics["v_knee_criterion"] = threshold.get("criterion")
-
-        # ensure absI_decades_span is float + robust
-        try:
-            llm_val = float(metrics.get("absI_decades_span")) if "absI_decades_span" in metrics else None
-        except Exception:
-            llm_val = None
-
-        if llm_val is None or abs(llm_val - span_raw) > 1.0:
-            metrics["absI_decades_span"] = float(span_raw)
-        else:
-            metrics["absI_decades_span"] = float(llm_val)
-
-        parsed["metrics"] = metrics
-        parsed["regimes"] = regimes
-
-        # ---- normalize pattern (NEVER None) ----
-        parsed["pattern"] = str(parsed.get("pattern") or "")
-
-        assumptions = _extract_observation_assumptions_from_json(parsed, raw_text=content)
-        
-
-        return {
-            "pattern": parsed.get("pattern", ""),
-            "keywords": parsed.get("keywords", []),
-            "metrics": parsed.get("metrics", {}),
-            "regimes": parsed.get("regimes", []),
-            "assumptions": assumptions,
-        }
-
-    except Exception as e:
-        # Still return stable schema
-        parsed["pattern"] = str(parsed.get("pattern") or "")
-        return {
-            "pattern": parsed.get("pattern", "LLM analysis failed"),
-            "keywords": parsed.get("keywords", []),
-            "metrics": parsed.get("metrics", {}),
-            "regimes": parsed.get("regimes", []),
-            "assumptions": assumptions,
-            "error": str(e),
-        }
+    assumptions = _extract_observation_assumptions_from_json(parsed)
+    return {
+        "pattern": parsed.get("pattern", ""),
+        "keywords": parsed.get("keywords", []),
+        "metrics": parsed.get("metrics", {}),
+        "regimes": parsed.get("regimes", []),
+        "assumptions": assumptions,
+        "llm_trace": llm_trace,
+        "prompt_bundle": {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "model": DEFAULT_MODEL,
+            "temperature": 0.0,
+            "top_p": 1.0,
+        },
+    }
 
 
-# =========================================================
-# System prompt (observation only)
-# =========================================================
+def _build_numeric_observation(
+    raw_data: str,
+    span_raw: float,
+    regimes: List[Dict[str, Any]],
+    threshold: Dict[str, Any],
+) -> Dict[str, Any]:
+    pattern_parts: List[str] = []
+    keywords: List[Dict[str, str]] = []
+
+    if span_raw >= 2.0:
+        pattern_parts.append(f"|I| spans about {span_raw:.2f} decades across the dataset")
+        keywords.append({
+            "keyword": "broad current dynamic range",
+            "evidence": f"|I| spans approximately {span_raw:.2f} decades.",
+        })
+    else:
+        pattern_parts.append(f"|I| spans about {span_raw:.2f} decades")
+
+    if threshold.get("v_knee") is not None:
+        pattern_parts.append(f"a regime split is detected near |V|={float(threshold['v_knee']):.4g}")
+
+    high = next((r for r in regimes if r.get("name") == "high_|V|"), None)
+    low = next((r for r in regimes if r.get("name") == "low_|V|"), None)
+
+    slope_ref = None
+    if low and low.get("mean_slope_log_absI_per_logV") is not None:
+        slope_ref = float(low["mean_slope_log_absI_per_logV"])
+    elif high and high.get("mean_slope_log_absI_per_logV") is not None:
+        slope_ref = float(high["mean_slope_log_absI_per_logV"])
+    if slope_ref is not None:
+        desc = "approximately linear" if 0.85 <= slope_ref <= 1.15 else "super-linear"
+        pattern_parts.append(f"the low-field log-log slope is {slope_ref:.2f}, indicating {desc} scaling")
+        keywords.append({
+            "keyword": desc,
+            "evidence": f"Representative log-log slope is {slope_ref:.2f}.",
+        })
+
+    if high:
+        delta = float(high.get("delta_decades_robust", 0.0) or 0.0)
+        high_slope = float(high.get("mean_slope_log_absI_per_logV", 0.0) or 0.0)
+        if delta >= 2.0 and high_slope >= 2.0:
+            keywords.append({
+                "keyword": "field-enhanced current rise",
+                "evidence": f"High-field regime spans {delta:.2f} decades with slope {high_slope:.2f}.",
+            })
+
+    return {
+        "pattern": "; ".join(pattern_parts) if pattern_parts else "Numeric fallback observation",
+        "keywords": keywords,
+        "metrics": {
+            "absI_decades_span": float(span_raw),
+            "v_knee": threshold.get("v_knee"),
+            "v_knee_criterion": threshold.get("criterion"),
+        },
+        "regimes": regimes,
+    }
+
+
+def _read_prompt_file(name: str, fallback: str) -> str:
+    path = PROMPTS_DIR / name
+    if path.is_file():
+        return path.read_text(encoding="utf-8")
+    return fallback
+
+
 def _build_system_prompt_observation_only() -> str:
-    return (
+    fallback = (
         "You are a scientific observation assistant.\n"
         "You ONLY describe observable patterns in numeric data.\n"
         "You MUST NOT interpret mechanisms or causes.\n"
-        "You MUST NOT mention physics models or mechanism names "
-        "(e.g., tunneling, Schottky, Poole-Frenkel, Arrhenius, hopping, SCLC, FN, breakdown).\n"
         "You MUST NOT use ontology IDs.\n"
-        "You MUST output valid JSON only, following the schema given by the user.\n"
-        "If information is insufficient, state that as an observation limitation (still in JSON).\n"
+        "You MUST output valid JSON only.\n"
     )
+    return _read_prompt_file("system_prompt_v1.md", fallback)
 
 
-# =========================================================
-# Prompt builder (user prompt)
-# =========================================================
 def _build_prompt(raw_data: str) -> str:
-    return f"""
-You are given raw experimental numeric data.
-
-TASK:
-1) Describe ONLY observable patterns.
-2) Extract descriptive L1 keywords.
-3) Report minimal observation metrics for downstream rule checks.
-
-STRICT RULES:
-- Do NOT mention physical mechanisms.
-- Do NOT mention models (Arrhenius, hopping, tunneling, Schottky, Poole-Frenkel, SCLC, FN, breakdown, etc.).
-- Do NOT explain causes.
-- Use neutral, observational scientific language only.
-- Output JSON ONLY. No markdown, no extra text.
-
-METRICS TO INCLUDE:
-- absI_decades_span: the decades spanned by |I| over the dataset.
-  (If you cannot compute reliably, omit it; the caller may backfill.)
-
-OUTPUT FORMAT (JSON ONLY):
-{{
-  "pattern": "<short summary of observed patterns>",
-  "metrics": {{
-    "absI_decades_span": <number>
-  }},
-  "keywords": [
-    {{
-      "keyword": "<descriptive keyword>",
-      "evidence": "<sentence citing numeric evidence>"
-    }}
-  ]
-}}
-
-RAW DATA:
-{raw_data}
-""".strip()
+    fallback = (
+        "You are given raw experimental numeric data.\n\n"
+        "TASK:\n"
+        "1) Describe ONLY observable patterns.\n"
+        "2) Extract descriptive L1 keywords.\n"
+        "3) Report minimal observation metrics for downstream rule checks.\n\n"
+        "OUTPUT FORMAT (JSON ONLY):\n"
+        "{\n"
+        '  "pattern": "<short summary>",\n'
+        '  "metrics": {"absI_decades_span": <number>},\n'
+        '  "keywords": [{"keyword": "<keyword>", "evidence": "<evidence>"}]\n'
+        "}\n\n"
+        "RAW DATA:\n"
+        "{raw_data}\n"
+    )
+    template = _read_prompt_file("user_template_v1.md", fallback)
+    return template.replace("{raw_data}", raw_data)
 
 
-# =========================================================
-# Robust metric computation
-# =========================================================
 def compute_absI_decades_span_from_raw(raw_data: str, low_clip_percent: float = 1.0) -> float:
-    """
-    Robust decades span:
-    - Parse I column
-    - Compute log10(max(|I|)) - log10(P_low(|I|))
-    """
-    absI: List[float] = []
-
-    for line in raw_data.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-
-        ll = line.lower()
-        if ("voltage" in ll) or ("current" in ll) or ll.startswith("v,") or ll.startswith("v\t") or ll.startswith("v "):
-            continue
-
-        parts = [p for p in re.split(r"[,\s\t]+", line) if p]
-        if len(parts) < 2:
-            continue
-
-        try:
-            i = float(parts[1])
-        except Exception:
-            continue
-
-        ai = abs(i)
-        if ai > 0 and math.isfinite(ai):
-            absI.append(ai)
-
-    if len(absI) < 2:
+    _, I = parse_vi(raw_data)
+    abs_i = [abs(x) for x in I if isinstance(x, (int, float)) and math.isfinite(x) and abs(x) > 0]
+    if len(abs_i) < 2:
         return 0.0
 
-    absI.sort()
-    mx = absI[-1]
-
-    p = float(low_clip_percent)
-    p = max(0.0, min(p, 50.0))
-    idx = int((p / 100.0) * (len(absI) - 1))
-    idx = max(0, min(idx, len(absI) - 1))
-    mn = absI[idx]
-
-    if mn <= 0 or not math.isfinite(mn) or mx <= 0 or not math.isfinite(mx):
+    abs_i.sort()
+    mx = abs_i[-1]
+    p = max(0.0, min(float(low_clip_percent), 50.0))
+    idx = int((p / 100.0) * (len(abs_i) - 1))
+    idx = max(0, min(idx, len(abs_i) - 1))
+    mn = abs_i[idx]
+    if mn <= 0 or mx <= 0:
         return 0.0
-
     return math.log10(mx) - math.log10(mn)
 
 
-# =========================================================
-# Parse (V,I) and save CSV
-# =========================================================
 def parse_vi_from_raw(raw_data: str) -> List[Tuple[float, float]]:
-    """
-    Parse (V, I) pairs from raw text. Accepts CSV / whitespace / tab.
-    Saves a CSV to ./runs for later plotting.
-    """
-    pairs: List[Tuple[float, float]] = []
+    V, I = parse_vi(raw_data)
+    pairs = [
+        (float(v), float(i))
+        for v, i in zip(V, I)
+        if isinstance(v, (int, float)) and isinstance(i, (int, float)) and math.isfinite(v) and math.isfinite(i)
+    ]
 
-    for line in raw_data.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-
-        ll = line.lower()
-        if ("voltage" in ll) or ("current" in ll) or ll.startswith("v,") or ll.startswith("v\t") or ll.startswith("v "):
-            continue
-
-        parts = [p for p in re.split(r"[,\s\t]+", line) if p]
-        if len(parts) < 2:
-            continue
-
-        try:
-            v = float(parts[0])
-            i = float(parts[1])
-        except Exception:
-            continue
-
-        if math.isfinite(v) and math.isfinite(i):
-            pairs.append((v, i))
-
-    # save (best-effort)
     try:
-        runs_dir = "./runs"
-        os.makedirs(runs_dir, exist_ok=True)
+        RUNS_DIR.mkdir(parents=True, exist_ok=True)
         raw_hash = hashlib.sha256(raw_data.encode("utf-8", errors="ignore")).hexdigest()[:10]
         ts = time.strftime("%Y%m%d_%H%M%S")
-        out_path = os.path.join(runs_dir, f"parsed_vi_{ts}_{raw_hash}.csv")
-        with open(out_path, "w", newline="", encoding="utf-8") as f:
+        out_path = RUNS_DIR / f"parsed_vi_{ts}_{raw_hash}.csv"
+        with out_path.open("w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(["V", "I"])
             w.writerows(pairs)
@@ -294,28 +281,19 @@ def parse_vi_from_raw(raw_data: str) -> List[Tuple[float, float]]:
     return pairs
 
 
-# =========================================================
-# Regime extraction (numeric)
-# =========================================================
 def compute_regimes_from_raw(raw_data: str, v_min_abs: float = 1e-3) -> Dict[str, Any]:
-    """
-    Robust 2-regime summary using |V| and log-log slopes.
-    Split by |V| 30th percentile for stability.
-    """
     pairs = parse_vi_from_raw(raw_data)
     if len(pairs) < 10:
         return {"regimes": [], "threshold": None}
 
-    x: List[float] = []   # |V|
-    lx: List[float] = []  # log10(|V|)
-    ly: List[float] = []  # log10(|I|)
+    x: List[float] = []
+    lx: List[float] = []
+    ly: List[float] = []
 
     for v, i in pairs:
         av = abs(v)
         ai = abs(i)
-        if av < v_min_abs:
-            continue
-        if ai <= 0 or not math.isfinite(ai):
+        if av < v_min_abs or ai <= 0 or not math.isfinite(ai):
             continue
         x.append(av)
         lx.append(math.log10(av))
@@ -355,153 +333,95 @@ def compute_regimes_from_raw(raw_data: str, v_min_abs: float = 1e-3) -> Dict[str
         lxx = [p[1] for p in points]
         lyy = [p[2] for p in points]
 
-        vmin, vmax = min(vx), max(vx)
-
         p1 = _pct(lyy, 1.0)
         p99 = _pct(lyy, 99.0)
-        delta_dec_robust = p99 - p1
 
         slopes: List[float] = []
-        for k in range(1, len(points)):
-            dlx = lxx[k] - lxx[k - 1]
+        for idx in range(1, len(points)):
+            dlx = lxx[idx] - lxx[idx - 1]
             if abs(dlx) < 1e-9:
                 continue
-            slopes.append((lyy[k] - lyy[k - 1]) / dlx)
-
-        mean_s = sum(slopes) / len(slopes) if slopes else 0.0
+            slopes.append((lyy[idx] - lyy[idx - 1]) / dlx)
 
         return {
             "name": name,
-            "v_range": [float(vmin), float(vmax)],
-            "delta_decades_robust": float(delta_dec_robust),
-            "mean_slope_log_absI_per_logV": float(mean_s),
+            "v_range": [float(min(vx)), float(max(vx))],
+            "delta_decades_robust": float(p99 - p1),
+            "mean_slope_log_absI_per_logV": float(sum(slopes) / len(slopes) if slopes else 0.0),
         }
 
-    regimes = [
-        summarize(low_pts, "low_|V|"),
-        summarize(high_pts, "high_|V|"),
-    ]
-
     return {
-        "regimes": regimes,
+        "regimes": [
+            summarize(low_pts, "low_|V|"),
+            summarize(high_pts, "high_|V|"),
+        ],
         "threshold": {"v_knee": float(v_split), "criterion": "percentile_split_30"},
     }
 
 
-# =========================================================
-# Extract observation assumptions (lightweight)
-# =========================================================
-from typing import Any, Dict, List
-
 def _extract_observation_assumptions_from_json(parsed: Dict[str, Any], raw_text: str = "") -> List[Dict[str, Any]]:
-    """
-    변형 포인트
-    - 이 함수는 '어떤 가정이 적용되는지'를 선택한다.
-    - 가정의 statement/impact_axis는 가능하면 '온톨로지(레지스트리)'에서 조회해서 사용한다.
-    - 레지스트리가 없으면(개발 중) 기존 기본 문장을 fallback으로 사용한다.
-    """
-
     assumptions: List[Dict[str, Any]] = []
-
-    # -----------------------------
-    # 1) 텍스트 blob 구성 (기존 유지 + 방어)
-    # -----------------------------
     pattern = str(parsed.get("pattern", "")).lower()
-    #print(f"Pattern: {pattern}")
     keywords = parsed.get("keywords", [])
-    #print(f"Keywords: {keywords}")
 
     kw_parts: List[str] = []
     if isinstance(keywords, list):
-        for k in keywords:
-            if isinstance(k, dict):
-                kw_parts.append(str(k.get("keyword", "")))
-                kw_parts.append(str(k.get("evidence", "")))
+        for item in keywords:
+            if isinstance(item, dict):
+                kw_parts.append(str(item.get("keyword", "")))
+                kw_parts.append(str(item.get("evidence", "")))
             else:
-                kw_parts.append(str(k))
+                kw_parts.append(str(item))
 
-    kw_text = " ".join(kw_parts).lower()
-    blob = (pattern + "\n" + kw_text + "\n" + (raw_text or "").lower())
-
-    # 디버그 출력은 필요하면 유지
-    print(f"Blob: {blob}")
-
-    # -----------------------------
-    # 2) 온톨로지 assumption 레지스트리 조회 (있으면 사용)
-    #    - parsed에 실려오게 하거나, 상위에서 주입하는 방식으로 연결 가능
-    #    - 예: parsed["assumption_registry"] = {"A_MAG_NOISE": {...}, ...}
-    # -----------------------------
-    registry = parsed.get("assumption_registry", None)
+    blob = (pattern + "\n" + " ".join(kw_parts).lower() + "\n" + (raw_text or "").lower())
+    registry = parsed.get("assumption_registry", {})
     if not isinstance(registry, dict):
         registry = {}
 
     def _lookup_assumption_card(assumption_id: str, fallback_statement: str, fallback_axis: List[str]) -> Dict[str, Any]:
-        """
-        온톨로지에 정의된 가정이면 그 정의를 그대로 사용하고,
-        없으면 fallback 사용.
-        """
         ref = registry.get(assumption_id)
         if isinstance(ref, dict):
-            # 온톨로지 정의를 우선 사용 (statement/impact_axis 등)
             card = {
                 "assumption_id": assumption_id,
                 "statement": ref.get("statement", fallback_statement),
                 "impact_axis": ref.get("impact_axis", fallback_axis),
             }
-            # 온톨로지에서 추가 필드가 있으면 그대로 포함(선택)
-            # 예: severity, source, description_ko 등
             for extra_key in ("severity", "source", "description", "description_ko", "note"):
-                if extra_key in ref and extra_key not in card:
+                if extra_key in ref:
                     card[extra_key] = ref[extra_key]
             return card
-
-        # 온톨로지 정의가 없으면 fallback
         return {
             "assumption_id": assumption_id,
             "statement": fallback_statement,
             "impact_axis": fallback_axis,
         }
 
-    # -----------------------------
-    # 3) 룰: 트리거 감지 → assumption_id 선택
-    #    (선택된 ID는 온톨로지 정의로 '표현'되도록 lookup)
-    # -----------------------------
-
-    # A_MAG_NOISE
     if ("noise" in blob) or ("floor" in blob) or ("clamp" in blob) or ("limit" in blob):
         assumptions.append(
             _lookup_assumption_card(
                 "A_MAG_NOISE",
-                fallback_statement="Very small magnitudes may have been treated as near the measurement floor/noise level.",
-                fallback_axis=["magnitude"],
+                "Very small magnitudes may have been treated as near the measurement floor/noise level.",
+                ["magnitude"],
             )
         )
 
-    # A_SLOPE_ABRUPT
     if ("threshold" in blob) or ("knee" in blob) or ("abrupt" in blob) or ("sharp" in blob):
         assumptions.append(
             _lookup_assumption_card(
                 "A_SLOPE_ABRUPT",
-                fallback_statement="A rapid change was flagged using a heuristic rate-of-change criterion.",
-                fallback_axis=["slope"],
+                "A rapid change was flagged using a heuristic rate-of-change criterion.",
+                ["slope"],
             )
         )
 
-    # -----------------------------
-    # 4) 중복 제거 (assumption_id 기준)
-    # -----------------------------
     dedup: Dict[str, Dict[str, Any]] = {}
-    for a in assumptions:
-        aid = a.get("assumption_id")
+    for assumption in assumptions:
+        aid = assumption.get("assumption_id")
         if aid:
-            dedup[aid] = a
-
+            dedup[aid] = assumption
     return list(dedup.values())
 
 
-# =========================================================
-# Output parser
-# =========================================================
 def _parse_llm_output(text: str) -> Dict[str, Any]:
     data = _safe_json_loads(text)
     if data is None:
@@ -536,7 +456,6 @@ def _parse_llm_output(text: str) -> Dict[str, Any]:
 def _safe_json_loads(text: str) -> Optional[Dict[str, Any]]:
     if not text:
         return None
-
     try:
         obj = json.loads(text)
         return obj if isinstance(obj, dict) else None
@@ -547,10 +466,8 @@ def _safe_json_loads(text: str) -> Optional[Dict[str, Any]]:
     end = text.rfind("}")
     if start == -1 or end == -1 or end <= start:
         return None
-
-    candidate = text[start:end + 1]
     try:
-        obj = json.loads(candidate)
+        obj = json.loads(text[start:end + 1])
         return obj if isinstance(obj, dict) else None
     except Exception:
         return None

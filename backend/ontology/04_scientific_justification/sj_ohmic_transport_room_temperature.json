@@ -3,8 +3,8 @@
   "scientific_justification": {
     "claim_concept": "iv_interpretation.ohmic_transport",
     "measurement_conditions": [
-      "measurement_condition.forward_bias",
-      "measurement_condition.steady_state_dc_iv"
+      "measurement_conditions.sweep_iv",
+      "measurement_conditions.steady_state_dc_iv"
     ],
     "observed_features": [
       "iv_features.linear_iv_regime",
@@ -17,9 +17,12 @@
       {
         "regime": "iv_regimes.low_field_regime",
         "mechanisms": [
-          "electrical_mechanism.bulk_transport_mechanism"
+          "electrical_mechanisms.ohmic_transport"
         ]
       }
+    ],
+    "assumptions": [
+      "physical_assumption.room_temperature_operation"
     ],
     "explanation_notes": {
       "en": "Under steady-state DC measurement conditions at room temperature, the I–V transport is interpreted as ohmic in both the low- and high-voltage regimes, as evidenced by a linear I–V relationship whose slope corresponds to a constant electrical resistance of the device.",

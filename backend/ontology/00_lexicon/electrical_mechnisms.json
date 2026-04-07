@@ -1,5 +1,5 @@
 {
-  "mechanism_id": {
+  "electrical_mechanisms.ohmic_transport": {
     "category": "transport_mechanism",
     "canonical_name": "ohmic_transport",
     "description": "A transport mechanism where current increases linearly with applied voltage, following Ohm's law.",
@@ -7,12 +7,12 @@
     "supporting_features": [],
     "excluded_features": [],
     "default_physical_assumptions": [
-      "physical_assumptions.room_temperature_operation",
-      "physical_assumptions.effective_potential_barrier_present"
+      "physical_assumption.room_temperature_operation",
+      "physical_assumption.effective_potential_barrier_present"
     ],
     "notes": ""
   },
-  "mechanism_id_2": {
+  "electrical_mechanisms.schottky-type_transport": {
     "category": "transport_mechanism",
     "canonical_name": "schottky-type_transport",
     "description": "A transport mechanism where current flows through a Schottky barrier, typically observed in metal-semiconductor junctions.",
@@ -22,7 +22,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_3": {
+  "electrical_mechanisms.space_charge_limited_transport": {
     "category": "transport_mechanism",
     "canonical_name": "space_charge_limited_transport",
     "description": "A transport mechanism where current is limited by the space charge region in a semiconductor device.",
@@ -32,7 +32,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_4": {
+  "electrical_mechanisms.direct_tunneling_transport": {
     "category": "transport_mechanism",
     "canonical_name": "direct_tunneling_transport",
     "description": "A transport mechanism where charge carriers tunnel directly through a potential barrier.",
@@ -42,7 +42,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_5": {
+  "electrical_mechanisms.fowler_nordheim_tunneling_transport": {
     "category": "transport_mechanism",
     "canonical_name": "fowler_nordheim_tunneling_transport",
     "description": "A transport mechanism where charge carriers tunnel through a triangular potential barrier under high electric fields.",
@@ -52,7 +52,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_6": {
+  "electrical_mechanisms.leakage_dominated_transport": {
     "category": "transport_mechanism",
     "canonical_name": "leakage_dominated_transport",
     "description": "A transport mechanism dominated by leakage currents, often due to defects or impurities, leading to non-ideal behavior.",
@@ -62,7 +62,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_7": {
+  "electrical_mechanisms.recombination_generation_dominated_transport": {
     "category": "transport_mechanism",
     "canonical_name": "recombination_generation_dominated_transport",
     "description": "A transport mechanism where recombination and generation of charge carriers significantly influence current flow.",
@@ -72,7 +72,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_8": {
+  "electrical_mechanisms.trap_assisted_transport": {
     "category": "transport_mechanism",
     "canonical_name": "trap_assisted_transport",
     "description": "A transport mechanism where charge carriers move via trapping and detrapping processes in localized states.",
@@ -82,7 +82,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_9": {
+  "electrical_mechanisms.poole_frenkel_emission": {
     "category": "transport_mechanism",
     "canonical_name": "poole_frenkel_emission",
     "description": "A transport mechanism where charge carriers are emitted from traps in the presence of an electric field, following the Poole-Frenkel effect.",
@@ -92,9 +92,9 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_10": {
+  "electrical_mechanisms.thermionic_emission": {
     "category": "transport_mechanism",
-    "canonical_name": "thermoionic_emission",
+    "canonical_name": "thermionic_emission",
     "description": "A transport mechanism where charge carriers are emitted thermally from a material, typically observed in vacuum or semiconductor devices.",
     "required_features": [],
     "supporting_features": [],
@@ -102,7 +102,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_11": {
+  "electrical_mechanisms.hopping_transport": {
     "category": "transport_mechanism",
     "canonical_name": "hopping_transport",
     "description": "A transport mechanism where charge carriers move by hopping between localized states, often observed in disordered materials.",
@@ -112,7 +112,7 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_12": {
+  "electrical_mechanisms.band_transport": {
     "category": "transport_mechanism",
     "canonical_name": "band_transport",
     "description": "A transport mechanism where charge carriers move through extended states in the conduction or valence bands of a material.",
@@ -122,9 +122,9 @@
     "default_physical_assumptions": [],
     "notes": ""
   },
-  "mechanism_id_13": {
+  "electrical_mechanisms.ionic_conduction": {
     "category": "transport_mechanism",
-    "canonical_name": "ionic_transport",
+    "canonical_name": "ionic_conduction",
     "description": "A transport mechanism where ions move through a material, contributing to the overall current flow.",
     "required_features": [],
     "supporting_features": [],

@@ -17,6 +17,7 @@ def run_rules(
     errors: List[Dict[str, Any]] = []
     warnings: List[Dict[str, Any]] = []
     info: List[Dict[str, Any]] = []
+    emitted_assumptions: List[str] = []
 
     for rule in rules:
         rid = rule.get("validation_id") or rule.get("id") or "validation.unknown"
@@ -59,11 +60,15 @@ def run_rules(
             emit = (rule.get("on_pass", {}) or {}).get("emit")
             if emit:
                 info.append({"validation_id": rid, "level": "info", "pass": True, "emit": emit})
+            for assumption_id in rule.get("emitted_assumptions", []) or []:
+                if isinstance(assumption_id, str) and assumption_id.strip():
+                    emitted_assumptions.append(assumption_id.strip())
 
     return {
         "applied_rules": applied,
         "errors": errors,
         "warnings": warnings,
         "info": info,
-        "valid": len(errors) == 0
+        "valid": len(errors) == 0,
+        "emitted_assumptions": emitted_assumptions,
     }

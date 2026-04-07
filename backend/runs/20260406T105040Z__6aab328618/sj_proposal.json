@@ -1,0 +1,94 @@
+{
+  "top": {
+    "ontology_file": "sj_fn_tunneling_room_temperature.json",
+    "claim_concept": "iv_interpretation.fn_tunneling_asserted",
+    "mechanism_id": "iv_interpretation.fn_tunneling_asserted",
+    "score": 2,
+    "required_features": [
+      "iv_features.field_enhanced_current",
+      "iv_features.nonlinear_iv_regime"
+    ],
+    "observed_features": [
+      "iv_features.nonlinear_iv_regime",
+      "iv_features.field_enhanced_current"
+    ],
+    "matched_features": [
+      "iv_features.field_enhanced_current",
+      "iv_features.nonlinear_iv_regime"
+    ],
+    "explanation_notes": {
+      "en": "Under steady-state DC measurement conditions at room temperature, the I–V transport exhibits a nonlinear regime with field-enhanced current, consistent with Fowler–Nordheim tunneling at high applied biases following direct tunneling at low biases.",
+      "ko": "상온에서 수행된 정상 상태 DC 측정 조건 하에서, I–V 수송은 저전압 영역에서의 직접 터널링에 이어 고전압 영역에서의 Fowler–Nordheim 터널링과 일치하는 전계 강화 전류가 나타나는 비선형 영역을 보인다."
+    },
+    "sj_assumptions": [
+      "physical_assumption.room_temperature_operation",
+      "physical_assumption.effective_potential_barrier_present",
+      "fn_assumption.high_field_barrier_thinning_applies",
+      "fn_assumption.field_estimation_e_equals_v_over_t",
+      "fn_assumption.fn_plot_linearity_indicates_dominant_fn_like_mechanism",
+      "fn_assumption.trap_assisted_contributions_are_minor_or_separable",
+      "fn_assumption.uniform_current_distribution_or_area_effective_constant"
+    ],
+    "mechanism_by_regime": [
+      {
+        "regime": "iv_regimes.low_field_regime",
+        "mechanisms": [
+          "electrical_mechanisms.leakage_dominated_transport"
+        ]
+      },
+      {
+        "regime": "iv_regimes.high_field_regime",
+        "mechanisms": [
+          "electrical_mechanisms.fowler_nordheim_tunneling_transport"
+        ]
+      }
+    ]
+  },
+  "all": [
+    {
+      "ontology_file": "sj_fn_tunneling_room_temperature.json",
+      "claim_concept": "iv_interpretation.fn_tunneling_asserted",
+      "mechanism_id": "iv_interpretation.fn_tunneling_asserted",
+      "score": 2,
+      "required_features": [
+        "iv_features.field_enhanced_current",
+        "iv_features.nonlinear_iv_regime"
+      ],
+      "observed_features": [
+        "iv_features.nonlinear_iv_regime",
+        "iv_features.field_enhanced_current"
+      ],
+      "matched_features": [
+        "iv_features.field_enhanced_current",
+        "iv_features.nonlinear_iv_regime"
+      ],
+      "explanation_notes": {
+        "en": "Under steady-state DC measurement conditions at room temperature, the I–V transport exhibits a nonlinear regime with field-enhanced current, consistent with Fowler–Nordheim tunneling at high applied biases following direct tunneling at low biases.",
+        "ko": "상온에서 수행된 정상 상태 DC 측정 조건 하에서, I–V 수송은 저전압 영역에서의 직접 터널링에 이어 고전압 영역에서의 Fowler–Nordheim 터널링과 일치하는 전계 강화 전류가 나타나는 비선형 영역을 보인다."
+      },
+      "sj_assumptions": [
+        "physical_assumption.room_temperature_operation",
+        "physical_assumption.effective_potential_barrier_present",
+        "fn_assumption.high_field_barrier_thinning_applies",
+        "fn_assumption.field_estimation_e_equals_v_over_t",
+        "fn_assumption.fn_plot_linearity_indicates_dominant_fn_like_mechanism",
+        "fn_assumption.trap_assisted_contributions_are_minor_or_separable",
+        "fn_assumption.uniform_current_distribution_or_area_effective_constant"
+      ],
+      "mechanism_by_regime": [
+        {
+          "regime": "iv_regimes.low_field_regime",
+          "mechanisms": [
+            "electrical_mechanisms.leakage_dominated_transport"
+          ]
+        },
+        {
+          "regime": "iv_regimes.high_field_regime",
+          "mechanisms": [
+            "electrical_mechanisms.fowler_nordheim_tunneling_transport"
+          ]
+        }
+      ]
+    }
+  ]
+}

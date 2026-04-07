@@ -1,7 +1,7 @@
 {
   "iv_interpretation.ohmic_transport": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.bulk_transport_mechanism",
+    "mechanism": "electrical_mechanisms.ohmic_transport",
     "labels": {
       "en": "Ohmic transport",
       "ko": "옴의 법칙 지배 전도"
@@ -15,7 +15,7 @@
   },
   "iv_interpretation.schottky-type": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.schottky_barrier_transport",
+    "mechanism": "electrical_mechanisms.schottky-type_transport",
     "labels": {
       "en": "Schottky-type transport",
       "ko": "쇼트키형 전도"
@@ -29,7 +29,7 @@
   },
   "iv_interpretation.space_charge_limited": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.space_charge_limited_current",
+    "mechanism": "electrical_mechanisms.space_charge_limited_transport",
     "labels": {
       "en": "Space-charge-limited current transport",
       "ko": "공간 전하 제한 전류 수송"
@@ -43,7 +43,7 @@
   },
   "iv_interpretation.direct_tunneling": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.direct_tunneling",
+    "mechanism": "electrical_mechanisms.direct_tunneling_transport",
     "labels": {
       "en": "Direct tunneling",
       "ko": "직접 터널링"
@@ -71,7 +71,7 @@
   },
   "iv_interpretation.leakage_dominated": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.leakage_current",
+    "mechanism": "electrical_mechanisms.leakage_dominated_transport",
     "labels": {
       "en": "Leakage current dominated transport",
       "ko": "누설 전류 지배 수송"
@@ -85,7 +85,7 @@
   },
   "iv_interpretation.trap_assisted_transport": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.trap_assisted_tunneling",
+    "mechanism": "electrical_mechanisms.trap_assisted_transport",
     "labels": {
       "en": "Trap-assisted tunneling",
       "ko": "트랩 보조 터널링"
@@ -99,7 +99,7 @@
   },
   "iv_interpretation.poole_frenkel_emission": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.poole_frenkel_emission",
+    "mechanism": "electrical_mechanisms.poole_frenkel_emission",
     "labels": {
       "en": "Poole–Frenkel emission",
       "ko": "Poole–Frenkel 방출"
@@ -113,7 +113,7 @@
   },
   "iv_interpretation.thermionic_emission": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.thermionic_emission",
+    "mechanism": "electrical_mechanisms.thermionic_emission",
     "labels": {
       "en": "Thermionic emission",
       "ko": "열전자 방출"
@@ -127,7 +127,7 @@
   },
   "iv_interpretation.hopping_conduction": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.hopping_conduction",
+    "mechanism": "electrical_mechanisms.hopping_transport",
     "labels": {
       "en": "Hopping conduction",
       "ko": "호핑 전도"
@@ -141,7 +141,7 @@
   },
   "iv_interpretation.ionic_conduction": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.ionic_conduction",
+    "mechanism": "electrical_mechanisms.ionic_conduction",
     "labels": {
       "en": "Ionic conduction",
       "ko": "이온 전도"
@@ -155,7 +155,7 @@
   },
   "iv_interpretation.breakdown_conduction": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.breakdown_conduction",
+    "mechanism": "electrical_mechanisms.band_transport",
     "labels": {
       "en": "Breakdown conduction",
       "ko": "항복 전도"
@@ -169,7 +169,7 @@
   },
   "iv_interpretation.filamentary_conduction": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.filamentary_conduction",
+    "mechanism": "electrical_mechanisms.band_transport",
     "labels": {
       "en": "Filamentary conduction",
       "ko": "필라멘터리 전도"
@@ -183,7 +183,7 @@
   },
   "iv_interpretation.NDR_conduction": {
     "category": "iv_interpretation",
-    "mechanism": "electrical_mechanism.negative_differential_resistance",
+    "mechanism": "electrical_mechanisms.band_transport",
     "labels": {
       "en": "Negative differential resistance (NDR) conduction",
       "ko": "음의 미분 저항(NDR) 전도"

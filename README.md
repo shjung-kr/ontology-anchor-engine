@@ -1,5 +1,20 @@
 Development has become more complex than originally anticipated. As the project progressed, both the underlying concepts and the implementation approach expanded, incorporating a wider range of ideas and techniques. Below is a summary of these technical extensions and expansions.
 
+## Quick Start
+
+```bash
+cd /home/shjung/projects/ontology-engine/ontology-anchor-engine
+./.venv/bin/uvicorn backend.server:app --reload
+```
+
+If `OPENAI_API_KEY` is not set, the backend still runs in numeric-fallback mode.
+
+Ontology consistency can be checked with:
+
+```bash
+./.venv/bin/python scripts/validate_ontology.py
+```
+
 # Reproducibility and Auditability
 
 This document defines how the project guarantees **repeatable** (as deterministic as possible) runs and provides **audit trails** when results differ.

@@ -3,15 +3,23 @@ import os
 import json
 import math
 import re
+import hashlib
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Dict, Any, List, Tuple, Optional
 
 from backend.llm_adapter import llm_analyze_numeric
+from backend.measurement_validations.infer import infer_measurement_conditions
+from backend.measurement_validations.parser import parse_vi, build_stats
+from backend.measurement_validations.runner import run_rules
 
 # -----------------------------
 # Paths (프로젝트 폴더 구조에 맞게 필요시만 수정)
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # backend/
 ONTO_BASE = os.path.join(BASE_DIR, "ontology")         # backend/ontology
+RUNS_DIR = Path(BASE_DIR) / "runs"
+PROMPTS_DIR = Path(BASE_DIR).parent / "prompts"
 
 IV_REGIMES_DIR = os.path.join(ONTO_BASE, "01_iv_regimes")
 IV_FEATURES_DIR = os.path.join(ONTO_BASE, "02_iv_features")
@@ -216,89 +224,31 @@ def load_registry_from_folders() -> Dict[str, Any]:
 # 1) Measurement validation (✅ assumptions는 여기서만 "불러다 씀")
 # =========================================================
 def validate_measurement(raw_data: str) -> Dict[str, Any]:
-    """
-    기존처럼 stats/conditions를 채우고,
-    추가로 measurement_validation rule ontology에서 emitted_assumptions를 "불러다" 적용한다.
-    """
-    pairs = _parse_vi_pairs(raw_data)
+    metadata: Dict[str, Any] = {}
+    V, I = parse_vi(raw_data)
+    stats = build_stats(V, I, metadata)
+    measurement_conditions = infer_measurement_conditions(stats, metadata)
 
-    n = len(pairs)
-    v_vals = [v for v, i in pairs if math.isfinite(v)]
-    i_vals = [i for v, i in pairs if math.isfinite(i)]
-
-    def _nan_ratio(arr: List[float]) -> float:
-        if not arr:
-            return 1.0
-        nan = sum(1 for x in arr if not math.isfinite(x))
-        return nan / max(1, len(arr))
-
-    stats = {
-        "n_points": n,
-        "V_nan_ratio": float(_nan_ratio(v_vals)),
-        "I_nan_ratio": float(_nan_ratio(i_vals)),
-        "V_finite_ratio": float(sum(1 for x in v_vals if math.isfinite(x)) / max(1, len(v_vals))) if v_vals else 0.0,
-        "I_finite_ratio": float(sum(1 for x in i_vals if math.isfinite(x)) / max(1, len(i_vals))) if i_vals else 0.0,
-        "V_unique": len(set(v_vals)) if v_vals else 0,
-        "I_unique": len(set(i_vals)) if i_vals else 0,
-        "metadata": {},
-    }
-
-    valid = True
-    errors: List[str] = []
-    warnings: List[str] = []
-    applied_rules: List[str] = []
-
-    if n < 10:
-        valid = False
-        errors.append("too_few_points")
-        applied_rules.append("validation.too_few_points")
-
-    if stats["V_finite_ratio"] < 0.95 or stats["I_finite_ratio"] < 0.95:
-        valid = False
-        errors.append("non_finite_values_present")
-        applied_rules.append("validation.non_finite")
-
-    if valid:
-        applied_rules.append("validation.unknown")  # 기존 UI 기대값 유지용
-
-    measurement_conditions: List[str] = ["measurement_conditions.sweep_iv"] if n >= 10 else []
-
-    # ✅ rule ontology에서 emitted_assumptions를 "불러다" 적용
-    emitted_assumptions: List[str] = []
+    all_rules: List[Dict[str, Any]] = []
     applied_rule_files: List[str] = []
-    if os.path.isdir(MEASUREMENT_RULE_DIR):
-        for path, obj in _load_json_files(MEASUREMENT_RULE_DIR):
-            # rule 스키마 다양성 대비: {"id":..., "emitted_assumptions":[...]} 또는 컨테이너
-            rules: List[Dict[str, Any]] = []
-            if isinstance(obj, dict) and obj.get("id") and ("criteria" in obj or "emitted_assumptions" in obj):
-                rules = [obj]
-            elif isinstance(obj, dict) and isinstance(obj.get("rules"), list):
-                rules = [r for r in obj["rules"] if isinstance(r, dict)]
-            else:
-                rules = []
+    for path, obj in _load_json_files(MEASUREMENT_RULE_DIR):
+        if isinstance(obj, dict) and isinstance(obj.get("rules"), list):
+            all_rules.extend([r for r in obj["rules"] if isinstance(r, dict)])
+            applied_rule_files.append(os.path.basename(path))
+        elif isinstance(obj, dict):
+            all_rules.append(obj)
+            applied_rule_files.append(os.path.basename(path))
 
-            # 최소 구현: criteria 없이 emitted_assumptions만 있으면 "항상 적용"하지 않음.
-            # 필요하면 여기서 criteria를 stats 기반으로 평가하도록 확장 가능.
-            for r in rules:
-                ea = r.get("emitted_assumptions")
-                if not isinstance(ea, list) or not ea:
-                    continue
-                # 여기서는 간단히 "validation.valid일 때만" 적용 예시
-                # (원하면 rule.criteria 평가 로직을 붙이면 됨)
-                if valid:
-                    emitted_assumptions.extend([str(x) for x in ea if isinstance(x, str)])
-                    applied_rule_files.append(os.path.basename(path))
-
+    rule_result = run_rules(all_rules, stats, measurement_conditions)
     return {
-        "valid": bool(valid),
-        "applied_rules": applied_rules,
-        "errors": errors,
-        "warnings": warnings,
-        "info": [],
+        "valid": bool(rule_result.get("valid", False)),
+        "applied_rules": rule_result.get("applied_rules", []),
+        "errors": rule_result.get("errors", []),
+        "warnings": rule_result.get("warnings", []),
+        "info": rule_result.get("info", []),
         "stats": stats,
         "measurement_conditions": measurement_conditions,
-        # ✅ 추가: validation이 내보낸 assumptions
-        "emitted_assumptions": _unique_preserve_order(emitted_assumptions),
+        "emitted_assumptions": _unique_preserve_order(rule_result.get("emitted_assumptions", [])),
         "applied_rule_files": _unique_preserve_order(applied_rule_files),
     }
 
@@ -552,6 +502,8 @@ def run_l1_engine(raw_data: str) -> Dict[str, Any]:
     llm_keywords = llm_result.get("keywords", []) or []
     metrics = llm_result.get("metrics", {}) or {}
     regimes = llm_result.get("regimes", []) or []
+    llm_trace = llm_result.get("llm_trace", {}) or {}
+    prompt_bundle = llm_result.get("prompt_bundle", {}) or {}
 
     # ✅ 더 이상 llm_result["assumptions"]를 신뢰하지 않음(필요하면 참고용으로만 유지)
     llm_assumptions = llm_result.get("assumptions", []) or []
@@ -587,6 +539,7 @@ def run_l1_engine(raw_data: str) -> Dict[str, Any]:
         "measurement_validation": measurement_validation,
         "llm_pattern": llm_pattern,
         "llm_keywords": llm_keywords,
+        "llm_trace": llm_trace,
         # ✅ 프론트가 기대한다면 유지(참고용)
         "llm_assumptions": llm_assumptions,
         # ✅ 이제 이게 "공식" assumptions 출력
@@ -600,4 +553,133 @@ def run_l1_engine(raw_data: str) -> Dict[str, Any]:
         "과학적 정당화 제안": narrative_pack["과학적 정당화 제안"],
         "metrics": metrics,
         "regimes": regimes,
+        "artifact_dir": _write_run_artifacts(
+            raw_data=raw_data,
+            measurement_validation=measurement_validation,
+            llm_pattern=llm_pattern,
+            llm_keywords=llm_keywords,
+            llm_trace=llm_trace,
+            prompt_bundle=prompt_bundle,
+            assumptions=derived,
+            l1_state=l1_state,
+            sj_proposals=sj_proposals,
+            metrics=metrics,
+            regimes=regimes,
+        ),
     }
+
+
+def _sha256_text(text: str) -> str:
+    return f"sha256:{hashlib.sha256(text.encode('utf-8')).hexdigest()}"
+
+
+def _git_commit_or_unknown() -> str:
+    head_path = Path(BASE_DIR).parent / ".git" / "HEAD"
+    try:
+        head = head_path.read_text(encoding="utf-8").strip()
+        if head.startswith("ref:"):
+            ref_path = Path(BASE_DIR).parent / ".git" / head.split(" ", 1)[1]
+            if ref_path.is_file():
+                return f"git:{ref_path.read_text(encoding='utf-8').strip()}"
+        return f"git:{head}"
+    except Exception:
+        return "git:unknown"
+
+
+def _write_json(path: Path, payload: Dict[str, Any]) -> None:
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _load_prompt_text(name: str, fallback: str) -> str:
+    path = PROMPTS_DIR / name
+    if path.is_file():
+        return path.read_text(encoding="utf-8")
+    return fallback
+
+
+def _write_run_artifacts(
+    raw_data: str,
+    measurement_validation: Dict[str, Any],
+    llm_pattern: str,
+    llm_keywords: List[Dict[str, Any]],
+    llm_trace: Dict[str, Any],
+    prompt_bundle: Dict[str, Any],
+    assumptions: Dict[str, Any],
+    l1_state: Dict[str, Any],
+    sj_proposals: List[Dict[str, Any]],
+    metrics: Dict[str, Any],
+    regimes: List[Dict[str, Any]],
+) -> str:
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    created_at = datetime.now(timezone.utc)
+    run_id = f"{created_at.strftime('%Y%m%dT%H%M%SZ')}__{hashlib.sha256(raw_data.encode('utf-8')).hexdigest()[:10]}"
+    run_dir = RUNS_DIR / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    system_prompt = prompt_bundle.get("system_prompt") or _load_prompt_text("system_prompt_v1.md", "")
+    user_prompt = prompt_bundle.get("user_prompt") or _load_prompt_text("user_template_v1.md", "")
+
+    _write_json(run_dir / "derived.json", {
+        "metrics": metrics,
+        "regimes": regimes,
+        "llm_pattern": llm_pattern,
+        "llm_keywords": llm_keywords,
+    })
+    _write_json(run_dir / "inference.json", {
+        "measurement_validation": measurement_validation,
+        "l1_state": l1_state,
+        "assumptions": assumptions,
+        "sj_proposals": sj_proposals,
+    })
+    _write_json(run_dir / "sj_proposal.json", {
+        "top": sj_proposals[0] if sj_proposals else None,
+        "all": sj_proposals,
+    })
+    _write_json(run_dir / "llm_trace.json", {
+        **llm_trace,
+        "selected_ids": {
+            "iv_regimes": l1_state.get("iv_regimes", []),
+            "iv_features": l1_state.get("iv_features", []),
+            "assumption_ids": assumptions.get("assumption_ids", []),
+            "sj_claims": [item.get("claim_concept") for item in sj_proposals],
+        },
+        "evidence_fields": {
+            "llm_keywords": llm_keywords,
+            "metrics": metrics,
+            "regimes": regimes,
+        },
+        "prompt_hashes": {
+            "system_prompt_hash": _sha256_text(system_prompt),
+            "user_template_hash": _sha256_text(user_prompt),
+        },
+    })
+
+    (run_dir / "raw_input.txt").write_text(raw_data, encoding="utf-8")
+    manifest = {
+        "run_id": run_id,
+        "dataset_id": _sha256_text(raw_data),
+        "created_at_utc": created_at.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "code_commit": _git_commit_or_unknown(),
+        "ontology_commit": _git_commit_or_unknown(),
+        "lexicon_commit": _git_commit_or_unknown(),
+        "model": {
+            "name": prompt_bundle.get("model", "none"),
+            "temperature": prompt_bundle.get("temperature", 0.0),
+            "top_p": prompt_bundle.get("top_p", 1.0),
+        },
+        "prompts": {
+            "system_prompt_path": "prompts/system_prompt_v1.md",
+            "system_prompt_hash": _sha256_text(system_prompt),
+            "user_template_path": "prompts/user_template_v1.md",
+            "user_template_hash": _sha256_text(user_prompt),
+        },
+        "artifacts": {
+            "raw_input": "raw_input.txt",
+            "derived": "derived.json",
+            "inference": "inference.json",
+            "sj_proposal": "sj_proposal.json",
+            "llm_trace": "llm_trace.json",
+        },
+    }
+    _write_json(run_dir / "manifest.json", manifest)
+    return str(run_dir)

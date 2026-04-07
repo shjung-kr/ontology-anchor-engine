@@ -65,6 +65,34 @@ def metadata_any_present(stats: Dict[str, Any], check: Dict[str, Any]) -> CheckR
     ok = len(found) > 0
     return ok, f"found_keys={found}"
 
+def classify_sweep_monotonicity(stats: Dict[str, Any], check: Dict[str, Any]) -> CheckResult:
+    values = stats.get("V_series", []) or []
+    finite = [float(x) for x in values if isinstance(x, (int, float)) and _is_finite(float(x))]
+    if len(finite) < 3:
+        return True, "insufficient_points_for_monotonicity"
+
+    diffs = []
+    for idx in range(1, len(finite)):
+        delta = finite[idx] - finite[idx - 1]
+        if abs(delta) > 1e-12:
+            diffs.append(delta)
+
+    if not diffs:
+        return True, "constant_voltage_series"
+
+    pos = sum(1 for x in diffs if x > 0)
+    neg = sum(1 for x in diffs if x < 0)
+    segments = 1
+    last_sign = 1 if diffs[0] > 0 else -1
+    for delta in diffs[1:]:
+        sign = 1 if delta > 0 else -1
+        if sign != last_sign:
+            segments += 1
+            last_sign = sign
+
+    profile = "monotonic" if pos == 0 or neg == 0 else "segmented"
+    return True, f"profile={profile}, sign_changes={max(0, segments - 1)}"
+
 
 # ----------------------------
 # Registry
@@ -76,6 +104,7 @@ CHECKS: Dict[str, CheckFn] = {
     "not_all_equal": not_all_equal,
     "finite_ratio": finite_ratio,
     "metadata_any_present": metadata_any_present,
+    "classify_sweep_monotonicity": classify_sweep_monotonicity,
 }
 
 def get_check(fn_name: str) -> CheckFn | None:

@@ -1,0 +1,14 @@
+[project]
+name = "ontology-anchor-engine"
+version = "0.1.0"
+description = "Ontology-backed IV analysis engine"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.135,<0.136",
+  "openai>=1.0.0",
+  "pydantic>=2.0.0",
+  "uvicorn>=0.42,<0.43",
+]
+
+[tool.uv]
+package = false

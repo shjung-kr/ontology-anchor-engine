@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List, Tuple, Dict, Any
 import math
+import re
 
 def _to_float(x: str) -> float:
     try:
@@ -16,17 +17,17 @@ def _is_finite(x: float) -> bool:
 
 def parse_vi(raw_data: str) -> Tuple[List[float], List[float]]:
     """
-    Parse CSV-like text into V, I arrays.
-
-    Expected:
-      - first non-empty line is header (comma-separated)
-      - header contains V/I-ish names, otherwise fallback to first 2 columns.
+    Parse CSV-like / whitespace-separated text into V, I arrays.
+    Supports headerless data and skips obvious header lines.
     """
     lines = [ln.strip() for ln in raw_data.splitlines() if ln.strip()]
     if not lines:
         return [], []
 
-    header = [h.strip().lower() for h in lines[0].split(",")]
+    def split_parts(line: str) -> List[str]:
+        return [p.strip() for p in re.split(r"[,\s\t]+", line) if p.strip()]
+
+    header = [h.strip().lower() for h in split_parts(lines[0])]
 
     def find_col(cands: List[str]):
         for c in cands:
@@ -44,8 +45,14 @@ def parse_vi(raw_data: str) -> Tuple[List[float], List[float]]:
     V: List[float] = []
     I: List[float] = []
 
-    for ln in lines[1:]:
-        parts = [p.strip() for p in ln.split(",")]
+    start_idx = 1 if header else 0
+    for idx, ln in enumerate(lines):
+        if idx < start_idx:
+            continue
+        ll = ln.lower()
+        if ("voltage" in ll) or ("current" in ll):
+            continue
+        parts = split_parts(ln)
         if len(parts) <= max(v_idx, i_idx):
             continue
         V.append(_to_float(parts[v_idx]))
@@ -86,6 +93,8 @@ def build_stats(V: List[float], I: List[float], metadata: Dict[str, Any] | None 
         "I_finite_ratio": finite_ratio(I),
         "V_unique": unique_count(V),
         "I_unique": unique_count(I),
+        "V_series": V,
+        "I_series": I,
         "metadata": metadata,
     }
     return stats

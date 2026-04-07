@@ -4,8 +4,8 @@
   "description": "Enumeration of valid measurement condition identifiers defined in the measurement_conditions lexicon.",
   "type": "string",
   "enum": [
-    "measurement_condition.steady_state_dc_iv",
-    "measurement_condition.pulsed_iv",
-    "measurement_condition.sweep_iv"
+    "measurement_conditions.steady_state_dc_iv",
+    "measurement_conditions.pulsed_iv",
+    "measurement_conditions.sweep_iv"
   ]
 }

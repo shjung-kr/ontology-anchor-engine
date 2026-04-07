@@ -3,8 +3,8 @@
   "scientific_justification": {
     "claim_concept": "iv_interpretation.fn_tunneling_asserted",
     "measurement_conditions": [
-      "measurement_condition.steady_state_dc_iv",
-      "measurement_condition.forward_bias"
+      "measurement_conditions.steady_state_dc_iv",
+      "measurement_conditions.sweep_iv"
     ],
     "observed_features": [
       "iv_features.nonlinear_iv_regime",
@@ -29,12 +29,13 @@
       }
     ],
     "assumptions": [
+      "physical_assumption.room_temperature_operation",
       "physical_assumption.effective_potential_barrier_present",
       "fn_assumption.high_field_barrier_thinning_applies",
-      "fn_assumption.tunneling_mechanism_dominates_over_others",
-      "fn_assumption.direct_tunneling_at_low_biases",
-      "fn_assumption.fowler_nordheim_tunneling_at_high_biases",
-      "fn"
+      "fn_assumption.field_estimation_e_equals_v_over_t",
+      "fn_assumption.fn_plot_linearity_indicates_dominant_fn_like_mechanism",
+      "fn_assumption.trap_assisted_contributions_are_minor_or_separable",
+      "fn_assumption.uniform_current_distribution_or_area_effective_constant"
     ],
     "explanation_notes": {
       "en": "Under steady-state DC measurement conditions at room temperature, the I–V transport exhibits a nonlinear regime with field-enhanced current, consistent with Fowler–Nordheim tunneling at high applied biases following direct tunneling at low biases.",

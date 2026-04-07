@@ -36,7 +36,7 @@
         "assumptions": {
           "type": "array",
           "items": {
-            "$ref": "./physical_assumptions.schema.json"
+            "$ref": "./assumptions.schema.json"
           }
         },
         "mechanism_by_regime": {
