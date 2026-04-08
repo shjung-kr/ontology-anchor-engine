@@ -1,0 +1,198 @@
+{
+  "iv_interpretation.ohmic_transport": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.ohmic_transport",
+    "labels": {
+      "en": "Ohmic transport",
+      "ko": "옴의 법칙 지배 전도"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to electron transport behavior that satisfies Ohm's law at room temperature, where the current increases proportionally with applied voltage according to the intrinsic resistivity coefficient of the material.",
+      "ko": "관찰된 I–V 특성은 상온에서 물질의 고유 저항 계수에 따라 인가 전압이 증가함에 따라 전류가 비례적으로 증가하는, 옴의 법칙을 만족하는 전자 수송 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.schottky-type": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.schottky-type_transport",
+    "labels": {
+      "en": "Schottky-type transport",
+      "ko": "쇼트키형 전도"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to Schottky-type electron transport behavior at room temperature, where the current exhibits exponential dependence on applied voltage due to the presence of a Schottky barrier at the metal-semiconductor interface.",
+      "ko": "관찰된 I–V 특성은 금속-반도체 계면에 쇼트키 장벽이 존재하여 전류가 인가 전압에 대해 지수적으로 의존하는 상온에서의 쇼트키형 전자 수송 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.space_charge_limited": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.space_charge_limited_transport",
+    "labels": {
+      "en": "Space-charge-limited current transport",
+      "ko": "공간 전하 제한 전류 수송"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to space-charge-limited current (SCLC) transport behavior at room temperature, where the current increases more rapidly than linearly with applied voltage due to the accumulation of space charge within the material.",
+      "ko": "관찰된 I–V 특성은 물질 내 공간 전하의 축적으로 인해 전류가 인가 전압에 대해 선형보다 더 빠르게 증가하는 상온에서의 공간 전하 제한 전류(SCLC) 수송 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.direct_tunneling": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.direct_tunneling_transport",
+    "labels": {
+      "en": "Direct tunneling",
+      "ko": "직접 터널링"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to direct tunneling behavior at room temperature, where electrons tunnel through a thin potential barrier, resulting in a weakly voltage-dependent current.",
+      "ko": "관찰된 I–V 특성은 얇은 퍼텐셜 장벽을 통해 전자가 터널링하여 전압에 약하게 의존하는 전류를 초래하는 상온에서의 직접 터널링 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.fn_tunneling_asserted": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.fowler_nordheim_tunneling_transport",
+    "labels": {
+      "en": "Fowler–Nordheim tunneling",
+      "ko": "Fowler–Nordheim 터널링"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to Fowler–Nordheim tunneling behavior at room temperature, where electrons tunnel through a triangular potential barrier under high electric fields, resulting in a characteristic exponential increase in current with increasing voltage.",
+      "ko": "관찰된 I–V 특성은 상온에서 높은 전기장 하에서 삼각형 퍼텐셜 장벽을 통해 전자가 터널링하여 전압 증가에 따라 전류가 특유의 지수적 증가를 나타내는 Fowler–Nordheim 터널링 거동으로 해석될 수 있습니다."
+    },
+    "required_features": [],
+    "certainty_level": "established"
+  },
+  "iv_interpretation.leakage_dominated": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.leakage_dominated_transport",
+    "labels": {
+      "en": "Leakage current dominated transport",
+      "ko": "누설 전류 지배 수송"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to leakage current dominated transport behavior at room temperature, where the current is primarily due to leakage pathways rather than intrinsic conduction mechanisms of the material.",
+      "ko": "관찰된 I–V 특성은 물질의 고유 전도 메커니즘보다는 누설 경로로 인한 전류가 주로 발생하는 상온에서의 누설 전류 지배 수송 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.trap_assisted_transport": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.trap_assisted_transport",
+    "labels": {
+      "en": "Trap-assisted tunneling",
+      "ko": "트랩 보조 터널링"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to trap-assisted tunneling behavior at room temperature, where electrons tunnel through localized trap states within the bandgap, leading to a non-linear current-voltage relationship.",
+      "ko": "관찰된 I–V 특성은 밴드갭 내의 국소화된 트랩 상태를 통해 전자가 터널링하여 비선형 전류-전압 관계를 초래하는 상온에서의 트랩 보조 터널링 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.poole_frenkel_emission": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.poole_frenkel_emission",
+    "labels": {
+      "en": "Poole–Frenkel emission",
+      "ko": "Poole–Frenkel 방출"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to Poole–Frenkel emission behavior at room temperature, where the current increases due to field-enhanced thermal excitation of trapped electrons into the conduction band.",
+      "ko": "관찰된 I–V 특성은 트랩된 전자가 전도대로의 장 강화 열적 여기로 인해 전류가 증가하는 상온에서의 Poole–Frenkel 방출 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.thermionic_emission": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.thermionic_emission",
+    "labels": {
+      "en": "Thermionic emission",
+      "ko": "열전자 방출"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to thermionic emission behavior at room temperature, where electrons gain sufficient thermal energy to overcome a potential barrier, resulting in a current that increases with temperature and applied voltage.",
+      "ko": "관찰된 I–V 특성은 전자가 퍼텐셜 장벽을 극복하기 위해 충분한 열 에너지를 얻어 온도와 인가 전압이 증가함에 따라 전류가 증가하는 상온에서의 열전자 방출 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.hopping_conduction": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.hopping_transport",
+    "labels": {
+      "en": "Hopping conduction",
+      "ko": "호핑 전도"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to hopping conduction behavior at room temperature, where electrons move between localized states through thermally activated hopping, leading to a non-linear current-voltage relationship.",
+      "ko": "관찰된 I–V 특성은 전자가 열 활성화 호핑을 통해 국소화된 상태 사이를 이동하여 비선형 전류-전압 관계를 초래하는 상온에서의 호핑 전도 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.ionic_conduction": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.ionic_conduction",
+    "labels": {
+      "en": "Ionic conduction",
+      "ko": "이온 전도"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to ionic conduction behavior at room temperature, where the current is primarily due to the movement of ions within the material, resulting in a distinct current-voltage relationship compared to electronic conduction.",
+      "ko": "관찰된 I–V 특성은 물질 내 이온의 이동으로 인해 전류가 주로 발생하여 전자 전도와는 구별되는 전류-전압 관계를 초래하는 상온에서의 이온 전도 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.breakdown_conduction": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.band_transport",
+    "labels": {
+      "en": "Breakdown conduction",
+      "ko": "항복 전도"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to breakdown conduction behavior at room temperature, where the current increases dramatically once a critical voltage threshold is exceeded, indicating the onset of electrical breakdown in the material.",
+      "ko": "관찰된 I–V 특성은 임계 전압 임계값을 초과하면 전류가 급격히 증가하여 물질의 전기적 항복이 시작됨을 나타내는 상온에서의 항복 전도 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.filamentary_conduction": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.band_transport",
+    "labels": {
+      "en": "Filamentary conduction",
+      "ko": "필라멘터리 전도"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to filamentary conduction behavior at room temperature, where the current flows through localized conductive filaments within the material, leading to abrupt changes in current with applied voltage.",
+      "ko": "관찰된 I–V 특성은 물질 내 국소화된 전도성 필라멘트를 통해 전류가 흐르며 인가 전압에 따라 전류가 급격히 변화하는 상온에서의 필라멘터리 전도 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  },
+  "iv_interpretation.NDR_conduction": {
+    "category": "iv_interpretation",
+    "mechanism": "electrical_mechanisms.band_transport",
+    "labels": {
+      "en": "Negative differential resistance (NDR) conduction",
+      "ko": "음의 미분 저항(NDR) 전도"
+    },
+    "definition": {
+      "en": "The observed I–V characteristic corresponds to negative differential resistance (NDR) conduction behavior at room temperature, where an increase in applied voltage leads to a decrease in current over a specific voltage range.",
+      "ko": "관찰된 I–V 특성은 특정 전압 범위에서 인가 전압이 증가함에 따라 전류가 감소하는 상온에서의 음의 미분 저항(NDR) 전도 거동으로 해석될 수 있습니다."
+    },
+    "required_features": {},
+    "certainty_level": "established"
+  }
+}

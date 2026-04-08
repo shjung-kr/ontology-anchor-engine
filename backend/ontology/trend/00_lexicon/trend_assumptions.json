@@ -1,0 +1,16 @@
+{
+  "version": "0.1.0",
+  "items": [
+    {
+      "id": "trend_assumption.input_is_ordered_by_x",
+      "labels": {
+        "en": "Input rows are ordered by x",
+        "ko": "입력 행이 x 기준으로 정렬되어 있다는 가정"
+      },
+      "definition": {
+        "en": "Trend interpretation assumes the input sequence follows the x-axis order.",
+        "ko": "추세 해석은 입력 순서가 x축 순서를 따른다고 가정한다."
+      }
+    }
+  ]
+}

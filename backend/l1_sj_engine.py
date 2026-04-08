@@ -8,6 +8,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Tuple, Optional
 
+from backend.domains.iv.features import (
+    build_l1_state as iv_build_l1_state,
+    infer_iv_features_from_numeric as iv_infer_iv_features_from_numeric,
+)
+from backend.domains.iv.proposals import (
+    build_derived_assumptions as iv_build_derived_assumptions,
+    evaluate_scientific_justification as iv_evaluate_scientific_justification,
+)
+from backend.domains.iv.registry import load_registry_from_folders as iv_load_registry_from_folders
+from backend.domains.iv.renderer import render_system_narrative_ko as iv_render_system_narrative_ko
+from backend.domains.iv.runner import run_iv_domain
+from backend.domains.iv.validation import validate_measurement as iv_validate_measurement
 from backend.llm_adapter import llm_analyze_numeric
 from backend.measurement_validations.infer import infer_measurement_conditions
 from backend.measurement_validations.parser import parse_vi, build_stats
@@ -132,125 +144,14 @@ def _coerce_assumption_definition(
 # 0) Registry loader (안정적으로 id만 모음)
 # =========================================================
 def load_registry_from_folders() -> Dict[str, Any]:
-    reg = {"iv_regimes": {}, "iv_features": {}, "assumptions": {}}
-
-    def _ingest_dir(dir_path: str, key: str):
-        if not os.path.isdir(dir_path):
-            return
-        for path, obj in _load_json_files(dir_path):
-            oid = obj.get("id") or obj.get("ontology_id")
-            if isinstance(oid, str) and oid.strip():
-                reg[key][oid.strip()] = True
-
-    def _ingest_assumptions_dir(dir_path: str):
-        """
-        assumptions 레지스트리는 '정의'를 담아야 하므로 True가 아니라 dict를 저장.
-        지원 패턴:
-          1) 파일 자체가 assumption 정의: {"assumption_id": "...", "statement": "...", ...}
-          2) id가 "assumption.A_MAG_NOISE" 형태: {"id":"assumption.A_MAG_NOISE", ...}
-          3) assumptions/items 리스트 포함:
-             - {"assumptions":[ {...}, {...} ]}
-             - {"items":[ {...}, {...} ]} (id 기반 lexicon 스타일)
-        """
-        if not os.path.isdir(dir_path):
-            return
-
-        def _register_one(a: Dict[str, Any], source_file: str):
-            if not isinstance(a, dict):
-                return
-
-            # assumption_id 결정
-            aid = a.get("assumption_id")
-            if not (isinstance(aid, str) and aid.strip()):
-                _id = a.get("id") or a.get("ontology_id")
-                if isinstance(_id, str) and _id.strip():
-                    # (A) "assumption.A_X" -> "A_X"
-                    if _id.strip().lower().startswith("assumption."):
-                        aid = _id.split(".", 1)[1]
-                    # (B) "measurement_assumption.xxx" / "fn_assumption.xxx" 등은 그대로 id로 써도 됨
-                    else:
-                        aid = _id.strip()
-
-            if not (isinstance(aid, str) and aid.strip()):
-                return
-            aid = aid.strip()
-            card = _coerce_assumption_definition(aid, a, source_file)
-            if card:
-                reg["assumptions"][aid] = card
-
-        for path, obj in _load_json_files(dir_path):
-            if isinstance(obj, dict):
-                # dict-mapping lexicon 스타일:
-                # { "physical_assumption.xxx": {...}, ... }
-                for k, v in obj.items():
-                    if isinstance(k, str) and isinstance(v, dict):
-                        card = _coerce_assumption_definition(k, v, path)
-                        if card:
-                            reg["assumptions"][k] = card
-
-            # (A) 단일 assumption일 수 있음
-            looks_like_single = False
-            if isinstance(obj, dict):
-                if isinstance(obj.get("assumption_id"), str) and obj["assumption_id"].strip():
-                    looks_like_single = True
-                else:
-                    _id = obj.get("id") or obj.get("ontology_id")
-                    if isinstance(_id, str) and _id.strip():
-                        looks_like_single = True
-
-            if looks_like_single:
-                _register_one(obj, path)
-
-            # (B) 컨테이너일 수 있음
-            if isinstance(obj, dict) and isinstance(obj.get("assumptions"), list):
-                for item in obj["assumptions"]:
-                    _register_one(item, path)
-
-            # (C) lexicon style: {"category": "...", "items":[...]}
-            if isinstance(obj, dict) and isinstance(obj.get("items"), list):
-                for item in obj["items"]:
-                    _register_one(item, path)
-
-    _ingest_dir(IV_REGIMES_DIR, "iv_regimes")
-    _ingest_dir(IV_FEATURES_DIR, "iv_features")
-
-    for d in ASSUMPTIONS_DIRS:
-        _ingest_assumptions_dir(d)
-
-    return reg
+    return iv_load_registry_from_folders()
 
 
 # =========================================================
 # 1) Measurement validation (✅ assumptions는 여기서만 "불러다 씀")
 # =========================================================
 def validate_measurement(raw_data: str) -> Dict[str, Any]:
-    metadata: Dict[str, Any] = {}
-    V, I = parse_vi(raw_data)
-    stats = build_stats(V, I, metadata)
-    measurement_conditions = infer_measurement_conditions(stats, metadata)
-
-    all_rules: List[Dict[str, Any]] = []
-    applied_rule_files: List[str] = []
-    for path, obj in _load_json_files(MEASUREMENT_RULE_DIR):
-        if isinstance(obj, dict) and isinstance(obj.get("rules"), list):
-            all_rules.extend([r for r in obj["rules"] if isinstance(r, dict)])
-            applied_rule_files.append(os.path.basename(path))
-        elif isinstance(obj, dict):
-            all_rules.append(obj)
-            applied_rule_files.append(os.path.basename(path))
-
-    rule_result = run_rules(all_rules, stats, measurement_conditions)
-    return {
-        "valid": bool(rule_result.get("valid", False)),
-        "applied_rules": rule_result.get("applied_rules", []),
-        "errors": rule_result.get("errors", []),
-        "warnings": rule_result.get("warnings", []),
-        "info": rule_result.get("info", []),
-        "stats": stats,
-        "measurement_conditions": measurement_conditions,
-        "emitted_assumptions": _unique_preserve_order(rule_result.get("emitted_assumptions", [])),
-        "applied_rule_files": _unique_preserve_order(applied_rule_files),
-    }
+    return iv_validate_measurement(raw_data, metadata={})
 
 
 def _parse_vi_pairs(raw_data: str) -> List[Tuple[float, float]]:
@@ -279,33 +180,7 @@ def _parse_vi_pairs(raw_data: str) -> List[Tuple[float, float]]:
 # 2) B 방식: regimes/metrics -> iv_features
 # =========================================================
 def infer_iv_features_from_numeric(metrics: Dict[str, Any], regimes: List[Dict[str, Any]]) -> List[str]:
-    feats: List[str] = []
-    if not regimes:
-        return []
-
-    low = next((r for r in regimes if r.get("name") == "low_|V|"), None)
-    high = next((r for r in regimes if r.get("name") == "high_|V|"), None)
-
-    slope_ref: Optional[float] = None
-    if low and low.get("mean_slope_log_absI_per_logV") is not None:
-        slope_ref = float(low.get("mean_slope_log_absI_per_logV"))
-    elif high and high.get("mean_slope_log_absI_per_logV") is not None:
-        slope_ref = float(high.get("mean_slope_log_absI_per_logV"))
-
-    if slope_ref is not None:
-        if 0.85 <= slope_ref <= 1.15:
-            feats += ["iv_features.linear_iv_regime", "iv_features.constant_conductance_behavior"]
-        elif slope_ref >= 1.20:
-            feats.append("iv_features.nonlinear_iv_regime")
-
-    if high:
-        ddec = float(high.get("delta_decades_robust", 0.0) or 0.0)
-        ms = float(high.get("mean_slope_log_absI_per_logV", 0.0) or 0.0)
-        if ddec >= 2.0 and ms >= 2.0:
-            feats.append("iv_features.field_enhanced_current")
-            feats.append("iv_features.nonlinear_iv_regime")
-
-    return _unique_preserve_order(feats)
+    return iv_infer_iv_features_from_numeric(metrics, regimes)
 
 
 # =========================================================
@@ -387,42 +262,7 @@ def _normalize_assumption_card(assumption_id: str, registry: Dict[str, Any]) -> 
 # 4) SJ ontology evaluation (✅ assumptions도 SJ에서 불러다 씀)
 # =========================================================
 def evaluate_scientific_justification(l1_state: Dict[str, Any]) -> List[Dict[str, Any]]:
-    proposals: List[Dict[str, Any]] = []
-    if not os.path.isdir(ONTOLOGY_DIR):
-        return proposals
-
-    for fname in os.listdir(ONTOLOGY_DIR):
-        if not fname.endswith(".json"):
-            continue
-        path = os.path.join(ONTOLOGY_DIR, fname)
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                sj = json.load(f).get("scientific_justification", {})
-        except Exception:
-            continue
-
-        claim = sj.get("claim_concept")
-        required_features = set(sj.get("required_features", []))
-        matched = required_features.intersection(set(l1_state.get("iv_features", [])))
-        score = len(matched)
-
-        if score > 0:
-            proposals.append({
-                "ontology_file": fname,
-                "claim_concept": claim,
-                "mechanism_id": claim,
-                "score": score,
-                "required_features": sorted(list(required_features)),
-                "observed_features": sj.get("observed_features", []) or [],
-                "matched_features": sorted(list(matched)),
-                "explanation_notes": sj.get("explanation_notes", {}),
-                # ✅ SJ가 이미 가지고 있는 assumption id 리스트를 그대로 유지
-                "sj_assumptions": sj.get("assumptions", []) or [],
-                "mechanism_by_regime": sj.get("mechanism_by_regime", []) or [],
-            })
-
-    proposals.sort(key=lambda x: x["score"], reverse=True)
-    return proposals
+    return iv_evaluate_scientific_justification(l1_state)
 
 
 # =========================================================
@@ -458,76 +298,7 @@ def render_system_narrative_ko(
     sj_proposals: List[Dict[str, Any]],
     derived: Dict[str, Any],
 ) -> Dict[str, str]:
-    regimes = l1_state.get("iv_regimes", [])
-    feats = l1_state.get("iv_features", [])
-
-    l1_summary = "【L1 관측 좌표 요약】\n"
-    l1_summary += f"- iv_regimes: {', '.join(regimes) if regimes else '(none)'}\n"
-    l1_summary += f"- iv_features: {', '.join(feats) if feats else '(none)'}\n"
-
-    if sj_proposals:
-        top = sj_proposals[0]
-        sj_text = f"최상위 제안: {top.get('ontology_file')} (score={top.get('score')})"
-    else:
-        sj_text = "제안 가능한 과학적 정당화가 발견되지 않았습니다."
-
-    assumps = derived.get("assumptions", []) or []
-    assump_ids = [a.get("assumption_id", "") for a in assumps if isinstance(a, dict)]
-    a_text = f"- assumptions: {', '.join(assump_ids) if assump_ids else '(none)'}"
-
-    narrative = (
-        f"{l1_summary}\n"
-        f"【LLM 관측 패턴】\n{llm_pattern or '(none)'}\n\n"
-        f"【과학적 정당화 제안】\n{sj_text}\n\n"
-        f"【가정(assumptions)】\n{a_text}\n"
-    )
-
-    return {
-        "L1 좌표 요약": l1_summary.strip(),
-        "과학적 정당화 제안": sj_text,
-        "system_narrative": narrative.strip(),
-    }
-
-
-# =========================================================
-# ✅ Entrypoint expected by backend/server.py
-# =========================================================
-def run_l1_engine(raw_data: str) -> Dict[str, Any]:
-    # 1) measurement validation
-    measurement_validation = validate_measurement(raw_data)
-
-    # 2) llm adapter (pattern/keywords/metrics/regimes)
-    llm_result = llm_analyze_numeric(raw_data)
-    llm_pattern = str(llm_result.get("pattern") or "")
-    llm_keywords = llm_result.get("keywords", []) or []
-    metrics = llm_result.get("metrics", {}) or {}
-    regimes = llm_result.get("regimes", []) or []
-    llm_trace = llm_result.get("llm_trace", {}) or {}
-    prompt_bundle = llm_result.get("prompt_bundle", {}) or {}
-
-    # ✅ 더 이상 llm_result["assumptions"]를 신뢰하지 않음(필요하면 참고용으로만 유지)
-    llm_assumptions = llm_result.get("assumptions", []) or []
-
-    # 3) registry
-    registry = load_registry_from_folders()
-
-    # 4) l1_state
-    l1_state = build_l1_state(
-        llm_keywords=llm_keywords,
-        metrics=metrics,
-        regimes=regimes,
-        registry=registry,
-    )
-
-    # 5) SJ proposals
-    sj_proposals = evaluate_scientific_justification(l1_state)
-    sj_top = sj_proposals[0] if sj_proposals else None
-
-    # 6) ✅ derived assumptions = validation + sj
-    derived = build_derived_assumptions(measurement_validation, sj_top, registry)
-
-    # 7) narrative
-    narrative_pack = render_system_narrative_ko(
+    return iv_render_system_narrative_ko(
         measurement_validation=measurement_validation,
         llm_pattern=llm_pattern,
         l1_state=l1_state,
@@ -535,38 +306,12 @@ def run_l1_engine(raw_data: str) -> Dict[str, Any]:
         derived=derived,
     )
 
-    return {
-        "measurement_validation": measurement_validation,
-        "llm_pattern": llm_pattern,
-        "llm_keywords": llm_keywords,
-        "llm_trace": llm_trace,
-        # ✅ 프론트가 기대한다면 유지(참고용)
-        "llm_assumptions": llm_assumptions,
-        # ✅ 이제 이게 "공식" assumptions 출력
-        "assumptions": derived.get("assumptions", []),
-        "assumption_ids": derived.get("assumption_ids", []),
-        "assumptions_meta": derived.get("assumptions_meta", {}),
-        "l1_state": l1_state,
-        "sj_proposals": sj_proposals,
-        "system_narrative": narrative_pack["system_narrative"],
-        "L1 좌표 요약": narrative_pack["L1 좌표 요약"],
-        "과학적 정당화 제안": narrative_pack["과학적 정당화 제안"],
-        "metrics": metrics,
-        "regimes": regimes,
-        "artifact_dir": _write_run_artifacts(
-            raw_data=raw_data,
-            measurement_validation=measurement_validation,
-            llm_pattern=llm_pattern,
-            llm_keywords=llm_keywords,
-            llm_trace=llm_trace,
-            prompt_bundle=prompt_bundle,
-            assumptions=derived,
-            l1_state=l1_state,
-            sj_proposals=sj_proposals,
-            metrics=metrics,
-            regimes=regimes,
-        ),
-    }
+
+# =========================================================
+# ✅ Entrypoint expected by backend/server.py
+# =========================================================
+def run_l1_engine(raw_data: str) -> Dict[str, Any]:
+    return run_iv_domain(raw_data=raw_data, metadata={})
 
 
 def _sha256_text(text: str) -> str:

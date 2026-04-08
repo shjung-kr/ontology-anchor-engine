@@ -1,0 +1,11 @@
+{
+  "interpretation": {
+    "claim_concept": "trend_interpretation.non_monotonic_signal",
+    "required_features": [
+      "signal_features.non_monotonic_variation"
+    ],
+    "notes": {
+      "en": "The signal changes direction and is not monotonic."
+    }
+  }
+}

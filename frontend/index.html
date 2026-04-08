@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>L1 Scientific Justification Engine</title>
+  <title>Ontology Anchor Engine</title>
 
   <style>
     body {
@@ -11,76 +11,107 @@
       background: #fafafa;
     }
 
-    h2 {
-      margin-bottom: 6px;
-    }
+    h2 { margin-bottom: 6px; }
+    h3 { margin-top: 32px; margin-bottom: 8px; }
 
-    p {
-      font-size: 14px;
-      color: #444;
-    }
+    p { font-size: 14px; color: #444; }
 
-    input[type="file"] {
-      margin-top: 10px;
-      margin-bottom: 12px;
-    }
+    input[type="file"] { margin-top: 10px; margin-bottom: 12px; }
 
+    select,
     textarea {
       width: 100%;
-      height: 140px;
       padding: 10px;
       background: #f4f4f4;
       border: 1px solid #ccc;
       resize: vertical;
       font-family: monospace;
       font-size: 13px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      height: 140px;
+    }
+
+    pre {
+      background: #f0f0f0;
+      padding: 14px;
+      border-left: 4px solid #666;
+      overflow-x: auto;
+      font-size: 13px;
+      white-space: pre-wrap;
     }
 
     button {
-      margin-top: 16px;
+      margin-top: 14px;
       padding: 8px 18px;
       font-size: 14px;
       cursor: pointer;
     }
 
-    hr {
-      margin-top: 30px;
-      margin-bottom: 30px;
-    }
+    .section { margin-top: 26px; }
+    .hint { font-size: 12px; color: #666; }
+    .muted { color: #666; }
+    .small { font-size: 12px; }
+    .row { margin-top: 6px; }
+    .subttl { margin: 10px 0 4px; font-weight: bold; }
 
-    /* ===== Chat-like system output ===== */
+    hr { margin-top: 30px; margin-bottom: 30px; }
 
-    .chat {
-      background: #000;
-      color: #00ff66;
-      padding: 18px;
-      border-left: 4px solid #00ff66;
+    .box {
+      background: #f0f0f0;
+      border-left: 4px solid #666;
+      padding: 12px 14px;
       white-space: pre-wrap;
+      overflow-x: auto;
       font-size: 13px;
-      line-height: 1.45;
-      min-height: 120px;
     }
 
-    .hint {
-      font-size: 12px;
-      color: #666;
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      background: #fafafa;
+      margin: 2px 4px 2px 0;
     }
   </style>
 </head>
 
 <body>
 
-<h2>L1 Scientific Justification Engine</h2>
+<h2>Ontology Anchor Engine</h2>
 <p>
-<strong>Pipeline:</strong>
-L0 Data → LLM Observation → L1 Coordinate → SJ Proposal
+<strong>Pipeline:</strong><br/>
+Raw Data → Domain Validation → Feature Extraction → Ontology Proposal
 </p>
 
 <hr />
 
-<div>
+<div class="section">
+  <h3>Input: Experimental Numeric Data</h3>
+  <p class="hint">Select analysis domain</p>
+  <select id="domainSelect"></select>
+
   <input type="file" id="fileInput" />
-  <p class="hint">Upload raw numeric experimental data (TXT / CSV)</p>
+  <p class="hint" id="domainHint">Upload raw numeric experimental data (TXT / CSV).</p>
 
   <textarea id="rawData" readonly
     placeholder="Uploaded raw data preview will appear here"></textarea>
@@ -90,18 +121,141 @@ L0 Data → LLM Observation → L1 Coordinate → SJ Proposal
 
 <hr />
 
-<!-- ===== Chat-like Output ===== -->
-<div id="chatLog" class="chat">
-(waiting)
+<div class="section">
+  <h3>0. Measurement Validation</h3>
+  <pre id="measurementLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>1. Pattern / Narrative</h3>
+  <pre id="patternLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>2. Feature Keywords / Evidence</h3>
+  <pre id="keywordLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>2.5 Assumptions</h3>
+  <pre id="assumptionLog">(waiting)</pre>
+  <div id="assumptionPretty" class="box" style="margin-top:10px;">(waiting)</div>
+</div>
+
+<div class="section">
+  <h3>3. L1 Coordinate State</h3>
+  <pre id="l1StateLog">(waiting)</pre>
+</div>
+
+<div class="section">
+  <h3>4. Ontology Proposals</h3>
+  <pre id="proposalLog">(waiting)</pre>
+  <div id="proposalPretty" style="margin-top:10px;">(waiting)</div>
+</div>
+
+<div class="section">
+  <h3>Summary</h3>
+  <pre id="summaryLog">(waiting)</pre>
 </div>
 
 <script>
-const API_URL = "http://localhost:8000/v14/run";
-const fileInput = document.getElementById("fileInput");
-const rawArea = document.getElementById("rawData");
-const chatLog = document.getElementById("chatLog");
+const API_URL = "/run";
+const DOMAIN_URL = "/domains";
 
-/* File load */
+const fileInput = document.getElementById("fileInput");
+const domainSelect = document.getElementById("domainSelect");
+const domainHint = document.getElementById("domainHint");
+const rawArea = document.getElementById("rawData");
+
+const measurementLog = document.getElementById("measurementLog");
+const patternLog = document.getElementById("patternLog");
+const keywordLog = document.getElementById("keywordLog");
+const assumptionLog = document.getElementById("assumptionLog");
+const assumptionPretty = document.getElementById("assumptionPretty");
+const l1StateLog = document.getElementById("l1StateLog");
+const proposalLog = document.getElementById("proposalLog");
+const proposalPretty = document.getElementById("proposalPretty");
+const summaryLog = document.getElementById("summaryLog");
+
+let cachedDomains = [];
+
+function safeStringify(x) {
+  try { return JSON.stringify(x, null, 2); }
+  catch (e) { return String(x); }
+}
+
+function asArray(x) {
+  return Array.isArray(x) ? x : (x == null ? [] : [x]);
+}
+
+function isStringArray(x) {
+  return Array.isArray(x) && x.every(v => typeof v === "string");
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function pills(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return "<span class='muted'>(none)</span>";
+  return ids.map(id => `<span class="pill">${escapeHtml(id)}</span>`).join("");
+}
+
+function currentDomainMeta() {
+  return cachedDomains.find(item => item.domain === domainSelect.value) || null;
+}
+
+function updateDomainHint() {
+  const meta = currentDomainMeta();
+  if (!meta) {
+    domainHint.innerText = "Upload raw numeric experimental data (TXT / CSV).";
+    return;
+  }
+  domainHint.innerText = `${meta.description} Input kind: ${meta.input_kind}.`;
+}
+
+function loadDomains() {
+  fetch(DOMAIN_URL)
+    .then(res => res.json())
+    .then(payload => {
+      cachedDomains = payload.domains || [];
+      domainSelect.innerHTML = "";
+
+      cachedDomains.forEach(domain => {
+        const option = document.createElement("option");
+        option.value = domain.domain;
+        option.textContent = `${domain.title} (${domain.domain})`;
+        domainSelect.appendChild(option);
+      });
+
+      if (cachedDomains.length === 0) {
+        const option = document.createElement("option");
+        option.value = "iv";
+        option.textContent = "I-V Scientific Justification (iv)";
+        domainSelect.appendChild(option);
+      }
+
+      updateDomainHint();
+    })
+    .catch(() => {
+      cachedDomains = [];
+      domainSelect.innerHTML = "";
+      const option = document.createElement("option");
+      option.value = "iv";
+      option.textContent = "I-V Scientific Justification (iv)";
+      domainSelect.appendChild(option);
+      updateDomainHint();
+    });
+}
+
+domainSelect.addEventListener("change", updateDomainHint);
+loadDomains();
+
 fileInput.addEventListener("change", () => {
   const file = fileInput.files[0];
   if (!file) return;
@@ -113,65 +267,183 @@ fileInput.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
-/* Run engine */
+function renderAssumptionsPretty(assumptions) {
+  if (!assumptions || (Array.isArray(assumptions) && assumptions.length === 0)) {
+    return "(none)";
+  }
+
+  if (isStringArray(assumptions)) {
+    return [
+      "Assumptions (IDs):",
+      ...assumptions.map((id, index) => `  ${index + 1}. ${id}`)
+    ].join("\n");
+  }
+
+  if (Array.isArray(assumptions)) {
+    return assumptions.map((item, index) => {
+      if (item && typeof item === "object") {
+        const label = item.statement || item.assumption_id || safeStringify(item);
+        const aid = item.assumption_id ? ` [${item.assumption_id}]` : "";
+        return `${index + 1}. ${label}${aid}`;
+      }
+      return `${index + 1}. ${String(item)}`;
+    }).join("\n");
+  }
+
+  return safeStringify(assumptions);
+}
+
+function renderProposalCard(proposal, index) {
+  if (!proposal || typeof proposal !== "object") {
+    return `
+      <div class="card">
+        <div><b>Proposal #${index + 1}</b></div>
+        <div class="box">${escapeHtml(safeStringify(proposal))}</div>
+      </div>
+    `;
+  }
+
+  const claim = proposal.claim_concept || proposal.mechanism_id || "(no claim)";
+  const mechanismsByRegime = Array.isArray(proposal.mechanism_by_regime) ? proposal.mechanism_by_regime : [];
+  const required = isStringArray(proposal.required_features) ? proposal.required_features : asArray(proposal.required_features).filter(x => typeof x === "string");
+  const matched = isStringArray(proposal.matched_features) ? proposal.matched_features : asArray(proposal.matched_features).filter(x => typeof x === "string");
+  const observed = isStringArray(proposal.observed_features) ? proposal.observed_features : asArray(proposal.observed_features).filter(x => typeof x === "string");
+  const assumptions = isStringArray(proposal.assumptions) ? proposal.assumptions : isStringArray(proposal.sj_assumptions) ? proposal.sj_assumptions : [];
+
+  const regimeHtml = mechanismsByRegime.length === 0
+    ? `<div class="muted">(no mechanism_by_regime)</div>`
+    : mechanismsByRegime.map(item => {
+        const regime = item && typeof item === "object" ? item.regime || "(no regime)" : "(invalid regime)";
+        const mechanisms = item && typeof item === "object" ? asArray(item.mechanisms).filter(x => typeof x === "string") : [];
+        return `
+          <div class="row">
+            <div><b>Regime:</b> <span class="pill">${escapeHtml(regime)}</span></div>
+            <div class="row"><b>Mechanisms:</b> ${pills(mechanisms)}</div>
+          </div>
+        `;
+      }).join("");
+
+  return `
+    <div class="card">
+      <div><b>Proposal #${index + 1}</b></div>
+      <div class="row"><b>Claim:</b> ${escapeHtml(claim)}</div>
+      <div class="row"><b>Score:</b> ${escapeHtml(proposal.score ?? "(none)")}</div>
+
+      <div class="row">
+        <div class="subttl">Mechanism by Regime</div>
+        ${regimeHtml}
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="subttl">Required Features</div>
+          <div>${pills(required)}</div>
+        </div>
+        <div>
+          <div class="subttl">Matched Features</div>
+          <div>${pills(matched)}</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="subttl">Observed Features</div>
+          <div>${pills(observed)}</div>
+        </div>
+        <div>
+          <div class="subttl">Assumptions</div>
+          <div>${pills(assumptions)}</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="subttl">Raw Proposal JSON</div>
+        <div class="box">${escapeHtml(safeStringify(proposal))}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProposalPretty(proposals) {
+  const arr = Array.isArray(proposals) ? proposals : (proposals ? [proposals] : []);
+  if (arr.length === 0) return `<div class="muted">(none)</div>`;
+  return arr.map((proposal, index) => renderProposalCard(proposal, index)).join("");
+}
+
+function clearOutputs() {
+  measurementLog.innerText = "(running...)";
+  patternLog.innerText = "(running...)";
+  keywordLog.innerText = "(running...)";
+  assumptionLog.innerText = "(running...)";
+  assumptionPretty.innerText = "(running...)";
+  l1StateLog.innerText = "(running...)";
+  proposalLog.innerText = "(running...)";
+  proposalPretty.innerHTML = "(running...)";
+  summaryLog.innerText = "(running...)";
+}
+
+function pickPatternText(response) {
+  if (response.llm_pattern) return safeStringify(response.llm_pattern);
+  if (response.system_narrative) return response.system_narrative;
+  return "(none)";
+}
+
+function pickKeywordPayload(response) {
+  if (response.llm_keywords) return response.llm_keywords;
+  if (response.l1_state && response.l1_state.evidence) return response.l1_state.evidence;
+  return [];
+}
+
+function pickSummary(response) {
+  if (response["L1 좌표 요약"] || response["과학적 정당화 제안"]) {
+    return `${response["L1 좌표 요약"] || ""}\n\n${response["과학적 정당화 제안"] || ""}`.trim();
+  }
+  return response.system_narrative || "(no summary)";
+}
+
 function runEngine() {
-  chatLog.innerText = "Running analysis...\n";
+  clearOutputs();
 
   fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ raw_data: rawArea.value })
+    body: JSON.stringify({
+      domain: domainSelect.value || "iv",
+      raw_data: rawArea.value,
+      metadata: {}
+    })
   })
-  .then(async res => {
-    const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error(text);
-    }
-  })
-  .then(d => {
-    let output = "";
-
-    output += "SYSTEM:\n";
-    output += "Numeric data has been observed.\n\n";
-
-    output += "L1 coordinate state:\n";
-    output += JSON.stringify(d || {}, null, 2) + "\n\n";
-
-    output += "Observation assumptions (proposed):\n";
-    if ((d.assumptions || []).length === 0) {
-      output += "- None required for this observation.\n\n";
-    } else {
-      d.assumptions.forEach(a => {
-        output += `- ${a.statement} [${a.assumption_id}]\n`;
-      });
-      output += "\n";
-    }
-
-    output += "Scientific justification candidates:\n";
-    if ((d.sj_proposals || []).length === 0) {
-      output += "- No sufficient ontology match found.\n";
-      output += "  Judgment is intentionally withheld.\n";
-    } else {
-      d.sj_proposals.forEach((sj, i) => {
-        output += `${i + 1}. ${sj.mechanism_id} `;
-        output += `(match score: ${sj.score})\n`;
-      });
-    }
-
-    output += "\nSYSTEM:\n";
-    output += "This stage presents observations and explanation candidates only.\n";
-    output += "No scoring or decision has been performed.";
-
-    chatLog.innerText = d.system_narrative || "(no output)";
-  })
-  .catch(err => {
-    chatLog.innerText =
-      "SYSTEM:\nAnalysis failed.\n\n" + err.message;
-  });
+    .then(async res => {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error(text || "Server did not return JSON");
+      }
+    })
+    .then(response => {
+      measurementLog.innerText = safeStringify(response.measurement_validation || {});
+      patternLog.innerText = pickPatternText(response);
+      keywordLog.innerText = safeStringify(pickKeywordPayload(response));
+      assumptionLog.innerText = safeStringify(response.assumptions || []);
+      assumptionPretty.innerText = renderAssumptionsPretty(response.assumptions);
+      l1StateLog.innerText = safeStringify(response.l1_state || {});
+      proposalLog.innerText = safeStringify(response.sj_proposals || []);
+      proposalPretty.innerHTML = renderProposalPretty(response.sj_proposals);
+      summaryLog.innerText = pickSummary(response);
+    })
+    .catch(err => {
+      measurementLog.innerText = `Analysis failed.\n\n${err.message}`;
+      patternLog.innerText = "(failed)";
+      keywordLog.innerText = "(failed)";
+      assumptionLog.innerText = "(failed)";
+      assumptionPretty.innerText = "(failed)";
+      l1StateLog.innerText = "(failed)";
+      proposalLog.innerText = "(failed)";
+      proposalPretty.innerHTML = "(failed)";
+      summaryLog.innerText = "(failed)";
+    });
 }
-
 </script>
 
 </body>

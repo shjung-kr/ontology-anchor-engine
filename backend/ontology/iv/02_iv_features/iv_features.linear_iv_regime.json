@@ -1,0 +1,20 @@
+{
+  "id": "iv_features.linear_iv_regime",
+  "label": "Linear I-V regime",
+  "description": "I-V behavior is considered linear when the log-log slope of |I| versus |V| is close to 1 over the selected reference regime.",
+  "criteria": {
+    "source": "infer_iv_features_from_numeric",
+    "rule": "0.85 <= slope_ref <= 1.15",
+    "slope_ref_definition": "Prefer low_|V| slope if available, else high_|V| slope",
+    "inputs": [
+      "regimes[name=low_|V|].mean_slope_log_absI_per_logV",
+      "regimes[name=high_|V|].mean_slope_log_absI_per_logV"
+    ]
+  },
+  "example_observed": {
+    "low_mean_slope_log_absI_per_logV": 1.000166614289401,
+    "high_mean_slope_log_absI_per_logV": 5.428096557884131,
+    "selected_slope_ref": 1.000166614289401,
+    "decision": "linear (0.85~1.15)"
+  }
+}

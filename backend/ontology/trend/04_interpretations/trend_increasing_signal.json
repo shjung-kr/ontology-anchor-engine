@@ -1,0 +1,12 @@
+{
+  "interpretation": {
+    "claim_concept": "trend_interpretation.increasing_signal",
+    "required_features": [
+      "signal_features.monotonic_increase",
+      "signal_features.net_positive_shift"
+    ],
+    "notes": {
+      "en": "The signal rises consistently across the observed x range."
+    }
+  }
+}

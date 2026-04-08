@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Electrical Mechanism ID Schema",
+  "type": "string",
+  "description": "Enumeration of valid electrical transport mechanism identifiers defined in the electrical_mechanisms lexicon.",
+  "enum": [
+    "electrical_mechanisms.ohmic_transport",
+    "electrical_mechanisms.schottky-type_transport",
+    "electrical_mechanisms.space_charge_limited_transport",
+    "electrical_mechanisms.direct_tunneling_transport",
+    "electrical_mechanisms.fowler_nordheim_tunneling_transport",
+    "electrical_mechanisms.leakage_dominated_transport",
+    "electrical_mechanisms.recombination_generation_dominated_transport",
+    "electrical_mechanisms.trap_assisted_transport",
+    "electrical_mechanisms.poole_frenkel_emission",
+    "electrical_mechanisms.thermionic_emission",
+    "electrical_mechanisms.hopping_transport",
+    "electrical_mechanisms.ionic_conduction",
+    "electrical_mechanisms.band_transport"
+  ]
+}

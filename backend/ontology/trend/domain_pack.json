@@ -1,0 +1,22 @@
+{
+  "$schema": "../../schema/domain_pack.schema.json",
+  "domain": "trend",
+  "version": "0.1.0",
+  "input_schema": "numeric_pairs",
+  "ontology": {
+    "root_dir": "backend/ontology/trend",
+    "namespaces": [
+      "00_lexicon",
+      "02_signal_features",
+      "04_interpretations"
+    ]
+  },
+  "pipeline": {
+    "parser": "backend.domains.trend.parser:parse_xy",
+    "validator": "backend.domains.trend.features:validate_input",
+    "feature_extractor": "backend.domains.trend.features:extract_signal_features",
+    "proposal_evaluator": "backend.domains.trend.runner:evaluate_proposals",
+    "renderer": "backend.domains.trend.renderer:render_narrative",
+    "artifact_writer": "backend.domains.trend.runner:write_artifacts"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "$schema": "./schema/domain_registry.schema.json",
+  "version": "1.0.0",
+  "default_domain": "iv",
+  "domains": {
+    "iv": {
+      "title": "I-V Scientific Justification",
+      "description": "Numeric I-V data interpretation and ontology-backed scientific justification.",
+      "version": "0.1.0",
+      "input_kind": "numeric_pairs",
+      "runner": "backend.domains.iv.runner:run_iv_domain",
+      "ontology_dir": "backend/ontology/iv",
+      "prompt_dir": "prompts",
+      "tags": [
+        "iv",
+        "transport",
+        "scientific-justification"
+      ],
+      "pipeline": {
+        "parser": "backend.measurement_validations.parser:parse_vi",
+        "validator": "backend.l1_sj_engine:validate_measurement",
+        "llm_adapter": "backend.llm_adapter:llm_analyze_numeric",
+        "feature_extractor": "backend.l1_sj_engine:infer_iv_features_from_numeric",
+        "state_builder": "backend.l1_sj_engine:build_l1_state",
+        "proposal_evaluator": "backend.l1_sj_engine:evaluate_scientific_justification",
+        "artifact_writer": "backend.l1_sj_engine:_write_run_artifacts"
+      },
+      "ontology_namespaces": [
+        "00_lexicon",
+        "01_iv_regimes",
+        "02_iv_features",
+        "02_measurement_validations",
+        "04_scientific_justification"
+      ]
+    },
+    "trend": {
+      "title": "Trend Signal Interpretation",
+      "description": "Small sample domain for validating extensible domain-pack architecture.",
+      "version": "0.1.0",
+      "input_kind": "numeric_pairs",
+      "runner": "backend.domains.trend.runner:run_trend_domain",
+      "ontology_dir": "backend/ontology/trend",
+      "prompt_dir": "prompts",
+      "tags": [
+        "trend",
+        "sample-domain",
+        "architecture-test"
+      ],
+      "pipeline": {
+        "parser": "backend.domains.trend.parser:parse_xy",
+        "validator": "backend.domains.trend.features:validate_input",
+        "feature_extractor": "backend.domains.trend.features:extract_signal_features",
+        "proposal_evaluator": "backend.domains.trend.runner:evaluate_proposals",
+        "artifact_writer": "backend.domains.trend.runner:write_artifacts"
+      },
+      "ontology_namespaces": [
+        "00_lexicon",
+        "02_signal_features",
+        "04_interpretations"
+      ]
+    }
+  }
+}

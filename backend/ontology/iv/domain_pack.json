@@ -1,0 +1,32 @@
+{
+  "$schema": "../../schema/domain_pack.schema.json",
+  "domain": "iv",
+  "version": "0.1.0",
+  "input_schema": "numeric_pairs",
+  "ontology": {
+    "root_dir": "backend/ontology/iv",
+    "namespaces": [
+      "00_lexicon",
+      "01_iv_regimes",
+      "02_iv_features",
+      "02_measurement_validations",
+      "04_scientific_justification",
+      "schema"
+    ]
+  },
+  "pipeline": {
+    "parser": "backend.measurement_validations.parser:parse_vi",
+    "validator": "backend.domains.iv.validation:validate_measurement",
+    "llm_adapter": "backend.llm_adapter:llm_analyze_numeric",
+    "feature_extractor": "backend.domains.iv.features:infer_iv_features_from_numeric",
+    "state_builder": "backend.domains.iv.features:build_l1_state",
+    "proposal_evaluator": "backend.domains.iv.proposals:evaluate_scientific_justification",
+    "renderer": "backend.domains.iv.renderer:render_system_narrative_ko",
+    "artifact_writer": "backend.domains.iv.runner:write_run_artifacts"
+  },
+  "artifacts": {
+    "manifest_schema": "backend/schema/domain_pack.schema.json",
+    "derived_schema": "backend/runs/<run_id>/derived.json",
+    "inference_schema": "backend/runs/<run_id>/inference.json"
+  }
+}

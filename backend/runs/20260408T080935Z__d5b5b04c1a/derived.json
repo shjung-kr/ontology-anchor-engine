@@ -1,0 +1,10 @@
+{
+  "metrics": {
+    "absI_decades_span": 0.0,
+    "v_knee": null,
+    "v_knee_criterion": null
+  },
+  "regimes": [],
+  "llm_pattern": "|I| spans about 0.00 decades",
+  "llm_keywords": []
+}

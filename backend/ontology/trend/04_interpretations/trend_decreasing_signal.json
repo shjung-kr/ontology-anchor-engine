@@ -1,0 +1,12 @@
+{
+  "interpretation": {
+    "claim_concept": "trend_interpretation.decreasing_signal",
+    "required_features": [
+      "signal_features.monotonic_decrease",
+      "signal_features.net_negative_shift"
+    ],
+    "notes": {
+      "en": "The signal falls consistently across the observed x range."
+    }
+  }
+}

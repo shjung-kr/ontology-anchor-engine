@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Assumption ID Schema",
+  "type": "string",
+  "enum": [
+    "measurement_assumption.current_noise_floor_present",
+    "measurement_assumption.compliance_or_clamp_may_limit_current",
+    "measurement_assumption.series_resistance_may_distort_high_bias",
+    "measurement_assumption.parasitic_leakage_paths_may_exist",
+    "measurement_assumption.transient_or_capacitive_current_may_contribute",
+    "measurement_assumption.hysteresis_or_time_dependence_may_be_present",
+    "physical_assumption.room_temperature_operation",
+    "physical_assumption.effective_potential_barrier_present",
+    "fn_assumption.high_field_barrier_thinning_applies",
+    "fn_assumption.field_estimation_e_equals_v_over_t",
+    "fn_assumption.field_enhancement_factor_beta_effectively_constant",
+    "fn_assumption.barrier_height_and_effective_mass_representable",
+    "fn_assumption.fn_plot_linearity_indicates_dominant_fn_like_mechanism",
+    "fn_assumption.negligible_self_heating_in_fn_regime",
+    "fn_assumption.trap_assisted_contributions_are_minor_or_separable",
+    "fn_assumption.uniform_current_distribution_or_area_effective_constant"
+  ]
+}

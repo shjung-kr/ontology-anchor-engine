@@ -1,0 +1,21 @@
+{
+  "id": "iv_regimes.low_field_regime",
+  "label": "Low-|V| regime",
+  "description": "Low-|V| region defined by a data-driven knee (v_knee) from regime split.",
+  "criteria": {
+    "source": "compute_regimes_from_raw",
+    "rule": "|V| <= v_knee",
+    "v_knee_source": "percentile_split_30"
+  },
+  "example_observed": {
+    "v_knee": 1.5,
+    "v_knee_criterion": "percentile_split_30",
+    "regime_name": "low_|V|",
+    "v_range": [
+      0.05,
+      1.5
+    ],
+    "delta_decades_robust": 0.6523854798838418,
+    "mean_slope_log_absI_per_logV": 1.539538710748374
+  }
+}
