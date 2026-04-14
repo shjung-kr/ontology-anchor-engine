@@ -39,6 +39,7 @@ def evaluate_scientific_justification(l1_state: Dict[str, Any]) -> List[Dict[str
                 "claim_concept": claim,
                 "mechanism_id": claim,
                 "score": score,
+                "measurement_conditions": scientific_justification.get("measurement_conditions", []) or [],
                 "required_features": sorted(list(required_features)),
                 "observed_features": scientific_justification.get("observed_features", []) or [],
                 "matched_features": sorted(list(matched)),

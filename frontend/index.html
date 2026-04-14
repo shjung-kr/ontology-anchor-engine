@@ -92,6 +92,29 @@
       background: #fafafa;
       margin: 2px 4px 2px 0;
     }
+
+    .chat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .status-ok {
+      background: #eef7ee;
+      border-left: 4px solid #2f7d32;
+      padding: 12px 14px;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+
+    .status-muted {
+      background: #f7f7f7;
+      border-left: 4px solid #777;
+      padding: 12px 14px;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
   </style>
 </head>
 
@@ -158,9 +181,82 @@ Raw Data → Domain Validation → Feature Extraction → Ontology Proposal
   <pre id="summaryLog">(waiting)</pre>
 </div>
 
+<div class="section">
+  <h3>5. Conversational Intent Capture</h3>
+  <p class="hint">먼저 분석을 실행한 뒤, 대화를 통해 우선순위와 가정을 반영해 결과를 다시 정렬할 수 있습니다.</p>
+
+  <div class="chat-grid">
+    <div>
+      <div class="subttl">분석 우선순위</div>
+      <select id="prioritySelect">
+        <option value="">(미설정)</option>
+        <option value="mechanism_identification">메커니즘 식별</option>
+        <option value="measurement_anomaly_diagnosis">측정 이상 진단</option>
+        <option value="next_experiment_planning">다음 실험 설계</option>
+      </select>
+
+      <div class="subttl">온도 조건</div>
+      <select id="temperatureSelect">
+        <option value="">(미확인)</option>
+        <option value="room_temperature">상온 측정 확인</option>
+        <option value="uncertain">온도 불확실</option>
+      </select>
+
+      <div class="subttl">집중할 Claim ID (쉼표로 구분)</div>
+      <textarea id="focusClaimsInput" placeholder="iv_interpretation.fn_tunneling_asserted"></textarea>
+
+      <div class="subttl">우선순위를 낮출 Claim ID (쉼표로 구분)</div>
+      <textarea id="excludeClaimsInput" placeholder="우선순위를 낮출 claim ID"></textarea>
+
+      <div class="subttl">Overlay 승인 Claim ID (쉼표로 구분)</div>
+      <textarea id="approvedClaimsInput" placeholder="curated overlay로 올릴 claim ID"></textarea>
+
+      <div class="subttl">확인한 Assumption ID (쉼표로 구분)</div>
+      <textarea id="confirmedAssumptionsInput" placeholder="사용자가 확인한 assumption ID"></textarea>
+
+      <div class="subttl">배제한 Assumption ID (쉼표로 구분)</div>
+      <textarea id="rejectedAssumptionsInput" placeholder="사용자가 배제한 assumption ID"></textarea>
+
+      <div class="subttl">Overlay 승인 Assumption ID (쉼표로 구분)</div>
+      <textarea id="approvedAssumptionsInput" placeholder="curated overlay로 올릴 assumption ID"></textarea>
+    </div>
+
+    <div>
+      <div class="subttl">대화 입력</div>
+      <textarea id="chatInput" placeholder="예: 이번에는 메커니즘 확정보다 다음 실험 설계가 더 중요합니다. 상온 측정은 확인됐고 FN tunneling을 우선해서 보고 싶습니다."></textarea>
+      <button onclick="sendChatTurn()">질문/의도 반영하기</button>
+
+      <div class="subttl">마지막 반영 결과</div>
+      <div id="intentStatusBox" class="status-muted">(아직 반영 전)</div>
+
+      <div class="subttl">변경된 항목</div>
+      <div id="intentDiffBox" class="box">(없음)</div>
+
+      <div class="subttl">Assistant Reply</div>
+      <div id="assistantReplyBox" class="box">(아직 없음)</div>
+
+      <div class="subttl">추천 질문</div>
+      <div id="questionBox" class="box">(대기 중)</div>
+
+      <div class="subttl">Intent Profile</div>
+      <pre id="intentLog">(대기 중)</pre>
+
+      <div class="subttl">Ontology Patch Candidate</div>
+      <pre id="patchLog">(대기 중)</pre>
+
+      <div class="subttl">Curated Overlay</div>
+      <pre id="overlayLog">(대기 중)</pre>
+
+      <div class="subttl">Overlay Review Queue</div>
+      <pre id="reviewQueueLog">(대기 중)</pre>
+    </div>
+  </div>
+</div>
+
 <script>
 const API_URL = "/run";
 const DOMAIN_URL = "/domains";
+const CHAT_URL = "/chat";
 
 const fileInput = document.getElementById("fileInput");
 const domainSelect = document.getElementById("domainSelect");
@@ -176,8 +272,27 @@ const l1StateLog = document.getElementById("l1StateLog");
 const proposalLog = document.getElementById("proposalLog");
 const proposalPretty = document.getElementById("proposalPretty");
 const summaryLog = document.getElementById("summaryLog");
+const prioritySelect = document.getElementById("prioritySelect");
+const temperatureSelect = document.getElementById("temperatureSelect");
+const focusClaimsInput = document.getElementById("focusClaimsInput");
+const excludeClaimsInput = document.getElementById("excludeClaimsInput");
+const approvedClaimsInput = document.getElementById("approvedClaimsInput");
+const confirmedAssumptionsInput = document.getElementById("confirmedAssumptionsInput");
+const rejectedAssumptionsInput = document.getElementById("rejectedAssumptionsInput");
+const approvedAssumptionsInput = document.getElementById("approvedAssumptionsInput");
+const chatInput = document.getElementById("chatInput");
+const intentStatusBox = document.getElementById("intentStatusBox");
+const intentDiffBox = document.getElementById("intentDiffBox");
+const assistantReplyBox = document.getElementById("assistantReplyBox");
+const questionBox = document.getElementById("questionBox");
+const intentLog = document.getElementById("intentLog");
+const patchLog = document.getElementById("patchLog");
+const overlayLog = document.getElementById("overlayLog");
+const reviewQueueLog = document.getElementById("reviewQueueLog");
 
 let cachedDomains = [];
+let currentRunId = "";
+let lastIntentProfile = null;
 
 function safeStringify(x) {
   try { return JSON.stringify(x, null, 2); }
@@ -309,6 +424,10 @@ function renderProposalCard(proposal, index) {
   const matched = isStringArray(proposal.matched_features) ? proposal.matched_features : asArray(proposal.matched_features).filter(x => typeof x === "string");
   const observed = isStringArray(proposal.observed_features) ? proposal.observed_features : asArray(proposal.observed_features).filter(x => typeof x === "string");
   const assumptions = isStringArray(proposal.assumptions) ? proposal.assumptions : isStringArray(proposal.sj_assumptions) ? proposal.sj_assumptions : [];
+  const rerankReasons = Array.isArray(proposal.rerank_reasons) ? proposal.rerank_reasons : [];
+  const baseScore = proposal.base_score ?? proposal.score ?? "(none)";
+  const finalScore = proposal.final_score ?? proposal.score ?? "(none)";
+  const deltaScore = proposal.intent_score_delta ?? 0;
 
   const regimeHtml = mechanismsByRegime.length === 0
     ? `<div class="muted">(no mechanism_by_regime)</div>`
@@ -327,7 +446,9 @@ function renderProposalCard(proposal, index) {
     <div class="card">
       <div><b>Proposal #${index + 1}</b></div>
       <div class="row"><b>Claim:</b> ${escapeHtml(claim)}</div>
-      <div class="row"><b>Score:</b> ${escapeHtml(proposal.score ?? "(none)")}</div>
+      <div class="row"><b>Base Score:</b> ${escapeHtml(baseScore)}</div>
+      <div class="row"><b>Intent Delta:</b> ${escapeHtml(deltaScore)}</div>
+      <div class="row"><b>Final Score:</b> ${escapeHtml(finalScore)}</div>
 
       <div class="row">
         <div class="subttl">Mechanism by Regime</div>
@@ -357,6 +478,11 @@ function renderProposalCard(proposal, index) {
       </div>
 
       <div class="row">
+        <div class="subttl">Rerank Reasons</div>
+        <div>${rerankReasons.length ? rerankReasons.map(reason => `<div class="row">${escapeHtml(reason)}</div>`).join("") : `<span class="muted">(none)</span>`}</div>
+      </div>
+
+      <div class="row">
         <div class="subttl">Raw Proposal JSON</div>
         <div class="box">${escapeHtml(safeStringify(proposal))}</div>
       </div>
@@ -380,6 +506,17 @@ function clearOutputs() {
   proposalLog.innerText = "(running...)";
   proposalPretty.innerHTML = "(running...)";
   summaryLog.innerText = "(running...)";
+  questionBox.innerText = "(대기 중)";
+  intentLog.innerText = "(대기 중)";
+  patchLog.innerText = "(대기 중)";
+  overlayLog.innerText = "(대기 중)";
+  reviewQueueLog.innerText = "(대기 중)";
+  intentStatusBox.className = "status-muted";
+  intentStatusBox.innerText = "(아직 반영 전)";
+  intentDiffBox.innerText = "(없음)";
+  assistantReplyBox.innerText = "(아직 없음)";
+  currentRunId = "";
+  lastIntentProfile = null;
 }
 
 function pickPatternText(response) {
@@ -399,6 +536,158 @@ function pickSummary(response) {
     return `${response["L1 좌표 요약"] || ""}\n\n${response["과학적 정당화 제안"] || ""}`.trim();
   }
   return response.system_narrative || "(no summary)";
+}
+
+function parseCsvInput(text) {
+  return String(text || "")
+    .split(",")
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function renderQuestions(questions) {
+  if (!Array.isArray(questions) || questions.length === 0) return "(없음)";
+  return questions.map((item, index) => {
+    const prompt = item && typeof item === "object" ? item.prompt || safeStringify(item) : String(item);
+    const category = item && typeof item === "object" ? item.category || "question" : "question";
+    const qid = item && typeof item === "object" ? item.question_id || `q${index + 1}` : `q${index + 1}`;
+    return `${index + 1}. [${qid}] [${category}] ${prompt}`;
+  }).join("\n");
+}
+
+function shallowEqualArray(a, b) {
+  const aa = Array.isArray(a) ? a : [];
+  const bb = Array.isArray(b) ? b : [];
+  return JSON.stringify(aa) === JSON.stringify(bb);
+}
+
+function computeIntentDiff(previousProfile, nextProfile) {
+  const prev = previousProfile && typeof previousProfile === "object" ? previousProfile : {};
+  const next = nextProfile && typeof nextProfile === "object" ? nextProfile : {};
+  const lines = [];
+
+  if ((prev.analysis_priority || null) !== (next.analysis_priority || null)) {
+    lines.push(`- analysis_priority: ${prev.analysis_priority || "(unset)"} -> ${next.analysis_priority || "(unset)"}`);
+  }
+  if (!shallowEqualArray(prev.focus_claims, next.focus_claims)) {
+    lines.push(`- focus_claims: ${safeStringify(next.focus_claims || [])}`);
+  }
+  if (!shallowEqualArray(prev.exclude_claims, next.exclude_claims)) {
+    lines.push(`- exclude_claims: ${safeStringify(next.exclude_claims || [])}`);
+  }
+  if (!shallowEqualArray(prev.keep_open_claims, next.keep_open_claims)) {
+    lines.push(`- keep_open_claims: ${safeStringify(next.keep_open_claims || [])}`);
+  }
+  if (safeStringify(prev.confirmed_conditions || {}) !== safeStringify(next.confirmed_conditions || {})) {
+    lines.push(`- confirmed_conditions: ${safeStringify(next.confirmed_conditions || {})}`);
+  }
+  if (!shallowEqualArray(prev.uncertain_conditions, next.uncertain_conditions)) {
+    lines.push(`- uncertain_conditions: ${safeStringify(next.uncertain_conditions || [])}`);
+  }
+  if (safeStringify(prev.assumption_states || {}) !== safeStringify(next.assumption_states || {})) {
+    lines.push(`- assumption_states: ${safeStringify(next.assumption_states || {})}`);
+  }
+  if (safeStringify(prev.approved_patch_items || {}) !== safeStringify(next.approved_patch_items || {})) {
+    lines.push(`- approved_patch_items: ${safeStringify(next.approved_patch_items || {})}`);
+  }
+  if (!shallowEqualArray(prev.notes, next.notes)) {
+    lines.push(`- notes: ${safeStringify(next.notes || [])}`);
+  }
+  const prevHistoryCount = Array.isArray(prev.history) ? prev.history.length : 0;
+  const nextHistoryCount = Array.isArray(next.history) ? next.history.length : 0;
+  if (prevHistoryCount !== nextHistoryCount) {
+    lines.push(`- history_count: ${prevHistoryCount} -> ${nextHistoryCount}`);
+  }
+
+  return lines;
+}
+
+function renderIntentUpdateStatus(state) {
+  const nextProfile = state && typeof state === "object" ? state.intent_profile || {} : {};
+  const diffLines = computeIntentDiff(lastIntentProfile, nextProfile);
+  const hasQuestion = Array.isArray(state?.suggested_questions) && state.suggested_questions.length > 0;
+  const topProposal = Array.isArray(state?.reranked_sj_proposals) && state.reranked_sj_proposals.length > 0
+    ? state.reranked_sj_proposals[0]
+    : null;
+  const patchCounts = state?.ontology_patch
+    ? {
+        claims: (state.ontology_patch.claims || []).length,
+        assumptions: (state.ontology_patch.assumptions || []).length,
+        measurement_conditions: (state.ontology_patch.measurement_conditions || []).length,
+      }
+    : null;
+
+  const summaryLines = [];
+  summaryLines.push(`run_id: ${currentRunId || "(none)"}`);
+  summaryLines.push(`chat_mode: ${state?.chat_mode || "intent_update"}`);
+  summaryLines.push(`추천 질문: ${hasQuestion ? "생성됨" : "없음"}`);
+  if (topProposal) {
+    summaryLines.push(`상위 제안: ${topProposal.claim_concept || "(none)"} / final_score=${topProposal.final_score ?? topProposal.score ?? "(none)"}`);
+  }
+  if (patchCounts) {
+    summaryLines.push(`patch 후보 수: claims=${patchCounts.claims}, assumptions=${patchCounts.assumptions}, conditions=${patchCounts.measurement_conditions}`);
+  }
+  summaryLines.push(`마지막 업데이트: ${nextProfile.updated_at_utc || "(unknown)"}`);
+
+  intentStatusBox.className = "status-ok";
+  intentStatusBox.innerText = summaryLines.join("\n");
+  intentDiffBox.innerText = diffLines.length ? diffLines.join("\n") : "(눈에 띄는 intent 변경 없음)";
+  lastIntentProfile = JSON.parse(JSON.stringify(nextProfile || {}));
+}
+
+function syncIntentForm(profile) {
+  const next = profile && typeof profile === "object" ? profile : {};
+  prioritySelect.value = next.analysis_priority || "";
+
+  const confirmedConditions = next.confirmed_conditions || {};
+  const uncertainConditions = Array.isArray(next.uncertain_conditions) ? next.uncertain_conditions : [];
+  if (confirmedConditions.temperature === "room_temperature") {
+    temperatureSelect.value = "room_temperature";
+  } else if (uncertainConditions.includes("temperature")) {
+    temperatureSelect.value = "uncertain";
+  } else {
+    temperatureSelect.value = "";
+  }
+
+  focusClaimsInput.value = Array.isArray(next.focus_claims) ? next.focus_claims.join(", ") : "";
+  excludeClaimsInput.value = Array.isArray(next.exclude_claims) ? next.exclude_claims.join(", ") : "";
+
+  const approvedPatchItems = next.approved_patch_items || {};
+  approvedClaimsInput.value = Array.isArray(approvedPatchItems.claims) ? approvedPatchItems.claims.join(", ") : "";
+  approvedAssumptionsInput.value = Array.isArray(approvedPatchItems.assumptions) ? approvedPatchItems.assumptions.join(", ") : "";
+
+  const assumptionStates = next.assumption_states || {};
+  const confirmed = [];
+  const rejected = [];
+  for (const [assumptionId, state] of Object.entries(assumptionStates)) {
+    if (state === "confirmed" || state === "approved") {
+      confirmed.push(assumptionId);
+    } else if (state === "rejected") {
+      rejected.push(assumptionId);
+    }
+  }
+  confirmedAssumptionsInput.value = confirmed.join(", ");
+  rejectedAssumptionsInput.value = rejected.join(", ");
+}
+
+function applyConversationState(state) {
+  if (!state || typeof state !== "object") return;
+  if (state.reranked_sj_proposals) {
+    proposalLog.innerText = safeStringify(state.reranked_sj_proposals);
+    proposalPretty.innerHTML = renderProposalPretty(state.reranked_sj_proposals);
+  }
+  if (state.system_narrative) {
+    summaryLog.innerText = state.system_narrative;
+    patternLog.innerText = state.system_narrative;
+  }
+  questionBox.innerText = renderQuestions(state.suggested_questions || []);
+  intentLog.innerText = safeStringify(state.intent_profile || {});
+  patchLog.innerText = safeStringify(state.ontology_patch || {});
+  overlayLog.innerText = safeStringify(state.curated_overlay || {});
+  reviewQueueLog.innerText = safeStringify(state.overlay_review_queue || {});
+  assistantReplyBox.innerText = state.assistant_reply || "(직접 답변 없음)";
+  syncIntentForm(state.intent_profile || {});
+  renderIntentUpdateStatus(state);
 }
 
 function runEngine() {
@@ -422,6 +711,7 @@ function runEngine() {
       }
     })
     .then(response => {
+      currentRunId = response.run_id || "";
       measurementLog.innerText = safeStringify(response.measurement_validation || {});
       patternLog.innerText = pickPatternText(response);
       keywordLog.innerText = safeStringify(pickKeywordPayload(response));
@@ -431,6 +721,7 @@ function runEngine() {
       proposalLog.innerText = safeStringify(response.sj_proposals || []);
       proposalPretty.innerHTML = renderProposalPretty(response.sj_proposals);
       summaryLog.innerText = pickSummary(response);
+      applyConversationState(response.conversation_state || {});
     })
     .catch(err => {
       measurementLog.innerText = `Analysis failed.\n\n${err.message}`;
@@ -442,6 +733,149 @@ function runEngine() {
       proposalLog.innerText = "(failed)";
       proposalPretty.innerHTML = "(failed)";
       summaryLog.innerText = "(failed)";
+      questionBox.innerText = "(failed)";
+      intentLog.innerText = "(failed)";
+      patchLog.innerText = "(failed)";
+      overlayLog.innerText = "(failed)";
+      reviewQueueLog.innerText = "(failed)";
+    });
+}
+
+function sendChatTurn() {
+  if (!currentRunId) {
+    questionBox.innerText = "먼저 분석을 실행해서 run 단위 대화 상태를 생성해 주세요.";
+    return;
+  }
+
+  const confirmedConditions = {};
+  const uncertainConditions = [];
+  if (temperatureSelect.value === "room_temperature") {
+    confirmedConditions.temperature = "room_temperature";
+  } else if (temperatureSelect.value === "uncertain") {
+    uncertainConditions.push("temperature");
+  }
+
+  const focusClaims = parseCsvInput(focusClaimsInput.value);
+  const excludeClaims = parseCsvInput(excludeClaimsInput.value);
+  const approvedClaims = parseCsvInput(approvedClaimsInput.value);
+  const confirmedAssumptions = parseCsvInput(confirmedAssumptionsInput.value);
+  const rejectedAssumptions = parseCsvInput(rejectedAssumptionsInput.value);
+  const approvedAssumptions = parseCsvInput(approvedAssumptionsInput.value);
+
+  const structuredAnswers = [];
+  if (prioritySelect.value) {
+    structuredAnswers.push({
+      question_id: "analysis.priority",
+      category: "missing_condition_check",
+      answer_kind: "single_select",
+      selected_ids: [prioritySelect.value]
+    });
+  }
+  if (temperatureSelect.value === "room_temperature") {
+    structuredAnswers.push({
+      question_id: "conditions.temperature",
+      category: "missing_condition_check",
+      answer_kind: "confirm",
+      selected_ids: ["room_temperature"],
+      approve_for_overlay: true
+    });
+  } else if (temperatureSelect.value === "uncertain") {
+    structuredAnswers.push({
+      question_id: "conditions.temperature",
+      category: "missing_condition_check",
+      answer_kind: "unknown",
+      selected_ids: ["temperature_uncertain"]
+    });
+  }
+  if (focusClaims.length > 0) {
+    structuredAnswers.push({
+      question_id: "proposals.manual_focus",
+      category: "competing_proposal_disambiguation",
+      answer_kind: "single_select",
+      selected_ids: focusClaims
+    });
+  }
+  if (excludeClaims.length > 0) {
+    structuredAnswers.push({
+      question_id: "proposals.manual_exclude",
+      category: "competing_proposal_disambiguation",
+      answer_kind: "deprioritize",
+      selected_ids: excludeClaims
+    });
+  }
+  if (approvedClaims.length > 0) {
+    structuredAnswers.push({
+      question_id: "proposals.manual_approve",
+      category: "competing_proposal_disambiguation",
+      answer_kind: "approve",
+      selected_ids: approvedClaims,
+      approve_for_overlay: true
+    });
+  }
+  if (confirmedAssumptions.length > 0) {
+    structuredAnswers.push({
+      question_id: "assumptions.manual_confirm",
+      category: "assumption_confirmation",
+      answer_kind: "confirm",
+      selected_ids: confirmedAssumptions
+    });
+  }
+  if (rejectedAssumptions.length > 0) {
+    structuredAnswers.push({
+      question_id: "assumptions.manual_reject",
+      category: "assumption_confirmation",
+      answer_kind: "reject",
+      selected_ids: rejectedAssumptions
+    });
+  }
+  if (approvedAssumptions.length > 0) {
+    structuredAnswers.push({
+      question_id: "assumptions.manual_approve",
+      category: "assumption_confirmation",
+      answer_kind: "approve",
+      selected_ids: approvedAssumptions,
+      approve_for_overlay: true
+    });
+  }
+
+  fetch(CHAT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      run_id: currentRunId,
+      user_text: chatInput.value || "",
+      structured_answers: structuredAnswers,
+      intent_update: {
+        analysis_priority: prioritySelect.value || null,
+        focus_claims: focusClaims,
+        exclude_claims: excludeClaims,
+        confirmed_conditions: confirmedConditions,
+        uncertain_conditions: uncertainConditions,
+        confirmed_assumptions: confirmedAssumptions,
+        rejected_assumptions: rejectedAssumptions,
+        approved_claims: approvedClaims,
+        approved_assumptions: approvedAssumptions
+      }
+    })
+  })
+    .then(async res => {
+      const text = await res.text();
+      let payload;
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        throw new Error(text || "Server did not return JSON");
+      }
+      if (!res.ok) {
+        throw new Error(safeStringify(payload));
+      }
+      return payload;
+    })
+    .then(response => {
+      applyConversationState(response);
+    })
+    .catch(err => {
+      questionBox.innerText = `대화 반영에 실패했습니다.\n\n${err.message}`;
     });
 }
 </script>

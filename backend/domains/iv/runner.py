@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
+from backend.conversation.memory import build_chat_response, ensure_memory_files
 from backend.domains.iv.common import PROMPTS_DIR, RUNS_DIR
 from backend.domains.iv.features import build_l1_state
 from backend.domains.iv.proposals import build_derived_assumptions, evaluate_scientific_justification
@@ -52,6 +53,25 @@ def run_iv_domain(raw_data: str, metadata: Dict[str, Any] | None = None) -> Dict
         sj_proposals=sj_proposals,
         derived=derived,
     )
+    artifact_dir = write_run_artifacts(
+        raw_data=raw_data,
+        measurement_validation=measurement_validation,
+        llm_pattern=llm_pattern,
+        llm_keywords=llm_keywords,
+        llm_trace=llm_trace,
+        prompt_bundle=prompt_bundle,
+        assumptions=derived,
+        l1_state=l1_state,
+        sj_proposals=sj_proposals,
+        metrics=metrics,
+        regimes=regimes,
+    )
+    run_id = Path(artifact_dir).name
+    chat_state = build_chat_response(Path(artifact_dir))
+
+    reranked_sj_proposals = chat_state.get("reranked_sj_proposals") or sj_proposals
+    reranked_narrative = str(chat_state.get("system_narrative") or narrative_pack["system_narrative"])
+    reranked_summary = str(chat_state.get("과학적 정당화 제안") or narrative_pack["과학적 정당화 제안"])
 
     return {
         "measurement_validation": measurement_validation,
@@ -63,25 +83,16 @@ def run_iv_domain(raw_data: str, metadata: Dict[str, Any] | None = None) -> Dict
         "assumption_ids": derived.get("assumption_ids", []),
         "assumptions_meta": derived.get("assumptions_meta", {}),
         "l1_state": l1_state,
-        "sj_proposals": sj_proposals,
-        "system_narrative": narrative_pack["system_narrative"],
+        "sj_proposals_base": sj_proposals,
+        "sj_proposals": reranked_sj_proposals,
+        "system_narrative": reranked_narrative,
         "L1 좌표 요약": narrative_pack["L1 좌표 요약"],
-        "과학적 정당화 제안": narrative_pack["과학적 정당화 제안"],
+        "과학적 정당화 제안": reranked_summary,
         "metrics": metrics,
         "regimes": regimes,
-        "artifact_dir": write_run_artifacts(
-            raw_data=raw_data,
-            measurement_validation=measurement_validation,
-            llm_pattern=llm_pattern,
-            llm_keywords=llm_keywords,
-            llm_trace=llm_trace,
-            prompt_bundle=prompt_bundle,
-            assumptions=derived,
-            l1_state=l1_state,
-            sj_proposals=sj_proposals,
-            metrics=metrics,
-            regimes=regimes,
-        ),
+        "run_id": run_id,
+        "artifact_dir": artifact_dir,
+        "conversation_state": chat_state,
         "domain_config": {
             "parser": "backend.measurement_validations.parser:parse_vi",
             "feature_extractor": "backend.domains.iv.features:infer_iv_features_from_numeric",
@@ -221,4 +232,5 @@ def write_run_artifacts(
         },
     }
     write_json(run_dir / "manifest.json", manifest)
+    ensure_memory_files(run_dir)
     return str(run_dir)

@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
+from backend.conversation.memory import ensure_memory_files
 from backend.domains.trend.features import extract_signal_features, validate_input
 from backend.domains.trend.parser import parse_xy
 from backend.domains.trend.registry import list_interpretations, load_registry
@@ -59,6 +60,7 @@ def write_artifacts(payload: Dict[str, Any], raw_data: str) -> str:
 
     (run_dir / "raw_input.txt").write_text(raw_data, encoding="utf-8")
     (run_dir / "result.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    ensure_memory_files(run_dir)
     return str(run_dir)
 
 
@@ -93,4 +95,5 @@ def run_trend_domain(raw_data: str, metadata: Dict[str, Any] | None = None) -> D
         },
     }
     result["artifact_dir"] = write_artifacts(result, raw_data)
+    result["run_id"] = Path(result["artifact_dir"]).name
     return result

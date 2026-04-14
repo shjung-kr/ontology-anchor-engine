@@ -3,10 +3,10 @@
 Build .jsonc (commented JSON) ontology files into pure .json.
 
 Usage:
-  python scripts/working_ontology.py
+  python3 scripts/build_ontology.py
 
 Output:
-  build_ontology/ mirrors ontology/ with .json outputs
+  backend/ontology mirrors working_ontology with .json outputs
 """
 from __future__ import annotations
 import json
@@ -17,8 +17,9 @@ try:
 except ImportError as e:
     raise SystemExit("Missing dependency: json5. Install with: pip install json5") from e
 
-SRC_DIR = Path("working_ontology")
-OUT_DIR = Path("d:/users/ontology-por_v14.0/backend/ontology")
+ROOT_DIR = Path(__file__).resolve().parents[1]
+SRC_DIR = ROOT_DIR / "working_ontology"
+OUT_DIR = ROOT_DIR / "backend" / "ontology"
 
 def build_one(src_path: Path, out_path: Path) -> None:
     with src_path.open("r", encoding="utf-8") as f:
