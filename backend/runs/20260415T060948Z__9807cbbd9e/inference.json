@@ -1,0 +1,81 @@
+{
+  "measurement_validation": {
+    "valid": false,
+    "applied_rules": [
+      "validation.common.basic_integrity",
+      "validation.common.dynamic_range"
+    ],
+    "errors": [
+      {
+        "validation_id": "validation.common.basic_integrity",
+        "level": "error",
+        "failures": [
+          "min_points: n_points=9 (min 20)"
+        ],
+        "reason": "Data integrity is insufficient (too few points / too many NaN or inf)."
+      }
+    ],
+    "warnings": [],
+    "info": [],
+    "stats": {
+      "n_points": 9,
+      "V_nan_ratio": 0.0,
+      "I_nan_ratio": 0.0,
+      "V_finite_ratio": 1.0,
+      "I_finite_ratio": 1.0,
+      "V_unique": 9,
+      "I_unique": 9,
+      "V_series": [
+        -1.0,
+        -0.5,
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        2.5,
+        3.0
+      ],
+      "I_series": [
+        -2e-09,
+        -1e-09,
+        0.0,
+        3e-08,
+        2.5e-07,
+        2e-06,
+        3e-05,
+        0.00045,
+        0.002
+      ],
+      "metadata": {}
+    },
+    "measurement_conditions": [],
+    "emitted_assumptions": [],
+    "applied_rule_files": [
+      "measurement_validations.json"
+    ]
+  },
+  "l1_state": {
+    "iv_regimes": [],
+    "iv_features": [],
+    "evidence": [
+      "|I| spans approximately 6.30 decades."
+    ],
+    "rejected_ids": [],
+    "metrics": {
+      "absI_decades_span": 6.301029995663981,
+      "v_knee": null,
+      "v_knee_criterion": null
+    },
+    "regimes": []
+  },
+  "assumptions": {
+    "assumptions": [],
+    "assumption_ids": [],
+    "assumptions_meta": {
+      "from_validation": [],
+      "from_sj": []
+    }
+  },
+  "sj_proposals": []
+}

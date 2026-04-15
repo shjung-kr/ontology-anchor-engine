@@ -1,0 +1,134 @@
+{
+  "run_id": "20260415T060600Z__b49215b5c3",
+  "analysis_priority": "measurement_anomaly_diagnosis",
+  "focus_claims": [],
+  "exclude_claims": [],
+  "keep_open_claims": [],
+  "confirmed_conditions": {
+    "temperature": "room_temperature"
+  },
+  "uncertain_conditions": [],
+  "assumption_states": {
+    "physical_assumption.room_temperature_operation": "confirmed",
+    "physical_assumption.effective_potential_barrier_present": "approved"
+  },
+  "approved_patch_items": {
+    "claims": [],
+    "assumptions": [
+      "physical_assumption.room_temperature_operation",
+      "physical_assumption.effective_potential_barrier_present"
+    ],
+    "measurement_conditions": [
+      "measurement_conditions.room_temperature"
+    ]
+  },
+  "notes": [
+    "저전압 쪽에서 측정의 오류 가능성이 있을까?"
+  ],
+  "history": [
+    {
+      "timestamp_utc": "2026-04-15T06:06:50Z",
+      "intent_update": {
+        "analysis_priority": "measurement_anomaly_diagnosis",
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {
+          "temperature": "room_temperature"
+        },
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "저전압 쪽에서 측정의 오류 가능성이 있을까?",
+      "structured_answers": [
+        {
+          "question_id": "analysis.priority",
+          "category": "missing_condition_check",
+          "answer_kind": "single_select",
+          "selected_ids": [
+            "measurement_anomaly_diagnosis"
+          ],
+          "condition_updates": {},
+          "note": null,
+          "approve_for_overlay": false
+        },
+        {
+          "question_id": "conditions.temperature",
+          "category": "missing_condition_check",
+          "answer_kind": "confirm",
+          "selected_ids": [
+            "room_temperature"
+          ],
+          "condition_updates": {},
+          "note": null,
+          "approve_for_overlay": true
+        }
+      ]
+    },
+    {
+      "timestamp_utc": "2026-04-15T06:07:48Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "",
+      "structured_answers": [
+        {
+          "question_id": "assumption.1",
+          "category": "assumption_confirmation",
+          "answer_kind": "confirm",
+          "selected_ids": [
+            "physical_assumption.room_temperature_operation"
+          ],
+          "condition_updates": {},
+          "note": null,
+          "approve_for_overlay": false
+        }
+      ]
+    },
+    {
+      "timestamp_utc": "2026-04-15T06:08:40Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "",
+      "structured_answers": [
+        {
+          "question_id": "assumption.2",
+          "category": "assumption_confirmation",
+          "answer_kind": "approve",
+          "selected_ids": [
+            "physical_assumption.effective_potential_barrier_present"
+          ],
+          "condition_updates": {},
+          "note": null,
+          "approve_for_overlay": true
+        }
+      ]
+    }
+  ],
+  "updated_at_utc": "2026-04-15T06:08:40Z"
+}

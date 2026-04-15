@@ -1,0 +1,15 @@
+{
+  "metrics": {
+    "absI_decades_span": 6.301029995663981,
+    "v_knee": null,
+    "v_knee_criterion": null
+  },
+  "regimes": [],
+  "llm_pattern": "|I| spans about 6.30 decades across the dataset",
+  "llm_keywords": [
+    {
+      "keyword": "broad current dynamic range",
+      "evidence": "|I| spans approximately 6.30 decades."
+    }
+  ]
+}

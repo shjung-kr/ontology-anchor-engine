@@ -1,0 +1,26 @@
+{
+  "run_id": "20260415T061101Z__5e8eb4bca1",
+  "dataset_id": "sha256:5e8eb4bca1bdd06677ed05cdff46bf50639a85f8dc0be6aa5486a4048e8a7ac4",
+  "created_at_utc": "2026-04-15T06:11:01Z",
+  "code_commit": "git:8ce0026389b5eadec1b969cfb0bcf6a80ff7633e",
+  "ontology_commit": "git:8ce0026389b5eadec1b969cfb0bcf6a80ff7633e",
+  "lexicon_commit": "git:8ce0026389b5eadec1b969cfb0bcf6a80ff7633e",
+  "model": {
+    "name": "gpt-4.1-mini",
+    "temperature": 0.0,
+    "top_p": 1.0
+  },
+  "prompts": {
+    "system_prompt_path": "prompts/system_prompt_v1.md",
+    "system_prompt_hash": "sha256:4f90418e8b649fc24ae105f31ab7c9d2dcfe178884ca508ebba15074a15d784a",
+    "user_template_path": "prompts/user_template_v1.md",
+    "user_template_hash": "sha256:1271fa3b78a565e75b63cd0c492e1c9810e78ba3b7449dce33e730553d3082e2"
+  },
+  "artifacts": {
+    "raw_input": "raw_input.txt",
+    "derived": "derived.json",
+    "inference": "inference.json",
+    "sj_proposal": "sj_proposal.json",
+    "llm_trace": "llm_trace.json"
+  }
+}

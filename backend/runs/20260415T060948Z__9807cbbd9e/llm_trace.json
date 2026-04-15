@@ -1,0 +1,29 @@
+{
+  "used_llm": false,
+  "status": "numeric_fallback",
+  "model": "gpt-4.1-mini",
+  "selected_ids": {
+    "iv_regimes": [],
+    "iv_features": [],
+    "assumption_ids": [],
+    "sj_claims": []
+  },
+  "evidence_fields": {
+    "llm_keywords": [
+      {
+        "keyword": "broad current dynamic range",
+        "evidence": "|I| spans approximately 6.30 decades."
+      }
+    ],
+    "metrics": {
+      "absI_decades_span": 6.301029995663981,
+      "v_knee": null,
+      "v_knee_criterion": null
+    },
+    "regimes": []
+  },
+  "prompt_hashes": {
+    "system_prompt_hash": "sha256:4f90418e8b649fc24ae105f31ab7c9d2dcfe178884ca508ebba15074a15d784a",
+    "user_template_hash": "sha256:cb55f19f6d01de110a313d823956e32e2e99e7ab9c504cfb4f4c0f708fac5f7a"
+  }
+}

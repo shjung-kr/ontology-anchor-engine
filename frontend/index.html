@@ -277,6 +277,86 @@
       margin-top: 18px;
     }
 
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      align-items: center;
+    }
+
+    .toolbar-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      min-width: 92px;
+    }
+
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .status-chip {
+      background: rgba(255,255,255,0.75);
+      border: 1px solid rgba(216, 209, 195, 0.95);
+      border-radius: 16px;
+      padding: 10px 12px;
+    }
+
+    .status-chip .metric-label {
+      font-size: 10px;
+    }
+
+    .status-chip .metric-value {
+      font-size: 14px;
+      margin-top: 6px;
+      overflow-wrap: anywhere;
+    }
+
+    .mini-btn {
+      margin-top: 0;
+      padding: 7px 11px;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 107, 82, 0.18);
+      background: rgba(255,255,255,0.8);
+      color: var(--ink);
+      box-shadow: none;
+    }
+
+    .mini-btn.active {
+      background: var(--accent-soft);
+      border-color: rgba(31, 107, 82, 0.35);
+    }
+
+    .debug-wrap {
+      margin-top: 18px;
+    }
+
+    details.debug-panel {
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(216, 209, 195, 0.95);
+      border-radius: 18px;
+      padding: 12px 14px;
+    }
+
+    details.debug-panel summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .dev-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
     .ghost-btn {
       background: rgba(255,255,255,0.7);
       color: var(--ink);
@@ -289,6 +369,8 @@
       .chat-grid,
       .hero-grid,
       .hero-metrics,
+      .status-bar,
+      .dev-grid,
       .grid2 {
         grid-template-columns: 1fr;
       }
@@ -318,6 +400,18 @@
         <button onclick="runEngine()">Run Analysis</button>
         <button class="ghost-btn" onclick="document.getElementById('chatInput').focus()">Open Conversation</button>
       </div>
+      <div class="toolbar">
+        <div class="toolbar-label">Sample Input</div>
+        <button class="mini-btn" onclick="loadSampleData('fn_tunneling')">FN Tunneling</button>
+        <button class="mini-btn" onclick="loadSampleData('led_curve')">LED Curve</button>
+        <button class="mini-btn" onclick="loadSampleData('hall_effect')">Hall Effect</button>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-label">Chat Presets</div>
+        <button class="mini-btn" onclick="applyChatPreset('next_experiment')">Next Experiment</button>
+        <button class="mini-btn" onclick="applyChatPreset('artifact_check')">Artifact Check</button>
+        <button class="mini-btn" onclick="applyChatPreset('mechanism_focus')">Mechanism Focus</button>
+      </div>
     </div>
     <div class="hero-metrics">
       <div class="metric">
@@ -328,6 +422,24 @@
         <div class="metric-label">Conversation Mode</div>
         <div class="metric-value">Intent + Structured Q/A</div>
       </div>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="status-chip">
+      <div class="metric-label">Run ID</div>
+      <div class="metric-value" id="runIdChip">(none)</div>
+    </div>
+    <div class="status-chip">
+      <div class="metric-label">Domain</div>
+      <div class="metric-value" id="domainChip">iv</div>
+    </div>
+    <div class="status-chip">
+      <div class="metric-label">Coverage</div>
+      <div class="metric-value" id="coverageChip">(unknown)</div>
+    </div>
+    <div class="status-chip">
+      <div class="metric-label">Mode</div>
+      <div class="metric-value" id="modeChip">idle</div>
     </div>
   </div>
 </section>
@@ -357,22 +469,6 @@
 <div class="section">
   <h3>1. Pattern / Narrative</h3>
   <pre id="patternLog">(waiting)</pre>
-</div>
-
-<div class="section">
-  <h3>2. Observed Clues</h3>
-  <pre id="keywordLog">(waiting)</pre>
-</div>
-
-<div class="section">
-  <h3>2.5 Assumptions</h3>
-  <pre id="assumptionLog">(waiting)</pre>
-  <div id="assumptionPretty" class="box" style="margin-top:10px;">(waiting)</div>
-</div>
-
-<div class="section">
-  <h3>3. Interpretation State</h3>
-  <pre id="l1StateLog">(waiting)</pre>
 </div>
 
 <div class="section">
@@ -455,19 +551,40 @@
       <div class="subttl">Chat History</div>
       <div id="historyBox" class="box">(대기 중)</div>
 
-      <div class="subttl">Intent Profile</div>
-      <div id="intentLog" class="box">(대기 중)</div>
-
-      <div class="subttl">Ontology Patch Candidate</div>
-      <div id="patchLog" class="box">(대기 중)</div>
-
-      <div class="subttl">Curated Overlay</div>
-      <div id="overlayLog" class="box">(대기 중)</div>
-
-      <div class="subttl">Overlay Review Queue</div>
-      <div id="reviewQueueLog" class="box">(대기 중)</div>
     </div>
   </div>
+</div>
+
+<div class="debug-wrap">
+  <details class="debug-panel">
+    <summary>Developer Panel</summary>
+    <div class="dev-grid">
+      <div class="section">
+        <h3>Observed Clues</h3>
+        <pre id="keywordLog">(waiting)</pre>
+      </div>
+      <div class="section">
+        <h3>Assumptions</h3>
+        <pre id="assumptionLog">(waiting)</pre>
+        <div id="assumptionPretty" class="box" style="margin-top:10px;">(waiting)</div>
+      </div>
+      <div class="section">
+        <h3>Interpretation State</h3>
+        <pre id="l1StateLog">(waiting)</pre>
+      </div>
+      <div class="section">
+        <h3>Intent / Patch / Overlay</h3>
+        <div class="subttl">Intent Profile</div>
+        <div id="intentLog" class="box">(대기 중)</div>
+        <div class="subttl">Ontology Patch Candidate</div>
+        <div id="patchLog" class="box">(대기 중)</div>
+        <div class="subttl">Curated Overlay</div>
+        <div id="overlayLog" class="box">(대기 중)</div>
+        <div class="subttl">Overlay Review Queue</div>
+        <div id="reviewQueueLog" class="box">(대기 중)</div>
+      </div>
+    </div>
+  </details>
 </div>
 
 <script>
@@ -479,6 +596,10 @@ const fileInput = document.getElementById("fileInput");
 const domainSelect = document.getElementById("domainSelect");
 const domainHint = document.getElementById("domainHint");
 const rawArea = document.getElementById("rawData");
+const runIdChip = document.getElementById("runIdChip");
+const domainChip = document.getElementById("domainChip");
+const coverageChip = document.getElementById("coverageChip");
+const modeChip = document.getElementById("modeChip");
 
 const measurementLog = document.getElementById("measurementLog");
 const patternLog = document.getElementById("patternLog");
@@ -513,6 +634,34 @@ const reviewQueueLog = document.getElementById("reviewQueueLog");
 let cachedDomains = [];
 let currentRunId = "";
 let lastIntentProfile = null;
+const SAMPLE_DATA = {
+  fn_tunneling: `Voltage,Current
+0.0,1.0e-10
+0.5,1.4e-10
+1.0,2.2e-10
+1.5,6.0e-10
+2.0,2.3e-09
+2.5,1.2e-08
+3.0,7.5e-08
+3.5,3.6e-07
+4.0,1.1e-06`,
+  led_curve: `Voltage,Current
+-1.0,-2.0e-09
+-0.5,-1.0e-09
+0.0,0.0
+0.5,3.0e-08
+1.0,2.5e-07
+1.5,2.0e-06
+2.0,3.0e-05
+2.5,4.5e-04
+3.0,2.0e-03`,
+  hall_effect: `Field,Signal
+-1.0,-4.0e-06
+-0.5,-2.0e-06
+0.0,0.0
+0.5,2.1e-06
+1.0,4.2e-06`
+};
 
 function safeStringify(x) {
   try { return JSON.stringify(x, null, 2); }
@@ -539,6 +688,28 @@ function escapeHtml(s) {
 function pills(ids) {
   if (!Array.isArray(ids) || ids.length === 0) return "<span class='muted'>(none)</span>";
   return ids.map(id => `<span class="pill">${escapeHtml(id)}</span>`).join("");
+}
+
+function setRunStatus(partial) {
+  if (partial.runId !== undefined) runIdChip.innerText = partial.runId || "(none)";
+  if (partial.domain !== undefined) domainChip.innerText = partial.domain || "(none)";
+  if (partial.coverage !== undefined) coverageChip.innerText = partial.coverage || "(unknown)";
+  if (partial.mode !== undefined) modeChip.innerText = partial.mode || "idle";
+}
+
+function loadSampleData(kind) {
+  rawArea.value = SAMPLE_DATA[kind] || "";
+  setRunStatus({ mode: `sample:${kind}` });
+}
+
+function applyChatPreset(kind) {
+  const presets = {
+    next_experiment: "이번에는 메커니즘 확정보다 다음 실험 설계를 우선하고 싶습니다. 어떤 구분 실험이 가장 효율적인지 정리해 주세요.",
+    artifact_check: "현재 패턴이 측정 artifact인지 먼저 보고 싶습니다. 재현성과 setup 점검 포인트 중심으로 봐 주세요.",
+    mechanism_focus: "우선은 가능한 transport mechanism 후보를 집중해서 정리하고, 필요한 가정을 같이 보여 주세요.",
+  };
+  chatInput.value = presets[kind] || "";
+  setRunStatus({ mode: `preset:${kind}` });
 }
 
 function currentDomainMeta() {
@@ -590,6 +761,7 @@ function loadDomains() {
 
 domainSelect.addEventListener("change", updateDomainHint);
 loadDomains();
+setRunStatus({ runId: "(none)", domain: "iv", coverage: "(unknown)", mode: "idle" });
 
 fileInput.addEventListener("change", () => {
   const file = fileInput.files[0];
@@ -716,7 +888,57 @@ function renderProposalPretty(proposals) {
   return arr.map((proposal, index) => renderProposalCard(proposal, index)).join("");
 }
 
+function renderObservedClues(payload) {
+  if (!Array.isArray(payload) || payload.length === 0) return "(none)";
+  return payload.map(item => {
+    if (item && typeof item === "object") {
+      const keyword = item.keyword || item.label || "clue";
+      const evidence = item.evidence || item.reason || "";
+      return evidence ? `- ${keyword}: ${evidence}` : `- ${keyword}`;
+    }
+    return `- ${String(item)}`;
+  }).join("\n");
+}
+
+function renderInterpretationState(state) {
+  if (!state || typeof state !== "object") return "(none)";
+  const lines = [];
+  const regimes = Array.isArray(state.iv_regimes) ? state.iv_regimes : [];
+  const features = Array.isArray(state.iv_features) ? state.iv_features : [];
+  if (regimes.length) lines.push(`Regimes: ${regimes.join(", ")}`);
+  if (features.length) lines.push(`Features: ${features.join(", ")}`);
+  const rejected = Array.isArray(state.rejected_ids) ? state.rejected_ids : [];
+  if (rejected.length) lines.push(`Rejected ids: ${rejected.join(", ")}`);
+  return lines.join("\n") || "Interpretation state is available.";
+}
+
+function renderSimpleObjectSummary(payload, preferredKeys = []) {
+  if (!payload || typeof payload !== "object") return "(none)";
+  const lines = [];
+  preferredKeys.forEach(key => {
+    const value = payload[key];
+    if (value == null) return;
+    if (Array.isArray(value)) {
+      if (value.length) lines.push(`${key}: ${value.join(", ")}`);
+      return;
+    }
+    if (typeof value === "object") {
+      const inner = Object.entries(value).map(([k, v]) => `${k}=${humanizeConditionValue(v)}`).join(", ");
+      if (inner) lines.push(`${key}: ${inner}`);
+      return;
+    }
+    lines.push(`${key}: ${humanizeConditionValue(value)}`);
+  });
+  return lines.join("\n") || "(none)";
+}
+
 function clearOutputs() {
+  setRunStatus({
+    runId: "(none)",
+    domain: domainSelect.value || "iv",
+    coverage: "(unknown)",
+    mode: "running",
+  });
   measurementLog.innerText = "(running...)";
   patternLog.innerText = "(running...)";
   keywordLog.innerText = "(running...)";
@@ -1106,15 +1328,21 @@ function applyConversationState(state) {
     patternLog.innerText = state.system_narrative;
   }
   questionBox.innerHTML = renderQuestions(state.suggested_questions || []);
-  coverageLog.innerText = safeStringify(state.coverage_assessment || {});
+  coverageLog.innerText = renderSimpleObjectSummary(state.coverage_assessment || {}, ["status", "reason"]);
   fallbackBox.innerText = renderFallback(state.exploratory_fallback || {});
-  candidateLog.innerText = safeStringify(state.candidate_hypotheses || {});
+  candidateLog.innerText = renderSimpleObjectSummary(state.candidate_hypotheses || {}, ["coverage_status"]);
   historyBox.innerText = renderChatHistory(state.chat_history || []);
-  intentLog.innerText = safeStringify(state.intent_profile || {});
-  patchLog.innerText = safeStringify(state.ontology_patch || {});
-  overlayLog.innerText = safeStringify(state.curated_overlay || {});
-  reviewQueueLog.innerText = safeStringify(state.overlay_review_queue || {});
+  intentLog.innerText = renderSimpleObjectSummary(state.intent_profile || {}, ["analysis_priority", "focus_claims", "exclude_claims", "confirmed_conditions"]);
+  patchLog.innerText = renderSimpleObjectSummary(state.ontology_patch || {}, ["status"]);
+  overlayLog.innerText = renderSimpleObjectSummary(state.curated_overlay || {}, ["generated_at_utc"]);
+  reviewQueueLog.innerText = renderSimpleObjectSummary(state.overlay_review_queue || {}, ["queue_id", "generated_at_utc"]);
   assistantReplyBox.innerText = state.assistant_reply || "(직접 답변 없음)";
+  setRunStatus({
+    runId: state.run_id || currentRunId,
+    domain: domainSelect.value || "iv",
+    coverage: state.coverage_assessment?.status || "(unknown)",
+    mode: state.chat_mode || "intent_update",
+  });
   syncIntentForm(state.intent_profile || {});
   renderIntentUpdateStatus(state);
 }
@@ -1141,12 +1369,18 @@ function runEngine() {
     })
     .then(response => {
       currentRunId = response.run_id || "";
+      setRunStatus({
+        runId: currentRunId,
+        domain: response.domain || domainSelect.value || "iv",
+        coverage: response.conversation_state?.coverage_assessment?.status || "(unknown)",
+        mode: "analysis_complete",
+      });
       measurementLog.innerText = renderMeasurementValidation(response.measurement_validation || {});
       patternLog.innerText = pickPatternText(response);
-      keywordLog.innerText = safeStringify(pickKeywordPayload(response));
-      assumptionLog.innerText = safeStringify(response.assumptions || []);
+      keywordLog.innerText = renderObservedClues(pickKeywordPayload(response));
+      assumptionLog.innerText = renderAssumptionsPretty(response.assumptions || []);
       assumptionPretty.innerText = renderAssumptionsPretty(response.assumptions);
-      l1StateLog.innerText = safeStringify(response.l1_state || {});
+      l1StateLog.innerText = renderInterpretationState(response.l1_state || {});
       proposalPretty.innerHTML = renderProposalPretty(response.sj_proposals);
       summaryLog.innerText = pickSummary(response);
       applyConversationState(response.conversation_state || {});
@@ -1169,6 +1403,12 @@ function runEngine() {
       patchLog.innerText = "(failed)";
       overlayLog.innerText = "(failed)";
       reviewQueueLog.innerText = "(failed)";
+      setRunStatus({
+        runId: "(none)",
+        domain: domainSelect.value || "iv",
+        coverage: "(failed)",
+        mode: "analysis_failed",
+      });
     });
 }
 
