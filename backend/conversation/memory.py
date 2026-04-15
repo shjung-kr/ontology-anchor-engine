@@ -154,6 +154,93 @@ def load_chat_history(run_dir: Path) -> List[Dict[str, Any]]:
     return events
 
 
+def build_run_summary(run_dir: Path) -> Dict[str, Any]:
+    ensure_memory_files(run_dir)
+    manifest = load_json(run_dir / "manifest.json")
+    chat_state = build_chat_response(run_dir)
+    snapshot = load_analysis_snapshot(run_dir)
+    reranked = chat_state.get("reranked_sj_proposals", []) or []
+    top = reranked[0] if reranked else {}
+    validation = snapshot.get("measurement_validation", {}) or {}
+    return {
+        "run_id": run_dir.name,
+        "created_at_utc": manifest.get("created_at_utc"),
+        "domain": (chat_state.get("curated_overlay", {}) or {}).get("domain") or "iv",
+        "coverage_status": (chat_state.get("coverage_assessment", {}) or {}).get("status", "unknown"),
+        "top_claim": top.get("claim_concept"),
+        "fallback_status": (chat_state.get("exploratory_fallback", {}) or {}).get("status", "unknown"),
+        "warning_count": len(validation.get("warnings", []) or []),
+        "candidate_count": len((chat_state.get("candidate_hypotheses", {}) or {}).get("items", []) or []),
+        "patch_counts": {
+            "claims": len((chat_state.get("ontology_patch", {}) or {}).get("claims", []) or []),
+            "assumptions": len((chat_state.get("ontology_patch", {}) or {}).get("assumptions", []) or []),
+            "measurement_conditions": len((chat_state.get("ontology_patch", {}) or {}).get("measurement_conditions", []) or []),
+        },
+    }
+
+
+def list_run_summaries(limit: int = 50) -> List[Dict[str, Any]]:
+    run_dirs = [path for path in RUNS_DIR.iterdir() if path.is_dir()]
+    run_dirs.sort(key=lambda path: path.name, reverse=True)
+    summaries: List[Dict[str, Any]] = []
+    for run_dir in run_dirs[: max(1, limit)]:
+        try:
+            summaries.append(build_run_summary(run_dir))
+        except Exception:
+            continue
+    return summaries
+
+
+def compare_runs(left_run_dir: Path, right_run_dir: Path) -> Dict[str, Any]:
+    left_summary = build_run_summary(left_run_dir)
+    right_summary = build_run_summary(right_run_dir)
+    left_state = build_chat_response(left_run_dir)
+    right_state = build_chat_response(right_run_dir)
+
+    left_conditions = ((left_state.get("intent_profile", {}) or {}).get("confirmed_conditions", {}) or {})
+    right_conditions = ((right_state.get("intent_profile", {}) or {}).get("confirmed_conditions", {}) or {})
+
+    changed_items: List[Dict[str, Any]] = []
+    shared_items: List[Dict[str, Any]] = []
+
+    def compare_field(label: str, left_value: Any, right_value: Any) -> None:
+        if left_value == right_value:
+            shared_items.append({"field": label, "value": left_value})
+        else:
+            changed_items.append({"field": label, "left": left_value, "right": right_value})
+
+    compare_field("coverage_status", left_summary.get("coverage_status"), right_summary.get("coverage_status"))
+    compare_field("top_claim", left_summary.get("top_claim"), right_summary.get("top_claim"))
+    compare_field("fallback_status", left_summary.get("fallback_status"), right_summary.get("fallback_status"))
+    compare_field("confirmed_conditions", left_conditions, right_conditions)
+
+    left_hypotheses = [item.get("label") for item in (left_state.get("candidate_hypotheses", {}) or {}).get("items", []) if isinstance(item, dict)]
+    right_hypotheses = [item.get("label") for item in (right_state.get("candidate_hypotheses", {}) or {}).get("items", []) if isinstance(item, dict)]
+    compare_field("candidate_hypotheses", left_hypotheses, right_hypotheses)
+
+    left_ideas = [item.get("title") for item in (left_state.get("exploratory_fallback", {}) or {}).get("experiment_ideas", []) if isinstance(item, dict)]
+    right_ideas = [item.get("title") for item in (right_state.get("exploratory_fallback", {}) or {}).get("experiment_ideas", []) if isinstance(item, dict)]
+
+    return {
+        "left_run": left_summary,
+        "right_run": right_summary,
+        "shared_items": shared_items,
+        "changed_items": changed_items,
+        "left_only": {
+            "candidate_hypotheses": [item for item in left_hypotheses if item not in set(right_hypotheses)],
+            "experiment_ideas": [item for item in left_ideas if item not in set(right_ideas)],
+        },
+        "right_only": {
+            "candidate_hypotheses": [item for item in right_hypotheses if item not in set(left_hypotheses)],
+            "experiment_ideas": [item for item in right_ideas if item not in set(left_ideas)],
+        },
+        "experiment_idea_diff": {
+            "left": left_ideas,
+            "right": right_ideas,
+        },
+    }
+
+
 def sync_suggested_questions(run_dir: Path, suggested_questions: List[Dict[str, Any]]) -> None:
     existing = load_chat_history(run_dir)
     existing_keys = {

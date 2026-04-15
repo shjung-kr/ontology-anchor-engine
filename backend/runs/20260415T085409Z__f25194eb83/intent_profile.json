@@ -1,0 +1,18 @@
+{
+  "run_id": "20260415T085409Z__f25194eb83",
+  "analysis_priority": null,
+  "focus_claims": [],
+  "exclude_claims": [],
+  "keep_open_claims": [],
+  "confirmed_conditions": {},
+  "uncertain_conditions": [],
+  "assumption_states": {},
+  "approved_patch_items": {
+    "claims": [],
+    "assumptions": [],
+    "measurement_conditions": []
+  },
+  "notes": [],
+  "history": [],
+  "updated_at_utc": "2026-04-15T08:54:09Z"
+}

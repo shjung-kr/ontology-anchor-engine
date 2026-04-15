@@ -357,6 +357,57 @@
       margin-top: 14px;
     }
 
+    .tab-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      margin-top: 0;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #193d32, var(--accent));
+    }
+
+    .history-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.9fr) minmax(340px, 1.1fr);
+      gap: 16px;
+    }
+
+    .list-card {
+      display: grid;
+      gap: 10px;
+      max-height: 72vh;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: var(--panel-strong);
+      border: 1px solid rgba(216, 209, 195, 0.95);
+      border-radius: 18px;
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+
+    .history-item.active {
+      border-color: rgba(31, 107, 82, 0.5);
+      box-shadow: 0 8px 20px rgba(31, 107, 82, 0.1);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(31, 107, 82, 0.18);
+      margin-right: 6px;
+    }
+
     .ghost-btn {
       background: rgba(255,255,255,0.7);
       color: var(--ink);
@@ -370,6 +421,7 @@
       .hero-grid,
       .hero-metrics,
       .status-bar,
+      .history-grid,
       .dev-grid,
       .grid2 {
         grid-template-columns: 1fr;
@@ -388,6 +440,14 @@
 
 <body>
 <main class="app-shell">
+<div class="tab-row">
+  <button id="tabAnalyze" class="tab-btn active" onclick="switchTab('analyze')">Analyze</button>
+  <button id="tabHistory" class="tab-btn ghost-btn" onclick="switchTab('history')">History</button>
+  <button id="tabCompare" class="tab-btn ghost-btn" onclick="switchTab('compare')">Compare</button>
+  <button id="tabSets" class="tab-btn ghost-btn" onclick="switchTab('sets')">Sets</button>
+</div>
+
+<div id="analyzeView">
 <section class="hero">
   <div class="hero-grid">
     <div>
@@ -399,6 +459,7 @@
       <div class="cta-row">
         <button onclick="runEngine()">Run Analysis</button>
         <button class="ghost-btn" onclick="document.getElementById('chatInput').focus()">Open Conversation</button>
+        <a href="/user.html" style="text-decoration:none;"><button class="ghost-btn" type="button">User Chat UI</button></a>
       </div>
       <div class="toolbar">
         <div class="toolbar-label">Sample Input</div>
@@ -554,6 +615,98 @@
     </div>
   </div>
 </div>
+</div>
+
+<div id="historyView" class="hidden">
+  <section class="section">
+    <h3>Session History</h3>
+    <p class="hint">최근 run을 다시 열고 현재 분석 화면으로 복원할 수 있습니다.</p>
+    <div class="cta-row">
+      <button onclick="loadRunHistory()">Refresh History</button>
+    </div>
+    <div class="history-grid" style="margin-top:16px;">
+      <div class="list-card" id="historyList">(loading...)</div>
+      <div class="section" id="historyDetail">
+        <h3>Run Detail</h3>
+        <div class="box" id="historyDetailBox">(run을 선택하세요)</div>
+        <div class="action-row">
+          <button id="openHistoryBtn" class="mini-btn" onclick="openSelectedHistoryRun()" disabled>Open In Analyze</button>
+          <button id="setCompareLeftBtn" class="mini-btn" onclick="setCompareRun('left')" disabled>Set As Left</button>
+          <button id="setCompareRightBtn" class="mini-btn" onclick="setCompareRun('right')" disabled>Set As Right</button>
+          <button id="toggleCompareSelectionBtn" class="mini-btn" onclick="toggleSelectedHistoryRunForCompare()" disabled>Toggle Multi Compare</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="compareView" class="hidden">
+  <section class="section">
+    <h3>Run Compare</h3>
+    <p class="hint">두 run의 coverage, claim, 조건, candidate hypothesis, experiment idea 차이를 비교합니다.</p>
+    <div class="history-grid" style="margin-top:16px;">
+      <div class="section">
+        <div class="subttl">Selection</div>
+        <div class="box" id="compareSelectionBox">left: (none)\nright: (none)</div>
+        <div class="action-row">
+          <button id="runCompareBtn" onclick="runCompare()" disabled>Run Compare</button>
+          <button id="runMultiCompareBtn" onclick="runMultiCompare()" disabled>Run Multi Compare</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="subttl">Compare Result</div>
+        <div class="box" id="compareResultBox">(비교 대상을 선택하세요)</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="setsView" class="hidden">
+  <section class="section">
+    <h3>Experiment Sets</h3>
+    <p class="hint">run을 목적 중심 세트로 묶고 set-level summary를 계산합니다.</p>
+    <div class="history-grid" style="margin-top:16px;">
+      <div class="section">
+        <h3>Create Set</h3>
+        <div class="subttl">Title</div>
+        <textarea id="setTitleInput" placeholder="예: FN thickness split / artifact rejection batch"></textarea>
+        <div class="subttl">Goal</div>
+        <select id="setGoalSelect">
+          <option value="mechanism_identification">mechanism_identification</option>
+          <option value="artifact_rejection">artifact_rejection</option>
+          <option value="parameter_sensitivity">parameter_sensitivity</option>
+          <option value="model_validation">model_validation</option>
+          <option value="next_experiment_planning">next_experiment_planning</option>
+        </select>
+        <div class="subttl">Primary Question</div>
+        <textarea id="setQuestionInput" placeholder="이 세트가 답하려는 질문"></textarea>
+        <div class="action-row">
+          <button onclick="createExperimentSet()">Create Set</button>
+          <button class="mini-btn" onclick="loadExperimentSets()">Refresh Sets</button>
+        </div>
+        <div class="subttl">Set List</div>
+        <div id="setsList" class="list-card">(loading...)</div>
+      </div>
+      <div class="section">
+        <h3>Set Detail</h3>
+        <div id="setDetailBox" class="box">(set을 선택하세요)</div>
+      <div class="action-row">
+          <button id="addCurrentRunToSetBtn" onclick="addCurrentRunToSelectedSet()" disabled>Add Current Run</button>
+          <button id="analyzeSetBtn" onclick="analyzeSelectedSet()" disabled>Analyze Set</button>
+        </div>
+        <div class="subttl">Set Runs</div>
+        <div id="setRunsBox" class="list-card">(run 없음)</div>
+        <div class="action-row">
+          <button id="runSetMultiCompareBtn" onclick="runSetMultiCompare()" disabled>Compare Selected Runs In Set</button>
+        </div>
+        <div class="subttl">Set Compare</div>
+        <div id="setCompareBox" class="box">(비교 없음)</div>
+        <div class="subttl">Set Analysis</div>
+        <div id="setAnalysisBox" class="box">(analysis 없음)</div>
+      </div>
+    </div>
+  </section>
+</div>
 
 <div class="debug-wrap">
   <details class="debug-panel">
@@ -591,11 +744,43 @@
 const API_URL = "/run";
 const DOMAIN_URL = "/domains";
 const CHAT_URL = "/chat";
+const RUNS_URL = "/runs";
+const RUN_COMPARE_URL = "/runs/compare";
+const EXPERIMENT_SETS_URL = "/experiment-sets";
 
 const fileInput = document.getElementById("fileInput");
 const domainSelect = document.getElementById("domainSelect");
 const domainHint = document.getElementById("domainHint");
 const rawArea = document.getElementById("rawData");
+const analyzeView = document.getElementById("analyzeView");
+const historyView = document.getElementById("historyView");
+const compareView = document.getElementById("compareView");
+const setsView = document.getElementById("setsView");
+const tabAnalyze = document.getElementById("tabAnalyze");
+const tabHistory = document.getElementById("tabHistory");
+const tabCompare = document.getElementById("tabCompare");
+const tabSets = document.getElementById("tabSets");
+const historyList = document.getElementById("historyList");
+const historyDetailBox = document.getElementById("historyDetailBox");
+const openHistoryBtn = document.getElementById("openHistoryBtn");
+const setCompareLeftBtn = document.getElementById("setCompareLeftBtn");
+const setCompareRightBtn = document.getElementById("setCompareRightBtn");
+const toggleCompareSelectionBtn = document.getElementById("toggleCompareSelectionBtn");
+const compareSelectionBox = document.getElementById("compareSelectionBox");
+const compareResultBox = document.getElementById("compareResultBox");
+const runCompareBtn = document.getElementById("runCompareBtn");
+const runMultiCompareBtn = document.getElementById("runMultiCompareBtn");
+const setTitleInput = document.getElementById("setTitleInput");
+const setGoalSelect = document.getElementById("setGoalSelect");
+const setQuestionInput = document.getElementById("setQuestionInput");
+const setsList = document.getElementById("setsList");
+const setDetailBox = document.getElementById("setDetailBox");
+const setRunsBox = document.getElementById("setRunsBox");
+const addCurrentRunToSetBtn = document.getElementById("addCurrentRunToSetBtn");
+const analyzeSetBtn = document.getElementById("analyzeSetBtn");
+const runSetMultiCompareBtn = document.getElementById("runSetMultiCompareBtn");
+const setCompareBox = document.getElementById("setCompareBox");
+const setAnalysisBox = document.getElementById("setAnalysisBox");
 const runIdChip = document.getElementById("runIdChip");
 const domainChip = document.getElementById("domainChip");
 const coverageChip = document.getElementById("coverageChip");
@@ -634,6 +819,15 @@ const reviewQueueLog = document.getElementById("reviewQueueLog");
 let cachedDomains = [];
 let currentRunId = "";
 let lastIntentProfile = null;
+let historyRuns = [];
+let selectedHistoryRunId = "";
+let compareLeftRunId = "";
+let compareRightRunId = "";
+let compareSelectedRunIds = [];
+let experimentSets = [];
+let selectedSetId = "";
+let selectedSetCompareRunIds = [];
+let currentSummaryContext = null;
 const SAMPLE_DATA = {
   fn_tunneling: `Voltage,Current
 0.0,1.0e-10
@@ -697,6 +891,28 @@ function setRunStatus(partial) {
   if (partial.mode !== undefined) modeChip.innerText = partial.mode || "idle";
 }
 
+function switchTab(tab) {
+  const analyzeActive = tab === "analyze";
+  const historyActive = tab === "history";
+  const compareActive = tab === "compare";
+  const setsActive = tab === "sets";
+  analyzeView.classList.toggle("hidden", !analyzeActive);
+  historyView.classList.toggle("hidden", !historyActive);
+  compareView.classList.toggle("hidden", !compareActive);
+  setsView.classList.toggle("hidden", !setsActive);
+  tabAnalyze.className = analyzeActive ? "tab-btn active" : "tab-btn ghost-btn";
+  tabHistory.className = historyActive ? "tab-btn active" : "tab-btn ghost-btn";
+  tabCompare.className = compareActive ? "tab-btn active" : "tab-btn ghost-btn";
+  tabSets.className = setsActive ? "tab-btn active" : "tab-btn ghost-btn";
+  if (historyActive) {
+    loadRunHistory();
+  } else if (compareActive) {
+    renderCompareSelection();
+  } else if (setsActive) {
+    loadExperimentSets();
+  }
+}
+
 function loadSampleData(kind) {
   rawArea.value = SAMPLE_DATA[kind] || "";
   setRunStatus({ mode: `sample:${kind}` });
@@ -710,6 +926,458 @@ function applyChatPreset(kind) {
   };
   chatInput.value = presets[kind] || "";
   setRunStatus({ mode: `preset:${kind}` });
+}
+
+function renderHistoryList(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    historyList.innerHTML = `<div class="box">(저장된 run 없음)</div>`;
+    return;
+  }
+  historyList.innerHTML = items.map(item => {
+    const active = item.run_id === selectedHistoryRunId ? "history-item active" : "history-item";
+    const checked = compareSelectedRunIds.includes(item.run_id);
+    return `
+      <div class="${active}" onclick="selectHistoryRun('${escapeHtml(item.run_id)}')">
+        <div><b>${escapeHtml(item.run_id || "(unknown)")}</b></div>
+        <div class="row">
+          <span class="badge">${escapeHtml(item.coverage_status || "unknown")}</span>
+          <span class="badge">${escapeHtml(item.domain || "iv")}</span>
+          ${checked ? `<span class="badge">selected</span>` : ``}
+        </div>
+        <div class="row muted">${escapeHtml(item.created_at_utc || "(unknown time)")}</div>
+        <div class="row">Top: ${escapeHtml(item.top_claim || item.fallback_status || "(none)")}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderHistoryDetail(item) {
+  if (!item || typeof item !== "object") {
+    historyDetailBox.innerText = "(run을 선택하세요)";
+    openHistoryBtn.disabled = true;
+    setCompareLeftBtn.disabled = true;
+    setCompareRightBtn.disabled = true;
+    toggleCompareSelectionBtn.disabled = true;
+    return;
+  }
+  historyDetailBox.innerText = [
+    `run_id: ${item.run_id || "(unknown)"}`,
+    `created_at_utc: ${item.created_at_utc || "(unknown)"}`,
+    `domain: ${item.domain || "iv"}`,
+    `coverage_status: ${item.coverage_status || "unknown"}`,
+    `top_claim: ${item.top_claim || "(none)"}`,
+    `fallback_status: ${item.fallback_status || "(none)"}`,
+    `warning_count: ${item.warning_count ?? 0}`,
+    `candidate_count: ${item.candidate_count ?? 0}`,
+  ].join("\n");
+  openHistoryBtn.disabled = false;
+  setCompareLeftBtn.disabled = false;
+  setCompareRightBtn.disabled = false;
+  toggleCompareSelectionBtn.disabled = false;
+}
+
+function loadRunHistory() {
+  historyList.innerHTML = `<div class="box">(loading...)</div>`;
+  fetch(`${RUNS_URL}?limit=40`)
+    .then(res => res.json())
+    .then(payload => {
+      historyRuns = Array.isArray(payload.runs) ? payload.runs : [];
+      if (!selectedHistoryRunId && historyRuns.length > 0) {
+        selectedHistoryRunId = historyRuns[0].run_id;
+      }
+      renderHistoryList(historyRuns);
+      renderHistoryDetail(historyRuns.find(item => item.run_id === selectedHistoryRunId));
+    })
+    .catch(err => {
+      historyList.innerHTML = `<div class="box">History load failed.\n\n${escapeHtml(err.message)}</div>`;
+    });
+}
+
+function selectHistoryRun(runId) {
+  selectedHistoryRunId = runId;
+  renderHistoryList(historyRuns);
+  renderHistoryDetail(historyRuns.find(item => item.run_id === runId));
+}
+
+function openSelectedHistoryRun() {
+  if (!selectedHistoryRunId) return;
+  fetch(`${RUNS_URL}/${selectedHistoryRunId}/summary`)
+    .then(async res => {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error(text || "Server did not return JSON");
+      }
+    })
+    .then(payload => {
+      currentRunId = payload.run_id || "";
+      currentSummaryContext = payload;
+      setRunStatus({
+        runId: currentRunId,
+        domain: payload.domain || "iv",
+        coverage: payload.coverage_status || payload.conversation_state?.coverage_assessment?.status || "(unknown)",
+        mode: "history_open",
+      });
+      measurementLog.innerText = renderMeasurementValidation(payload.measurement_validation || {});
+      patternLog.innerText = payload.system_narrative || pickPatternText(payload);
+      keywordLog.innerText = renderObservedClues(pickKeywordPayload(payload));
+      assumptionLog.innerText = renderAssumptionsPretty(payload.assumptions || []);
+      assumptionPretty.innerText = renderAssumptionsPretty(payload.assumptions || []);
+      l1StateLog.innerText = renderInterpretationState(payload.l1_state || {});
+      proposalPretty.innerHTML = renderProposalPretty(payload.sj_proposals || []);
+      summaryLog.innerText = pickSummary(payload);
+      applyConversationState(payload.conversation_state || {});
+      switchTab("analyze");
+    })
+    .catch(err => {
+      historyDetailBox.innerText = `Run open failed.\n\n${err.message}`;
+    });
+}
+
+function setCompareRun(side) {
+  if (!selectedHistoryRunId) return;
+  if (side === "left") compareLeftRunId = selectedHistoryRunId;
+  if (side === "right") compareRightRunId = selectedHistoryRunId;
+  renderCompareSelection();
+  switchTab("compare");
+}
+
+function toggleSelectedHistoryRunForCompare() {
+  if (!selectedHistoryRunId) return;
+  if (compareSelectedRunIds.includes(selectedHistoryRunId)) {
+    compareSelectedRunIds = compareSelectedRunIds.filter(id => id !== selectedHistoryRunId);
+  } else {
+    compareSelectedRunIds = [...compareSelectedRunIds, selectedHistoryRunId];
+  }
+  renderHistoryList(historyRuns);
+  renderCompareSelection();
+}
+
+function renderCompareSelection() {
+  compareSelectionBox.innerText = [
+    `left: ${compareLeftRunId || "(none)"}`,
+    `right: ${compareRightRunId || "(none)"}`,
+    `multi: ${compareSelectedRunIds.length ? compareSelectedRunIds.join(", ") : "(none)"}`,
+  ].join("\n");
+  runCompareBtn.disabled = !(compareLeftRunId && compareRightRunId);
+  runMultiCompareBtn.disabled = compareSelectedRunIds.length < 2;
+}
+
+function renderCompareResult(payload) {
+  if (!payload || typeof payload !== "object") return "(none)";
+  const lines = [];
+  lines.push(`[left] ${payload.left_run?.run_id || "(none)"}`);
+  lines.push(`[right] ${payload.right_run?.run_id || "(none)"}`);
+  if (Array.isArray(payload.changed_items) && payload.changed_items.length) {
+    lines.push("");
+    lines.push("[changed_items]");
+    payload.changed_items.forEach(item => lines.push(`- ${item.field}: left=${humanizeConditionValue(item.left)} | right=${humanizeConditionValue(item.right)}`));
+  }
+  if (Array.isArray(payload.shared_items) && payload.shared_items.length) {
+    lines.push("");
+    lines.push("[shared_items]");
+    payload.shared_items.forEach(item => lines.push(`- ${item.field}: ${humanizeConditionValue(item.value)}`));
+  }
+  const leftOnly = payload.left_only || {};
+  const rightOnly = payload.right_only || {};
+  if ((leftOnly.candidate_hypotheses || []).length || (leftOnly.experiment_ideas || []).length) {
+    lines.push("");
+    lines.push("[left_only]");
+    if ((leftOnly.candidate_hypotheses || []).length) lines.push(`- hypotheses: ${(leftOnly.candidate_hypotheses || []).join(", ")}`);
+    if ((leftOnly.experiment_ideas || []).length) lines.push(`- ideas: ${(leftOnly.experiment_ideas || []).join(", ")}`);
+  }
+  if ((rightOnly.candidate_hypotheses || []).length || (rightOnly.experiment_ideas || []).length) {
+    lines.push("");
+    lines.push("[right_only]");
+    if ((rightOnly.candidate_hypotheses || []).length) lines.push(`- hypotheses: ${(rightOnly.candidate_hypotheses || []).join(", ")}`);
+    if ((rightOnly.experiment_ideas || []).length) lines.push(`- ideas: ${(rightOnly.experiment_ideas || []).join(", ")}`);
+  }
+  return lines.join("\n");
+}
+
+function runCompare() {
+  if (!(compareLeftRunId && compareRightRunId)) return;
+  compareResultBox.innerText = "(comparing...)";
+  fetch(RUN_COMPARE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      left_run_id: compareLeftRunId,
+      right_run_id: compareRightRunId,
+    })
+  })
+    .then(async res => {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error(text || "Server did not return JSON");
+      }
+    })
+    .then(payload => {
+      compareResultBox.innerText = renderCompareResult(payload);
+    })
+    .catch(err => {
+      compareResultBox.innerText = `Compare failed.\n\n${err.message}`;
+    });
+}
+
+function summarizeCompareSummary(summary) {
+  if (!summary || typeof summary !== "object") return "(none)";
+  return [
+    summary.run_id || "(unknown)",
+    summary.coverage_status || "unknown",
+    summary.top_claim || summary.fallback_status || "(none)",
+    String(summary.warning_count ?? 0),
+    String(summary.candidate_count ?? 0),
+  ];
+}
+
+function renderMultiCompareResult(items) {
+  if (!Array.isArray(items) || items.length === 0) return "(none)";
+  const headers = ["run_id", "coverage", "top/fallback", "warnings", "candidates"];
+  const rows = [headers.join(" | "), headers.map(() => "---").join(" | ")];
+  items.forEach(item => rows.push(summarizeCompareSummary(item).join(" | ")));
+  return rows.join("\n");
+}
+
+function runMultiCompare() {
+  if (compareSelectedRunIds.length < 2) return;
+  compareResultBox.innerText = "(loading multi-run summaries...)";
+  Promise.all(
+    compareSelectedRunIds.map(runId =>
+      fetch(`${RUNS_URL}/${runId}/summary`).then(async res => {
+        const text = await res.text();
+        try {
+          return JSON.parse(text);
+        } catch {
+          throw new Error(text || "Server did not return JSON");
+        }
+      })
+    )
+  )
+    .then(items => {
+      compareResultBox.innerText = renderMultiCompareResult(items);
+    })
+    .catch(err => {
+      compareResultBox.innerText = `Multi compare failed.\n\n${err.message}`;
+    });
+}
+
+function renderExperimentSetList(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    setsList.innerHTML = `<div class="box">(set 없음)</div>`;
+    return;
+  }
+  setsList.innerHTML = items.map(item => {
+    const active = item.set_id === selectedSetId ? "history-item active" : "history-item";
+    return `
+      <div class="${active}" onclick="selectExperimentSet('${escapeHtml(item.set_id)}')">
+        <div><b>${escapeHtml(item.title || item.set_id)}</b></div>
+        <div class="row">
+          <span class="badge">${escapeHtml(item.experiment_goal || "goal")}</span>
+          <span class="badge">${escapeHtml(item.decision_status || "draft")}</span>
+        </div>
+        <div class="row muted">${escapeHtml(item.set_id || "")}</div>
+        <div class="row">runs: ${Array.isArray(item.runs) ? item.runs.length : 0}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderSetRuns(item) {
+  const runs = Array.isArray(item?.runs) ? item.runs : [];
+  if (runs.length === 0) {
+    setRunsBox.innerHTML = `<div class="box">(run 없음)</div>`;
+    setCompareBox.innerText = "(비교 없음)";
+    runSetMultiCompareBtn.disabled = true;
+    return;
+  }
+  selectedSetCompareRunIds = selectedSetCompareRunIds.filter(runId =>
+    runs.some(run => run.run_id === runId)
+  );
+  setRunsBox.innerHTML = runs.map(run => {
+    const checked = selectedSetCompareRunIds.includes(run.run_id);
+    const active = checked ? "history-item active" : "history-item";
+    return `
+      <div class="${active}" onclick="toggleSetRunForCompare('${escapeHtml(run.run_id)}')">
+        <div><b>${escapeHtml(run.run_id || "(unknown)")}</b></div>
+        <div class="row">
+          ${checked ? `<span class="badge">selected</span>` : ``}
+          ${run.is_reference ? `<span class="badge">reference</span>` : ``}
+          <span class="badge">${escapeHtml(run.condition_label || "condition")}</span>
+        </div>
+        <div class="row muted">${escapeHtml(run.sample_id || "(sample unknown)")}</div>
+      </div>
+    `;
+  }).join("");
+  runSetMultiCompareBtn.disabled = selectedSetCompareRunIds.length < 2;
+}
+
+function renderExperimentSetDetail(item) {
+  if (!item || typeof item !== "object") {
+    setDetailBox.innerText = "(set을 선택하세요)";
+    setRunsBox.innerHTML = `<div class="box">(run 없음)</div>`;
+    setCompareBox.innerText = "(비교 없음)";
+    setAnalysisBox.innerText = "(analysis 없음)";
+    addCurrentRunToSetBtn.disabled = true;
+    analyzeSetBtn.disabled = true;
+    runSetMultiCompareBtn.disabled = true;
+    return;
+  }
+  setDetailBox.innerText = [
+    `set_id: ${item.set_id || "(unknown)"}`,
+    `title: ${item.title || "(untitled)"}`,
+    `goal: ${item.experiment_goal || "(none)"}`,
+    `question: ${item.primary_question || "(none)"}`,
+    `decision_status: ${item.decision_status || "draft"}`,
+    `runs: ${(item.runs || []).map(run => run.run_id).join(", ") || "(none)"}`,
+  ].join("\n");
+  renderSetRuns(item);
+  setAnalysisBox.innerText = item.set_level_summary || "(analysis 없음)";
+  addCurrentRunToSetBtn.disabled = !currentRunId;
+  analyzeSetBtn.disabled = false;
+}
+
+function loadExperimentSets() {
+  setsList.innerHTML = `<div class="box">(loading...)</div>`;
+  fetch(EXPERIMENT_SETS_URL)
+    .then(res => res.json())
+    .then(payload => {
+      experimentSets = Array.isArray(payload.sets) ? payload.sets : [];
+      if (!selectedSetId && experimentSets.length > 0) {
+        selectedSetId = experimentSets[0].set_id;
+      }
+      renderExperimentSetList(experimentSets);
+      renderExperimentSetDetail(experimentSets.find(item => item.set_id === selectedSetId));
+    })
+    .catch(err => {
+      setsList.innerHTML = `<div class="box">Set load failed.\n\n${escapeHtml(err.message)}</div>`;
+    });
+}
+
+function selectExperimentSet(setId) {
+  selectedSetId = setId;
+  selectedSetCompareRunIds = [];
+  setCompareBox.innerText = "(비교 없음)";
+  renderExperimentSetList(experimentSets);
+  renderExperimentSetDetail(experimentSets.find(item => item.set_id === setId));
+}
+
+function toggleSetRunForCompare(runId) {
+  const selectedSet = experimentSets.find(item => item.set_id === selectedSetId);
+  if (!selectedSet) return;
+  if (selectedSetCompareRunIds.includes(runId)) {
+    selectedSetCompareRunIds = selectedSetCompareRunIds.filter(id => id !== runId);
+  } else {
+    selectedSetCompareRunIds = [...selectedSetCompareRunIds, runId];
+  }
+  renderSetRuns(selectedSet);
+}
+
+function createExperimentSet() {
+  fetch(EXPERIMENT_SETS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: setTitleInput.value || "Untitled Set",
+      experiment_goal: setGoalSelect.value || "mechanism_identification",
+      primary_question: setQuestionInput.value || "",
+    })
+  })
+    .then(async res => {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error(text || "Server did not return JSON");
+      }
+    })
+    .then(item => {
+      selectedSetId = item.set_id;
+      setTitleInput.value = "";
+      setQuestionInput.value = "";
+      loadExperimentSets();
+    })
+    .catch(err => {
+      setDetailBox.innerText = `Set create failed.\n\n${err.message}`;
+    });
+}
+
+function addCurrentRunToSelectedSet() {
+  if (!(selectedSetId && currentRunId)) return;
+  fetch(`${EXPERIMENT_SETS_URL}/${selectedSetId}/runs`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      run_id: currentRunId,
+      condition_label: domainSelect.value || "iv",
+    })
+  })
+    .then(async res => {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error(text || "Server did not return JSON");
+      }
+    })
+    .then(item => {
+      experimentSets = experimentSets.map(existing => existing.set_id === item.set_id ? item : existing);
+      selectedSetCompareRunIds = [];
+      setCompareBox.innerText = "(비교 없음)";
+      renderExperimentSetList(experimentSets);
+      renderExperimentSetDetail(item);
+    })
+    .catch(err => {
+      setDetailBox.innerText = `Add run failed.\n\n${err.message}`;
+    });
+}
+
+function analyzeSelectedSet() {
+  if (!selectedSetId) return;
+  setAnalysisBox.innerText = "(analyzing...)";
+  fetch(`${EXPERIMENT_SETS_URL}/${selectedSetId}/analyze`, { method: "POST" })
+    .then(async res => {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error(text || "Server did not return JSON");
+      }
+    })
+    .then(item => {
+      experimentSets = experimentSets.map(existing => existing.set_id === item.set_id ? item : existing);
+      renderExperimentSetList(experimentSets);
+      renderExperimentSetDetail(item);
+    })
+    .catch(err => {
+      setAnalysisBox.innerText = `Set analyze failed.\n\n${err.message}`;
+    });
+}
+
+function runSetMultiCompare() {
+  if (selectedSetCompareRunIds.length < 2) return;
+  setCompareBox.innerText = "(loading set run summaries...)";
+  Promise.all(
+    selectedSetCompareRunIds.map(runId =>
+      fetch(`${RUNS_URL}/${runId}/summary`).then(async res => {
+        const text = await res.text();
+        try {
+          return JSON.parse(text);
+        } catch {
+          throw new Error(text || "Server did not return JSON");
+        }
+      })
+    )
+  )
+    .then(items => {
+      setCompareBox.innerText = renderMultiCompareResult(items);
+    })
+    .catch(err => {
+      setCompareBox.innerText = `Set compare failed.\n\n${err.message}`;
+    });
 }
 
 function currentDomainMeta() {
@@ -962,6 +1630,7 @@ function clearOutputs() {
   assistantReplyBox.innerText = "(아직 없음)";
   currentRunId = "";
   lastIntentProfile = null;
+  currentSummaryContext = null;
 }
 
 function pickPatternText(response) {
@@ -976,10 +1645,70 @@ function pickKeywordPayload(response) {
   return [];
 }
 
-function pickSummary(response) {
-  if (response["L1 좌표 요약"] || response["과학적 정당화 제안"]) {
-    return `${response["L1 좌표 요약"] || ""}\n\n${response["과학적 정당화 제안"] || ""}`.trim();
+function explainCoverageStatus(status) {
+  if (status === "sufficient") return "현재 ontology 범위 안에서 해석 가능한 상태입니다.";
+  if (status === "low_confidence_candidates") return "후보는 있으나 근거 차이가 작아서 결론을 조심해서 봐야 합니다.";
+  if (status === "insufficient_ontology_coverage") return "현재 ontology만으로는 충분히 설명되지 않아 추가 정보나 실험이 필요합니다.";
+  return "";
+}
+
+function summarizeValidationKorean(validation) {
+  const errors = Array.isArray(validation?.errors) ? validation.errors : [];
+  const warnings = Array.isArray(validation?.warnings) ? validation.warnings : [];
+  if (errors.length) {
+    return `측정 검증에서 오류 ${errors.length}건이 있어 해석 전에 데이터와 조건을 다시 확인해야 합니다.`;
   }
+  if (warnings.length) {
+    return `측정 검증에서 경고 ${warnings.length}건이 있어 결과 해석을 보수적으로 보는 편이 좋습니다.`;
+  }
+  return "측정 검증 단계에서 큰 오류나 경고는 두드러지지 않았습니다.";
+}
+
+function buildKoreanSummary(response) {
+  const topProposal = Array.isArray(response?.sj_proposals) && response.sj_proposals.length
+    ? response.sj_proposals[0]
+    : Array.isArray(response?.reranked_sj_proposals) && response.reranked_sj_proposals.length
+      ? response.reranked_sj_proposals[0]
+      : null;
+  const coverage = response?.coverage_assessment?.status || response?.conversation_state?.coverage_assessment?.status || "";
+  const validation = response?.measurement_validation || {};
+  const l1State = response?.l1_state || {};
+  const regimes = Array.isArray(l1State.iv_regimes) ? l1State.iv_regimes : [];
+  const features = Array.isArray(l1State.iv_features) ? l1State.iv_features : [];
+  const fallback = response?.exploratory_fallback || response?.conversation_state?.exploratory_fallback || {};
+
+  const lines = [];
+  if (topProposal) {
+    const score = topProposal.final_score ?? topProposal.score;
+    lines.push(`현재 데이터는 \`${topProposal.claim_concept || topProposal.ontology_file || "(unknown)"}\` 해석이 가장 유력합니다${score != null ? ` (점수 ${score})` : ""}.`);
+  } else {
+    lines.push("현재 데이터에서 바로 채택할 수 있는 강한 과학적 정당화 후보는 아직 뚜렷하지 않습니다.");
+  }
+
+  if (regimes.length || features.length) {
+    const parts = [];
+    if (regimes.length) parts.push(`관측 구간은 ${regimes.join(", ")}`);
+    if (features.length) parts.push(`핵심 특징은 ${features.join(", ")}`);
+    lines.push(`${parts.join(", ")} 입니다.`);
+  }
+
+  const coverageText = explainCoverageStatus(coverage);
+  if (coverageText) {
+    lines.push(coverageText);
+  }
+
+  lines.push(summarizeValidationKorean(validation));
+
+  if (fallback && typeof fallback === "object" && fallback.summary) {
+    lines.push(`추가로, 현재 단계에서는 ${fallback.summary}`);
+  }
+
+  return lines.join("\n\n");
+}
+
+function pickSummary(response) {
+  const summary = buildKoreanSummary(response);
+  if (summary) return summary;
   return response.system_narrative || "(no summary)";
 }
 
@@ -1324,7 +2053,17 @@ function applyConversationState(state) {
     proposalPretty.innerHTML = renderProposalPretty(state.reranked_sj_proposals);
   }
   if (state.system_narrative) {
-    summaryLog.innerText = state.system_narrative;
+    const mergedSummaryContext = {
+      ...(currentSummaryContext || {}),
+      ...state,
+      sj_proposals: state.reranked_sj_proposals || state.sj_proposals || currentSummaryContext?.sj_proposals || [],
+      coverage_assessment: state.coverage_assessment || currentSummaryContext?.coverage_assessment || {},
+      exploratory_fallback: state.exploratory_fallback || currentSummaryContext?.exploratory_fallback || {},
+      measurement_validation: currentSummaryContext?.measurement_validation || {},
+      l1_state: currentSummaryContext?.l1_state || {},
+    };
+    summaryLog.innerText = pickSummary(mergedSummaryContext);
+    currentSummaryContext = mergedSummaryContext;
     patternLog.innerText = state.system_narrative;
   }
   questionBox.innerHTML = renderQuestions(state.suggested_questions || []);
@@ -1369,6 +2108,7 @@ function runEngine() {
     })
     .then(response => {
       currentRunId = response.run_id || "";
+      currentSummaryContext = response;
       setRunStatus({
         runId: currentRunId,
         domain: response.domain || domainSelect.value || "iv",

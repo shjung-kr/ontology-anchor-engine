@@ -11,11 +11,14 @@ from fastapi.staticfiles import StaticFiles
 from backend.conversation.memory import (
     apply_review_decision,
     append_chat_event,
+    build_run_summary,
+    compare_runs,
     build_direct_answer,
     build_chat_response,
     classify_user_message,
     load_analysis_snapshot,
     get_run_dir,
+    list_run_summaries,
     load_curated_overlay,
     load_intent_profile,
     load_review_queue,
@@ -28,6 +31,19 @@ from backend.conversation.models import ChatTurnRequest, OverlayReviewDecisionRe
 from backend.core.domain_models import DomainExecutionRequest
 from backend.core.domain_registry import list_domain_summaries
 from backend.core.engine import run_domain_engine
+from backend.experiment_sets.analysis import analyze_experiment_set
+from backend.experiment_sets.models import (
+    ExperimentSetAddRunRequest,
+    ExperimentSetCreateRequest,
+    ExperimentSetUpdateRequest,
+)
+from backend.experiment_sets.store import (
+    add_run_to_experiment_set,
+    create_experiment_set,
+    get_experiment_set,
+    list_experiment_sets,
+    update_experiment_set,
+)
 from backend.l1_sj_engine import run_l1_engine
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -54,6 +70,11 @@ app.add_middleware(
 
 class RawInput(BaseModel):
     raw_data: str
+
+
+class RunCompareRequest(BaseModel):
+    left_run_id: str
+    right_run_id: str
 
 
 @app.post("/v14/run")
@@ -130,6 +151,85 @@ def get_run_intent(run_id: str):
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return {"run_id": run_id, "intent_profile": load_intent_profile(run_dir), **build_chat_response(run_dir)}
+
+
+@app.get("/runs")
+def list_runs(limit: int = 50):
+    return {"runs": list_run_summaries(limit=limit)}
+
+
+@app.get("/runs/{run_id}/summary")
+def get_run_summary(run_id: str):
+    try:
+        run_dir = get_run_dir(run_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    snapshot = load_analysis_snapshot(run_dir)
+    chat_state = build_chat_response(run_dir)
+    return {
+        **build_run_summary(run_dir),
+        "measurement_validation": snapshot.get("measurement_validation", {}),
+        "llm_pattern": snapshot.get("llm_pattern", ""),
+        "assumptions": (snapshot.get("assumptions", {}) or {}).get("assumptions", []),
+        "l1_state": snapshot.get("l1_state", {}),
+        "sj_proposals": chat_state.get("reranked_sj_proposals", []),
+        "system_narrative": chat_state.get("system_narrative", ""),
+        "conversation_state": chat_state,
+    }
+
+
+@app.post("/runs/compare")
+def compare_run_pair(data: RunCompareRequest):
+    try:
+        left_run_dir = get_run_dir(data.left_run_id)
+        right_run_dir = get_run_dir(data.right_run_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return compare_runs(left_run_dir, right_run_dir)
+
+
+@app.get("/experiment-sets")
+def get_experiment_sets():
+    return {"sets": [item.model_dump() for item in list_experiment_sets()]}
+
+
+@app.post("/experiment-sets")
+def post_experiment_set(data: ExperimentSetCreateRequest):
+    return create_experiment_set(data).model_dump()
+
+
+@app.get("/experiment-sets/{set_id}")
+def get_experiment_set_detail(set_id: str):
+    try:
+        return get_experiment_set(set_id).model_dump()
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.patch("/experiment-sets/{set_id}")
+def patch_experiment_set(set_id: str, data: ExperimentSetUpdateRequest):
+    try:
+        return update_experiment_set(set_id, data).model_dump()
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/experiment-sets/{set_id}/runs")
+def post_experiment_set_run(set_id: str, data: ExperimentSetAddRunRequest):
+    try:
+        return add_run_to_experiment_set(set_id, data).model_dump()
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/experiment-sets/{set_id}/analyze")
+def post_experiment_set_analyze(set_id: str):
+    try:
+        item = get_experiment_set(set_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return analyze_experiment_set(item).model_dump()
 
 
 @app.get("/overlays/iv")

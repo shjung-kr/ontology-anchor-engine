@@ -1,0 +1,400 @@
+{
+  "sets": [
+    {
+      "set_id": "set_f088c7fa",
+      "title": "터널링 동작전압 변화실험",
+      "experiment_goal": "parameter_sensitivity",
+      "primary_question": "터널링 동작전압의 변화원인",
+      "hypotheses": [],
+      "control_variables": [],
+      "sweep_variables": [],
+      "success_criteria": [],
+      "runs": [
+        {
+          "run_id": "20260415T060948Z__9807cbbd9e",
+          "sample_id": null,
+          "replicate_group": null,
+          "condition_label": "iv",
+          "is_reference": false,
+          "notes": null
+        },
+        {
+          "run_id": "20260415T060600Z__b49215b5c3",
+          "sample_id": null,
+          "replicate_group": null,
+          "condition_label": "iv",
+          "is_reference": false,
+          "notes": null
+        }
+      ],
+      "comparison_pairs": [
+        {
+          "left_run_id": "20260415T060948Z__9807cbbd9e",
+          "right_run_id": "20260415T060600Z__b49215b5c3",
+          "comparison_purpose": "parameter_sensitivity",
+          "changed_variables": [
+            "coverage_status",
+            "top_claim",
+            "fallback_status",
+            "confirmed_conditions",
+            "candidate_hypotheses"
+          ],
+          "observed_differences": [
+            "coverage_status",
+            "top_claim",
+            "fallback_status",
+            "confirmed_conditions",
+            "candidate_hypotheses"
+          ],
+          "interpretation_delta": [
+            "top_claim_changed"
+          ],
+          "decision_impact": "comparison recorded"
+        }
+      ],
+      "set_level_summary": "goal=parameter_sensitivity; runs=2; unique_top_claims=iv_interpretation.fn_tunneling_asserted; fallback_active=1; changed_pairs=1",
+      "decision_status": "in_progress",
+      "analysis_artifacts": {
+        "generated_at_utc": "2026-04-15T08:41:42Z",
+        "run_summaries": [
+          {
+            "run_id": "20260415T060948Z__9807cbbd9e",
+            "created_at_utc": "2026-04-15T06:09:48Z",
+            "domain": "iv",
+            "coverage_status": "insufficient_ontology_coverage",
+            "top_claim": null,
+            "fallback_status": "fallback_active",
+            "warning_count": 0,
+            "candidate_count": 1,
+            "patch_counts": {
+              "claims": 0,
+              "assumptions": 0,
+              "measurement_conditions": 0
+            }
+          },
+          {
+            "run_id": "20260415T060600Z__b49215b5c3",
+            "created_at_utc": "2026-04-15T06:06:00Z",
+            "domain": "iv",
+            "coverage_status": "sufficient",
+            "top_claim": "iv_interpretation.fn_tunneling_asserted",
+            "fallback_status": "fallback_not_needed",
+            "warning_count": 0,
+            "candidate_count": 1,
+            "patch_counts": {
+              "claims": 0,
+              "assumptions": 2,
+              "measurement_conditions": 1
+            }
+          }
+        ],
+        "pair_results": [
+          {
+            "left_run": {
+              "run_id": "20260415T060948Z__9807cbbd9e",
+              "created_at_utc": "2026-04-15T06:09:48Z",
+              "domain": "iv",
+              "coverage_status": "insufficient_ontology_coverage",
+              "top_claim": null,
+              "fallback_status": "fallback_active",
+              "warning_count": 0,
+              "candidate_count": 1,
+              "patch_counts": {
+                "claims": 0,
+                "assumptions": 0,
+                "measurement_conditions": 0
+              }
+            },
+            "right_run": {
+              "run_id": "20260415T060600Z__b49215b5c3",
+              "created_at_utc": "2026-04-15T06:06:00Z",
+              "domain": "iv",
+              "coverage_status": "sufficient",
+              "top_claim": "iv_interpretation.fn_tunneling_asserted",
+              "fallback_status": "fallback_not_needed",
+              "warning_count": 0,
+              "candidate_count": 1,
+              "patch_counts": {
+                "claims": 0,
+                "assumptions": 2,
+                "measurement_conditions": 1
+              }
+            },
+            "shared_items": [],
+            "changed_items": [
+              {
+                "field": "coverage_status",
+                "left": "insufficient_ontology_coverage",
+                "right": "sufficient"
+              },
+              {
+                "field": "top_claim",
+                "left": null,
+                "right": "iv_interpretation.fn_tunneling_asserted"
+              },
+              {
+                "field": "fallback_status",
+                "left": "fallback_active",
+                "right": "fallback_not_needed"
+              },
+              {
+                "field": "confirmed_conditions",
+                "left": {},
+                "right": {
+                  "temperature": "room_temperature"
+                }
+              },
+              {
+                "field": "candidate_hypotheses",
+                "left": [
+                  "interface/barrier-limited transport candidate"
+                ],
+                "right": [
+                  "iv_interpretation.fn_tunneling_asserted"
+                ]
+              }
+            ],
+            "left_only": {
+              "candidate_hypotheses": [
+                "interface/barrier-limited transport candidate"
+              ],
+              "experiment_ideas": [
+                "온도 의존성 매핑",
+                "interface/barrier-limited transport candidate 검증용 계면 제어 실험"
+              ]
+            },
+            "right_only": {
+              "candidate_hypotheses": [
+                "iv_interpretation.fn_tunneling_asserted"
+              ],
+              "experiment_ideas": [
+                "iv_interpretation.fn_tunneling_asserted 검증용 두께/전극 스플릿",
+                "상위 가설 구분 feature 재측정"
+              ]
+            },
+            "experiment_idea_diff": {
+              "left": [
+                "온도 의존성 매핑",
+                "DC vs Pulse 비교",
+                "interface/barrier-limited transport candidate 검증용 계면 제어 실험"
+              ],
+              "right": [
+                "DC vs Pulse 비교",
+                "iv_interpretation.fn_tunneling_asserted 검증용 두께/전극 스플릿",
+                "상위 가설 구분 feature 재측정"
+              ]
+            }
+          }
+        ],
+        "top_claims": [
+          "iv_interpretation.fn_tunneling_asserted"
+        ],
+        "coverage_statuses": [
+          "insufficient_ontology_coverage",
+          "sufficient"
+        ],
+        "fallback_active_count": 1
+      },
+      "created_at_utc": "2026-04-15T08:28:06Z",
+      "updated_at_utc": "2026-04-15T08:41:42Z"
+    },
+    {
+      "set_id": "set_9e67a238",
+      "title": "tmp set",
+      "experiment_goal": "mechanism_identification",
+      "primary_question": "which claim is stable?",
+      "hypotheses": [],
+      "control_variables": [],
+      "sweep_variables": [],
+      "success_criteria": [],
+      "runs": [
+        {
+          "run_id": "20260415T081334Z__b49215b5c3",
+          "sample_id": null,
+          "replicate_group": null,
+          "condition_label": null,
+          "is_reference": false,
+          "notes": null
+        },
+        {
+          "run_id": "20260415T061101Z__5e8eb4bca1",
+          "sample_id": null,
+          "replicate_group": null,
+          "condition_label": null,
+          "is_reference": false,
+          "notes": null
+        }
+      ],
+      "comparison_pairs": [
+        {
+          "left_run_id": "20260415T081334Z__b49215b5c3",
+          "right_run_id": "20260415T061101Z__5e8eb4bca1",
+          "comparison_purpose": "mechanism_identification",
+          "changed_variables": [
+            "coverage_status",
+            "top_claim",
+            "fallback_status",
+            "confirmed_conditions",
+            "candidate_hypotheses"
+          ],
+          "observed_differences": [
+            "coverage_status",
+            "top_claim",
+            "fallback_status",
+            "confirmed_conditions",
+            "candidate_hypotheses"
+          ],
+          "interpretation_delta": [
+            "top_claim_changed"
+          ],
+          "decision_impact": "mechanism ranking changed"
+        }
+      ],
+      "set_level_summary": "goal=mechanism_identification; runs=2; unique_top_claims=iv_interpretation.fn_tunneling_asserted; fallback_active=1; changed_pairs=1",
+      "decision_status": "supported",
+      "analysis_artifacts": {
+        "generated_at_utc": "2026-04-15T08:24:14Z",
+        "run_summaries": [
+          {
+            "run_id": "20260415T081334Z__b49215b5c3",
+            "created_at_utc": "2026-04-15T08:13:34Z",
+            "domain": "iv",
+            "coverage_status": "sufficient",
+            "top_claim": "iv_interpretation.fn_tunneling_asserted",
+            "fallback_status": "fallback_not_needed",
+            "warning_count": 0,
+            "candidate_count": 1,
+            "patch_counts": {
+              "claims": 0,
+              "assumptions": 1,
+              "measurement_conditions": 1
+            }
+          },
+          {
+            "run_id": "20260415T061101Z__5e8eb4bca1",
+            "created_at_utc": "2026-04-15T06:11:01Z",
+            "domain": "iv",
+            "coverage_status": "insufficient_ontology_coverage",
+            "top_claim": null,
+            "fallback_status": "fallback_active",
+            "warning_count": 0,
+            "candidate_count": 1,
+            "patch_counts": {
+              "claims": 0,
+              "assumptions": 0,
+              "measurement_conditions": 0
+            }
+          }
+        ],
+        "pair_results": [
+          {
+            "left_run": {
+              "run_id": "20260415T081334Z__b49215b5c3",
+              "created_at_utc": "2026-04-15T08:13:34Z",
+              "domain": "iv",
+              "coverage_status": "sufficient",
+              "top_claim": "iv_interpretation.fn_tunneling_asserted",
+              "fallback_status": "fallback_not_needed",
+              "warning_count": 0,
+              "candidate_count": 1,
+              "patch_counts": {
+                "claims": 0,
+                "assumptions": 1,
+                "measurement_conditions": 1
+              }
+            },
+            "right_run": {
+              "run_id": "20260415T061101Z__5e8eb4bca1",
+              "created_at_utc": "2026-04-15T06:11:01Z",
+              "domain": "iv",
+              "coverage_status": "insufficient_ontology_coverage",
+              "top_claim": null,
+              "fallback_status": "fallback_active",
+              "warning_count": 0,
+              "candidate_count": 1,
+              "patch_counts": {
+                "claims": 0,
+                "assumptions": 0,
+                "measurement_conditions": 0
+              }
+            },
+            "shared_items": [],
+            "changed_items": [
+              {
+                "field": "coverage_status",
+                "left": "sufficient",
+                "right": "insufficient_ontology_coverage"
+              },
+              {
+                "field": "top_claim",
+                "left": "iv_interpretation.fn_tunneling_asserted",
+                "right": null
+              },
+              {
+                "field": "fallback_status",
+                "left": "fallback_not_needed",
+                "right": "fallback_active"
+              },
+              {
+                "field": "confirmed_conditions",
+                "left": {
+                  "temperature": "room_temperature"
+                },
+                "right": {}
+              },
+              {
+                "field": "candidate_hypotheses",
+                "left": [
+                  "iv_interpretation.fn_tunneling_asserted"
+                ],
+                "right": [
+                  "interface/barrier-limited transport candidate"
+                ]
+              }
+            ],
+            "left_only": {
+              "candidate_hypotheses": [
+                "iv_interpretation.fn_tunneling_asserted"
+              ],
+              "experiment_ideas": [
+                "iv_interpretation.fn_tunneling_asserted 검증용 두께/전극 스플릿",
+                "상위 가설 구분 feature 재측정"
+              ]
+            },
+            "right_only": {
+              "candidate_hypotheses": [
+                "interface/barrier-limited transport candidate"
+              ],
+              "experiment_ideas": [
+                "온도 의존성 매핑",
+                "interface/barrier-limited transport candidate 검증용 계면 제어 실험"
+              ]
+            },
+            "experiment_idea_diff": {
+              "left": [
+                "DC vs Pulse 비교",
+                "iv_interpretation.fn_tunneling_asserted 검증용 두께/전극 스플릿",
+                "상위 가설 구분 feature 재측정"
+              ],
+              "right": [
+                "온도 의존성 매핑",
+                "DC vs Pulse 비교",
+                "interface/barrier-limited transport candidate 검증용 계면 제어 실험"
+              ]
+            }
+          }
+        ],
+        "top_claims": [
+          "iv_interpretation.fn_tunneling_asserted"
+        ],
+        "coverage_statuses": [
+          "sufficient",
+          "insufficient_ontology_coverage"
+        ],
+        "fallback_active_count": 1
+      },
+      "created_at_utc": "2026-04-15T08:24:14Z",
+      "updated_at_utc": "2026-04-15T08:24:14Z"
+    }
+  ]
+}

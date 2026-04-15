@@ -1,18 +1,18 @@
 {
   "run_id": "20260414T082035Z__b49215b5c3",
   "status": "candidate_overlay",
-  "generated_at_utc": "2026-04-14T08:23:16Z",
+  "generated_at_utc": "2026-04-15T08:41:20Z",
   "claims": [],
   "assumptions": [
     {
       "assumption_id": "physical_assumption.room_temperature_operation",
       "approval_state": "approved",
       "promotion_reason": "repeated_validation",
-      "validation_count": 4,
+      "validation_count": 10,
       "source_run_id": "20260414T082035Z__b49215b5c3",
-      "approved_at_utc": "2026-04-14T08:23:16Z",
+      "approved_at_utc": "2026-04-15T08:41:20Z",
       "evidence": {
-        "validation_count": 4,
+        "validation_count": 10,
         "notes": [
           "turn on voltage를 줄일 수 있는 실험 방법에 대해서 알고 싶습니다",
           "1번, 2번 가정 모두 인정합니다."
@@ -25,11 +25,11 @@
       "condition_id": "measurement_conditions.room_temperature",
       "approval_state": "approved",
       "promotion_reason": "repeated_validation",
-      "validation_count": 2,
+      "validation_count": 8,
       "source_run_id": "20260414T082035Z__b49215b5c3",
-      "approved_at_utc": "2026-04-14T08:23:16Z",
+      "approved_at_utc": "2026-04-15T08:41:20Z",
       "evidence": {
-        "validation_count": 2,
+        "validation_count": 8,
         "notes": [
           "turn on voltage를 줄일 수 있는 실험 방법에 대해서 알고 싶습니다",
           "1번, 2번 가정 모두 인정합니다."

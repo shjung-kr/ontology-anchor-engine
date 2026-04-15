@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ontology Anchor Engine User Chat</title>
+  <style>
+    :root {
+      --bg: #f5efe4;
+      --bg-soft: #fbf7ef;
+      --panel: rgba(255, 251, 244, 0.92);
+      --line: #d6cbb7;
+      --ink: #1f1b16;
+      --muted: #6d655a;
+      --accent: #0f6b5a;
+      --accent-soft: rgba(15, 107, 90, 0.12);
+      --chat-user: #dff2eb;
+      --chat-assistant: #fffaf1;
+      --danger: #8b3d2f;
+      --shadow: 0 14px 36px rgba(53, 43, 28, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(236, 217, 188, 0.6), transparent 28%),
+        linear-gradient(180deg, #f7f1e7 0%, #efe4d2 100%);
+    }
+
+    .page {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(249,242,228,0.95));
+      border: 1px solid rgba(214, 203, 183, 0.9);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-grid, .top-workspace {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(300px, 0.7fr) minmax(520px, 1.3fr);
+    }
+
+    .workspace {
+      display: grid;
+      gap: 18px;
+    }
+
+    .kicker {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 34px; line-height: 1.08; }
+    h2 { font-size: 18px; margin-bottom: 12px; }
+
+    .muted { color: var(--muted); }
+
+    .toolbar, .chip-row, .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .toolbar-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      min-width: 92px;
+    }
+
+    .metric-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .metric {
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric-value {
+      font-size: 15px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(214, 203, 183, 0.94);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      min-height: 0;
+    }
+
+    textarea, input, select, button {
+      font: inherit;
+    }
+
+    textarea, input[type="text"], select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 13px 14px;
+      background: rgba(255,255,255,0.82);
+      color: var(--ink);
+    }
+
+    textarea { min-height: 130px; resize: vertical; }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: linear-gradient(135deg, #174d41, var(--accent));
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(15, 107, 90, 0.18);
+    }
+
+    button.secondary {
+      background: rgba(255,255,255,0.76);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    button.mini {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .split-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .box {
+      border: 1px solid rgba(214, 203, 183, 0.9);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.64);
+      padding: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .cards {
+      display: grid;
+      gap: 12px;
+    }
+
+    .proposal-card {
+      border: 1px solid rgba(214, 203, 183, 0.9);
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.66);
+    }
+
+    .proposal-head {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(15, 107, 90, 0.15);
+      font-size: 12px;
+    }
+
+    .chart-wrap {
+      background: rgba(255,255,255,0.64);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .analysis-brief {
+      display: grid;
+      gap: 10px;
+    }
+
+    .brief-card {
+      border: 1px solid rgba(214, 203, 183, 0.9);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.68);
+      padding: 14px;
+    }
+
+    .brief-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .brief-body {
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 320px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,240,227,0.9));
+      border: 1px solid rgba(214, 203, 183, 0.8);
+    }
+
+    .chat-overview {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+      min-height: 100%;
+    }
+
+    .chat-shell {
+      display: grid;
+      grid-template-rows: auto minmax(240px, 1fr) auto;
+      gap: 14px;
+      min-height: 620px;
+    }
+
+    .chat-messages {
+      border: 1px solid rgba(214, 203, 183, 0.95);
+      border-radius: 24px;
+      background: rgba(255,255,255,0.66);
+      padding: 16px;
+      overflow-y: auto;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .message {
+      max-width: 84%;
+      padding: 14px 16px;
+      border-radius: 22px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 6px 16px rgba(60, 47, 29, 0.06);
+    }
+
+    .message.assistant {
+      background: var(--chat-assistant);
+      border: 1px solid rgba(214, 203, 183, 0.95);
+      justify-self: start;
+    }
+
+    .message.user {
+      background: var(--chat-user);
+      border: 1px solid rgba(15, 107, 90, 0.16);
+      justify-self: end;
+    }
+
+    .message .role {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .quick-prompts {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quick-prompts button {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .composer {
+      display: grid;
+      gap: 10px;
+    }
+
+    .composer textarea {
+      min-height: 96px;
+    }
+
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+
+    .empty-state {
+      color: var(--muted);
+      padding: 18px;
+      text-align: center;
+    }
+
+    .danger {
+      color: var(--danger);
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .top-workspace,
+      .metric-grid,
+      .split-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-shell {
+        min-height: 620px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="kicker">User Workspace</div>
+          <h1>대화형 실험 해석 화면</h1>
+          <p class="muted">
+            숫자 데이터를 올리면 곡선을 먼저 보고, 엔진 해석을 받은 뒤, 바로 이어서 챗 인터페이스에서 메커니즘과 다음 실험을 계속 물어볼 수 있습니다.
+          </p>
+          <div class="toolbar" style="margin-top:16px;">
+            <div class="toolbar-label">Quick Start</div>
+            <button class="mini secondary" onclick="loadSample('fn')">FN Sample</button>
+            <button class="mini secondary" onclick="loadSample('led')">LED Sample</button>
+            <button class="mini secondary" onclick="loadSample('hall')">Hall Sample</button>
+          </div>
+          <div class="toolbar">
+            <div class="toolbar-label">Navigate</div>
+            <a href="/index.html" style="text-decoration:none;"><button class="mini secondary" type="button">Workbench</button></a>
+          </div>
+        </div>
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="metric-label">Run ID</div>
+            <div class="metric-value" id="runIdValue">(none)</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Domain</div>
+            <div class="metric-value" id="domainValue">iv</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Coverage</div>
+            <div class="metric-value" id="coverageValue">(unknown)</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Top Claim</div>
+            <div class="metric-value" id="topClaimValue">(none)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="top-workspace">
+      <div class="panel">
+        <h2>Data + Brief</h2>
+        <div class="split-grid">
+          <div>
+            <div class="hint">Domain</div>
+            <select id="domainSelect">
+              <option value="iv">iv</option>
+            </select>
+          </div>
+          <div>
+            <div class="hint">Upload</div>
+            <input id="fileInput" type="file" />
+          </div>
+        </div>
+        <div style="height:12px;"></div>
+        <textarea id="rawInput" placeholder="CSV/TXT 데이터를 붙여 넣거나 파일을 업로드하세요.&#10;&#10;예시&#10;Voltage,Current&#10;0.0,1.0e-10&#10;0.5,1.4e-10"></textarea>
+        <div class="action-row" style="margin-top:12px;">
+          <button id="runBtn" onclick="runAnalysis()">Run Analysis</button>
+          <button class="secondary" onclick="redrawChart()">Refresh Graph</button>
+          <button class="secondary" onclick="clearAllState()">Clear</button>
+        </div>
+        <div id="analysisStatus" class="status"></div>
+
+        <div style="height:18px;"></div>
+        <div class="chart-wrap">
+          <div class="action-row">
+            <div>
+              <h2 style="margin-bottom:4px;">Measurement Graph</h2>
+              <div class="hint" id="chartMeta">(데이터를 넣으면 그래프를 그립니다)</div>
+            </div>
+          </div>
+          <canvas id="chartCanvas" width="900" height="320"></canvas>
+        </div>
+
+        <div style="height:18px;"></div>
+        <div class="analysis-brief">
+          <div class="brief-card">
+            <div class="brief-title">Analysis Brief</div>
+            <div id="summaryBox" class="brief-body">(분석 전)</div>
+          </div>
+          <div class="brief-card">
+            <div class="brief-title">Quick Notes</div>
+            <div id="validationBox" class="brief-body">(분석 전)</div>
+          </div>
+        </div>
+
+        <div style="height:18px;"></div>
+        <h2>Top Candidates</h2>
+        <div id="proposalsBox" class="cards">
+          <div class="empty-state">분석 후 핵심 후보만 간략히 표시됩니다.</div>
+        </div>
+      </div>
+
+      <div class="panel chat-overview">
+        <div>
+          <h2>Chat</h2>
+          <div class="hint">상단에서는 대화 목적과 추천 프롬프트를 보고, 실제 채팅은 아래 전체 폭 패널에서 이어갑니다.</div>
+        </div>
+        <div class="brief-card">
+          <div class="brief-title">Chat Mode</div>
+          <div class="brief-body">분석 이후에는 GPT처럼 자유 질문을 계속할 수 있습니다. 예: artifact 가능성, 메커니즘 비교, 다음 실험 우선순위.</div>
+        </div>
+        <div>
+          <div class="brief-title">Suggested Prompts</div>
+          <div id="quickPrompts" class="quick-prompts"></div>
+        </div>
+        <div class="action-row">
+          <button class="secondary" onclick="useNextExperimentPrompt()" type="button">Ask Next Experiment</button>
+        </div>
+        <div id="chatStatus" class="status"></div>
+      </div>
+      </div>
+
+      <div class="panel chat-shell">
+        <div>
+          <h2>Conversation</h2>
+          <div class="hint">아래에서 assistant와 연속으로 대화를 이어갑니다.</div>
+        </div>
+
+        <div id="chatMessages" class="chat-messages">
+          <div class="empty-state">분석을 실행하면 assistant가 먼저 요약을 시작합니다.</div>
+        </div>
+
+        <div class="composer">
+          <div>
+            <div class="hint">Message</div>
+          </div>
+          <textarea id="chatInput" placeholder="분석 결과에 대해 질문하세요"></textarea>
+          <div class="action-row">
+            <button id="sendBtn" onclick="sendChat()" disabled>Send</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const RUN_URL = "/run";
+    const CHAT_URL = "/chat";
+    const DOMAIN_URL = "/domains";
+
+    const SAMPLE_DATA = {
+      fn: `Voltage,Current
+0.0,1.0e-10
+0.5,1.4e-10
+1.0,2.2e-10
+1.5,4.0e-10
+2.0,8.4e-10
+2.5,1.7e-9
+3.0,3.8e-9
+3.5,8.9e-9
+4.0,2.0e-8`,
+      led: `Voltage,Current
+-2.0,-1.2e-6
+-1.0,-5.0e-7
+0.0,0.0
+0.5,4.0e-7
+1.0,1.7e-6
+1.5,7.5e-6
+2.0,2.5e-5
+2.5,9.0e-5
+3.0,2.6e-4`,
+      hall: `Field,Voltage
+-1.0,-0.32
+-0.5,-0.17
+0.0,0.00
+0.5,0.16
+1.0,0.31`
+    };
+
+    const domainSelect = document.getElementById("domainSelect");
+    const fileInput = document.getElementById("fileInput");
+    const rawInput = document.getElementById("rawInput");
+    const runBtn = document.getElementById("runBtn");
+    const runIdValue = document.getElementById("runIdValue");
+    const domainValue = document.getElementById("domainValue");
+    const coverageValue = document.getElementById("coverageValue");
+    const topClaimValue = document.getElementById("topClaimValue");
+    const analysisStatus = document.getElementById("analysisStatus");
+    const chartCanvas = document.getElementById("chartCanvas");
+    const chartMeta = document.getElementById("chartMeta");
+    const summaryBox = document.getElementById("summaryBox");
+    const validationBox = document.getElementById("validationBox");
+    const proposalsBox = document.getElementById("proposalsBox");
+    const chatMessages = document.getElementById("chatMessages");
+    const quickPrompts = document.getElementById("quickPrompts");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const chatStatus = document.getElementById("chatStatus");
+
+    let currentRunId = "";
+    let currentRawData = "";
+    let currentConversationState = null;
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function setStatus(target, message, isError = false) {
+      target.textContent = message || "";
+      target.classList.toggle("danger", Boolean(isError));
+    }
+
+    function loadSample(kind) {
+      rawInput.value = SAMPLE_DATA[kind] || "";
+      currentRawData = rawInput.value;
+      redrawChart();
+      setStatus(analysisStatus, `sample loaded: ${kind}`);
+    }
+
+    async function loadDomains() {
+      try {
+        const res = await fetch(DOMAIN_URL);
+        const payload = await res.json();
+        const domains = Array.isArray(payload.domains) ? payload.domains : [];
+        if (!domains.length) return;
+        domainSelect.innerHTML = domains.map(item =>
+          `<option value="${escapeHtml(item.domain)}">${escapeHtml(item.domain)} - ${escapeHtml(item.title || item.description || "")}</option>`
+        ).join("");
+        domainValue.textContent = domainSelect.value || "iv";
+      } catch {
+        domainSelect.innerHTML = `<option value="iv">iv</option>`;
+      }
+    }
+
+    fileInput.addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const text = await file.text();
+      rawInput.value = text;
+      currentRawData = text;
+      redrawChart();
+      setStatus(analysisStatus, `loaded file: ${file.name}`);
+    });
+
+    domainSelect.addEventListener("change", () => {
+      domainValue.textContent = domainSelect.value || "iv";
+    });
+
+    rawInput.addEventListener("input", () => {
+      currentRawData = rawInput.value;
+    });
+
+    function parseNumericData(rawText) {
+      const lines = String(rawText || "")
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+      if (!lines.length) return { points: [], xLabel: "x", yLabel: "y" };
+
+      const rows = lines.map(line => line.split(/[,\t; ]+/).filter(Boolean));
+      let startIndex = 0;
+      let xLabel = "x";
+      let yLabel = "y";
+      if (rows[0].length >= 2 && (isNaN(Number(rows[0][0])) || isNaN(Number(rows[0][1])))) {
+        xLabel = rows[0][0];
+        yLabel = rows[0][1];
+        startIndex = 1;
+      }
+
+      const points = [];
+      for (let i = startIndex; i < rows.length; i += 1) {
+        if (rows[i].length < 2) continue;
+        const x = Number(rows[i][0]);
+        const y = Number(rows[i][1]);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+        points.push({ x, y });
+      }
+      return { points, xLabel, yLabel };
+    }
+
+    function formatNumber(value) {
+      if (!Number.isFinite(value)) return "(n/a)";
+      if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.001)) {
+        return value.toExponential(2);
+      }
+      return value.toFixed(3).replace(/\.?0+$/, "");
+    }
+
+    function redrawChart() {
+      const ctx = chartCanvas.getContext("2d");
+      const { points, xLabel, yLabel } = parseNumericData(rawInput.value);
+      const width = chartCanvas.width;
+      const height = chartCanvas.height;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fbf7ef";
+      ctx.fillRect(0, 0, width, height);
+
+      if (!points.length) {
+        chartMeta.textContent = "(그래프를 그릴 수 있는 2열 숫자 데이터가 필요합니다)";
+        ctx.fillStyle = "#6d655a";
+        ctx.font = "16px sans-serif";
+        ctx.fillText("숫자 데이터가 없어서 그래프를 그릴 수 없습니다.", 28, 44);
+        return;
+      }
+
+      const margin = { top: 22, right: 24, bottom: 42, left: 62 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const xs = points.map(p => p.x);
+      const ys = points.map(p => p.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const dx = maxX - minX || 1;
+      const dy = maxY - minY || 1;
+      const padX = dx * 0.08;
+      const padY = dy * 0.12;
+      const x0 = minX - padX;
+      const x1 = maxX + padX;
+      const y0 = minY - padY;
+      const y1 = maxY + padY;
+
+      const toCanvasX = value => margin.left + ((value - x0) / (x1 - x0)) * innerW;
+      const toCanvasY = value => margin.top + innerH - ((value - y0) / (y1 - y0)) * innerH;
+
+      ctx.strokeStyle = "rgba(31, 27, 22, 0.18)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i += 1) {
+        const y = margin.top + (innerH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(width - margin.right, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#b8a88d";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, height - margin.bottom);
+      ctx.lineTo(width - margin.right, height - margin.bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = "#6d655a";
+      ctx.font = "12px sans-serif";
+      ctx.fillText(`${xLabel}`, width - margin.right - 50, height - 14);
+      ctx.save();
+      ctx.translate(18, margin.top + innerH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(`${yLabel}`, 0, 0);
+      ctx.restore();
+
+      ctx.fillStyle = "#6d655a";
+      ctx.fillText(formatNumber(y1), 10, margin.top + 4);
+      ctx.fillText(formatNumber(y0), 10, height - margin.bottom);
+      ctx.fillText(formatNumber(x0), margin.left - 8, height - 18);
+      ctx.fillText(formatNumber(x1), width - margin.right - 28, height - 18);
+
+      ctx.strokeStyle = "#0f6b5a";
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      points.forEach((point, index) => {
+        const cx = toCanvasX(point.x);
+        const cy = toCanvasY(point.y);
+        if (index === 0) ctx.moveTo(cx, cy);
+        else ctx.lineTo(cx, cy);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = "#174d41";
+      points.forEach(point => {
+        const cx = toCanvasX(point.x);
+        const cy = toCanvasY(point.y);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      chartMeta.textContent = `${points.length} points | ${xLabel} vs ${yLabel} | x ${formatNumber(minX)} → ${formatNumber(maxX)} | y ${formatNumber(minY)} → ${formatNumber(maxY)}`;
+    }
+
+    function renderValidation(validation) {
+      const warnings = Array.isArray(validation?.warnings) ? validation.warnings : [];
+      const errors = Array.isArray(validation?.errors) ? validation.errors : [];
+      const conditions = validation?.measurement_conditions || {};
+      const lines = [];
+      if (errors.length) lines.push(`errors: ${errors.join(", ")}`);
+      if (warnings.length) lines.push(`warnings: ${warnings.join(", ")}`);
+      if (Object.keys(conditions).length) {
+        lines.push(`conditions: ${Object.entries(conditions).map(([key, value]) => `${key}=${value}`).join("; ")}`);
+      }
+      return lines.length ? lines.join("\n") : "특별한 validation 이슈가 없습니다.";
+    }
+
+    function compactText(text, maxLength = 220) {
+      const normalized = String(text || "").replace(/\s+/g, " ").trim();
+      if (!normalized) return "(요약 없음)";
+      if (normalized.length <= maxLength) return normalized;
+      return `${normalized.slice(0, maxLength).trim()}...`;
+    }
+
+    function renderScientificConclusionFromProposals(proposals) {
+      if (!Array.isArray(proposals) || !proposals.length) {
+        return "제안 가능한 과학적 정당화가 발견되지 않았습니다.";
+      }
+      const top = proposals[0] || {};
+      const ontologyFile = top.ontology_file || top.claim_concept || "(unknown)";
+      const score = top.score ?? top.final_score ?? "(n/a)";
+      const reasons = Array.isArray(top.rerank_reasons) ? top.rerank_reasons.filter(Boolean) : [];
+      const reasonText = reasons.length ? ` 근거: ${compactText(reasons.join(" / "), 120)}` : "";
+      return `최상위 과학적 정당화: ${ontologyFile} (score=${score}).${reasonText}`;
+    }
+
+    function pickScientificConclusion(payload, proposals) {
+      return compactText(
+        payload?.["과학적 정당화 제안"] ||
+        payload?.scientific_justification ||
+        renderScientificConclusionFromProposals(proposals),
+        260
+      );
+    }
+
+    function formatAnalysisBrief(payload, proposals) {
+      const top = Array.isArray(proposals) && proposals.length ? proposals[0] : null;
+      const coverage =
+        payload?.coverage_assessment?.status ||
+        payload?.conversation_state?.coverage_assessment?.status ||
+        "(unknown)";
+      const lines = ["핵심 결론"];
+      if (top) {
+        lines.push(`- 현재 가장 유력한 해석은 \`${top.claim_concept || top.ontology_file || "(unknown)"}\` 입니다.`);
+        if (top.score != null || top.final_score != null) {
+          lines.push(`- 점수는 ${top.score ?? top.final_score} 입니다.`);
+        }
+      } else {
+        lines.push("- 현재 확정적으로 밀 수 있는 해석 후보는 뚜렷하지 않습니다.");
+      }
+      lines.push("");
+      lines.push("판단 상태");
+      lines.push(`- ontology coverage는 \`${coverage}\` 상태입니다.`);
+      const justification = pickScientificConclusion(payload, proposals);
+      lines.push(`- scientific justification 기준 결론은 ${justification}`);
+      return lines.join("\n");
+    }
+
+    function formatQuickNotes(validation, payload) {
+      const errors = Array.isArray(validation?.errors) ? validation.errors : [];
+      const warnings = Array.isArray(validation?.warnings) ? validation.warnings : [];
+      const conditions = validation?.measurement_conditions || {};
+      const fallback = payload?.exploratory_fallback || payload?.conversation_state?.exploratory_fallback || {};
+      const lines = ["검토 포인트"];
+      if (errors.length) {
+        lines.push(`- 오류 ${errors.length}건이 있어 해석 전에 측정 데이터 확인이 필요합니다.`);
+      } else if (warnings.length) {
+        lines.push(`- 경고 ${warnings.length}건이 있어 결과를 보수적으로 해석해야 합니다.`);
+      } else {
+        lines.push("- 측정 검증 단계에서 큰 오류나 경고는 두드러지지 않았습니다.");
+      }
+      if (Object.keys(conditions).length) {
+        lines.push(`- 확인된 조건: ${Object.values(conditions).join(", ")}`);
+      }
+      if (fallback?.summary) {
+        lines.push(`- 추가 확인 필요: ${compactText(fallback.summary, 140)}`);
+      }
+      return lines.join("\n");
+    }
+
+    function renderProposals(proposals) {
+      if (!Array.isArray(proposals) || !proposals.length) {
+        proposalsBox.innerHTML = `<div class="empty-state">표시할 해석 후보가 없습니다.</div>`;
+        topClaimValue.textContent = "(none)";
+        return;
+      }
+      topClaimValue.textContent = proposals[0]?.claim_concept || "(none)";
+      proposalsBox.innerHTML = proposals.slice(0, 2).map(item => `
+        <div class="proposal-card">
+          <div class="proposal-head">
+            <strong>${escapeHtml(item.claim_concept || "(unknown)")}</strong>
+            <span class="badge">score ${escapeHtml(String(item.score ?? item.final_score ?? "(n/a)"))}</span>
+          </div>
+          <div class="hint">${escapeHtml(compactText((item.rerank_reasons || []).join(" / ") || "현재 top candidate 중 하나입니다.", 110))}</div>
+        </div>
+      `).join("");
+    }
+
+    function resetChat(messages = []) {
+      if (!messages.length) {
+        chatMessages.innerHTML = `<div class="empty-state">분석을 실행하면 assistant가 먼저 요약을 시작합니다.</div>`;
+        return;
+      }
+      chatMessages.innerHTML = "";
+      messages.forEach(message => appendMessage(message.role || "assistant", message.text || ""));
+    }
+
+    function appendMessage(role, text) {
+      if (!text) return;
+      const empty = chatMessages.querySelector(".empty-state");
+      if (empty) empty.remove();
+      const message = document.createElement("div");
+      message.className = `message ${role === "user" ? "user" : "assistant"}`;
+      message.innerHTML = `
+        <div class="role">${escapeHtml(role)}</div>
+        <div>${escapeHtml(text)}</div>
+      `;
+      chatMessages.appendChild(message);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function summarizeQuestion(question) {
+      if (!question) return "";
+      if (Array.isArray(question.options) && question.options.length) {
+        return question.options[0]?.label || question.prompt || "";
+      }
+      return question.prompt || "";
+    }
+
+    function renderQuickPrompts(state) {
+      const questions = Array.isArray(state?.suggested_questions) ? state.suggested_questions : [];
+      if (!questions.length) {
+        quickPrompts.innerHTML = "";
+        return;
+      }
+      quickPrompts.innerHTML = questions.map(question => `
+        <button class="secondary" type="button" onclick="applyQuickPrompt('${escapeHtml(summarizeQuestion(question) || question.prompt || "")}')">
+          ${escapeHtml(question.prompt || "question")}
+        </button>
+      `).join("");
+    }
+
+    function applyQuickPrompt(text) {
+      chatInput.value = text;
+      chatInput.focus();
+    }
+
+    function useNextExperimentPrompt() {
+      chatInput.value = "이 결과 기준으로 가장 정보량이 큰 다음 실험 3가지를 우선순위와 함께 제안해 주세요.";
+      chatInput.focus();
+    }
+
+    function updateRunHeader(payload) {
+      currentRunId = payload.run_id || payload.conversation_state?.run_id || "";
+      runIdValue.textContent = currentRunId || "(none)";
+      domainValue.textContent = domainSelect.value || "iv";
+      coverageValue.textContent =
+        payload.conversation_state?.coverage_assessment?.status ||
+        payload.coverage_assessment?.status ||
+        "(unknown)";
+    }
+
+    async function runAnalysis() {
+      const rawData = rawInput.value.trim();
+      if (!rawData) {
+        setStatus(analysisStatus, "분석할 데이터를 먼저 넣어야 합니다.", true);
+        return;
+      }
+      redrawChart();
+      runBtn.disabled = true;
+      sendBtn.disabled = true;
+      setStatus(analysisStatus, "running analysis...");
+
+      try {
+        const res = await fetch(RUN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            domain: domainSelect.value || "iv",
+            raw_data: rawData,
+            metadata: {}
+          })
+        });
+        const text = await res.text();
+        let payload;
+        try {
+          payload = JSON.parse(text);
+        } catch {
+          throw new Error(text || "Server did not return JSON");
+        }
+
+        currentRawData = rawData;
+        currentConversationState = payload.conversation_state || {};
+        updateRunHeader(payload);
+        summaryBox.textContent = formatAnalysisBrief(payload, payload.sj_proposals || []);
+        validationBox.textContent = formatQuickNotes(payload.measurement_validation || {}, payload);
+        renderProposals(payload.sj_proposals || []);
+        const firstAssistantText =
+          payload.conversation_state?.assistant_reply ||
+          payload.system_narrative ||
+          "분석이 완료되었습니다. 질문을 이어가세요.";
+        resetChat([{ role: "assistant", text: firstAssistantText }]);
+        renderQuickPrompts(payload.conversation_state || {});
+        sendBtn.disabled = !currentRunId;
+        setStatus(analysisStatus, "analysis complete");
+      } catch (err) {
+        setStatus(analysisStatus, `analysis failed: ${err.message}`, true);
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    async function sendChat() {
+      const text = chatInput.value.trim();
+      if (!currentRunId) {
+        setStatus(chatStatus, "먼저 분석을 실행해야 합니다.", true);
+        return;
+      }
+      if (!text) return;
+
+      appendMessage("user", text);
+      chatInput.value = "";
+      sendBtn.disabled = true;
+      setStatus(chatStatus, "thinking...");
+
+      try {
+        const res = await fetch(CHAT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            run_id: currentRunId,
+            user_text: text,
+            intent_update: {},
+            structured_answers: []
+          })
+        });
+        const raw = await res.text();
+        let payload;
+        try {
+          payload = JSON.parse(raw);
+        } catch {
+          throw new Error(raw || "Server did not return JSON");
+        }
+
+        currentConversationState = payload;
+        coverageValue.textContent = payload.coverage_assessment?.status || coverageValue.textContent;
+        const reranked = payload.reranked_sj_proposals || [];
+        renderProposals(reranked);
+        summaryBox.textContent = formatAnalysisBrief(payload, reranked);
+        validationBox.textContent = formatQuickNotes({}, payload);
+        renderQuickPrompts(payload);
+        const assistantText =
+          payload.assistant_reply ||
+          payload.system_narrative ||
+          payload.exploratory_fallback?.summary ||
+          "응답을 생성하지 못했습니다.";
+        appendMessage("assistant", assistantText);
+        setStatus(chatStatus, "reply received");
+      } catch (err) {
+        appendMessage("assistant", `오류가 발생했습니다: ${err.message}`);
+        setStatus(chatStatus, `chat failed: ${err.message}`, true);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    function clearAllState() {
+      rawInput.value = "";
+      currentRawData = "";
+      currentRunId = "";
+      currentConversationState = null;
+      runIdValue.textContent = "(none)";
+      coverageValue.textContent = "(unknown)";
+      topClaimValue.textContent = "(none)";
+      summaryBox.textContent = "(분석 전)";
+      validationBox.textContent = "(분석 전)";
+      proposalsBox.innerHTML = `<div class="empty-state">분석 후 핵심 후보만 간략히 표시됩니다.</div>`;
+      quickPrompts.innerHTML = "";
+      resetChat([]);
+      redrawChart();
+      sendBtn.disabled = true;
+      setStatus(analysisStatus, "");
+      setStatus(chatStatus, "");
+    }
+
+    chatInput.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendChat();
+      }
+    });
+
+    loadDomains();
+    redrawChart();
+  </script>
+</body>
+</html>
