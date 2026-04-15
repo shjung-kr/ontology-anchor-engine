@@ -1,0 +1,34 @@
+{
+  "metrics": {
+    "absI_decades_span": 1.3010299956639808,
+    "v_knee": 0.3,
+    "v_knee_criterion": "percentile_split_30"
+  },
+  "regimes": [
+    {
+      "name": "low_|V|",
+      "v_range": [
+        0.05,
+        0.3
+      ],
+      "delta_decades_robust": 0.7781512503836434,
+      "mean_slope_log_absI_per_logV": 1.0
+    },
+    {
+      "name": "high_|V|",
+      "v_range": [
+        0.35,
+        1.0
+      ],
+      "delta_decades_robust": 0.45593195564972433,
+      "mean_slope_log_absI_per_logV": 0.9999999999999996
+    }
+  ],
+  "llm_pattern": "|I| spans about 1.30 decades; a regime split is detected near |V|=0.3; the low-field log-log slope is 1.00, indicating approximately linear scaling",
+  "llm_keywords": [
+    {
+      "keyword": "approximately linear",
+      "evidence": "Representative log-log slope is 1.00."
+    }
+  ]
+}

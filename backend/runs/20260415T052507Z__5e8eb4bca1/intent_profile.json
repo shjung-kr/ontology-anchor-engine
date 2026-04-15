@@ -1,0 +1,78 @@
+{
+  "run_id": "20260415T052507Z__5e8eb4bca1",
+  "analysis_priority": null,
+  "focus_claims": [],
+  "exclude_claims": [],
+  "keep_open_claims": [],
+  "confirmed_conditions": {
+    "measurement_setup": "pulsed_bias",
+    "reproducibility": "reproducible",
+    "device_context": "Au electrode / 5 nm oxide / MIM stack",
+    "stack_or_thickness": "Au electrode / 5 nm oxide / MIM stack",
+    "electrode_context": "Au electrode / 5 nm oxide / MIM stack",
+    "measurement_setup_details": "pulsed bias sweep"
+  },
+  "uncertain_conditions": [],
+  "assumption_states": {},
+  "approved_patch_items": {
+    "claims": [],
+    "assumptions": [],
+    "measurement_conditions": []
+  },
+  "notes": [
+    "Au electrode, 5 nm oxide, pulsed sweep에서도 비슷했고 반복 측정에서도 재현됐습니다.",
+    "Au electrode / 5 nm oxide / MIM stack",
+    "pulsed bias sweep"
+  ],
+  "history": [
+    {
+      "timestamp_utc": "2026-04-15T05:25:07Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "Au electrode, 5 nm oxide, pulsed sweep에서도 비슷했고 반복 측정에서도 재현됐습니다.",
+      "structured_answers": [
+        {
+          "question_id": "conditions.device_context",
+          "category": "missing_condition_check",
+          "answer_kind": "text",
+          "selected_ids": [],
+          "condition_updates": {},
+          "note": "Au electrode / 5 nm oxide / MIM stack",
+          "approve_for_overlay": false
+        },
+        {
+          "question_id": "conditions.measurement_setup",
+          "category": "missing_condition_check",
+          "answer_kind": "text",
+          "selected_ids": [],
+          "condition_updates": {},
+          "note": "pulsed bias sweep",
+          "approve_for_overlay": false
+        },
+        {
+          "question_id": "conditions.reproducibility",
+          "category": "missing_condition_check",
+          "answer_kind": "single_select",
+          "selected_ids": [
+            "reproducible"
+          ],
+          "condition_updates": {},
+          "note": null,
+          "approve_for_overlay": false
+        }
+      ]
+    }
+  ],
+  "updated_at_utc": "2026-04-15T05:25:07Z"
+}

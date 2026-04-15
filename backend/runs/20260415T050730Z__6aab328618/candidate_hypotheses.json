@@ -1,0 +1,19 @@
+{
+  "run_id": "20260415T050730Z__6aab328618",
+  "generated_at_utc": "2026-04-15T05:07:30Z",
+  "coverage_status": "sufficient",
+  "items": [
+    {
+      "hypothesis_id": "existing::iv_interpretation.fn_tunneling_asserted",
+      "label": "iv_interpretation.fn_tunneling_asserted",
+      "kind": "existing_ontology_candidate",
+      "confidence": "tentative",
+      "basis": [
+        "iv_features.field_enhanced_current",
+        "iv_features.nonlinear_iv_regime"
+      ],
+      "reason": "Existing ontology candidate retained as a tentative explanation.",
+      "candidate_only": true
+    }
+  ]
+}

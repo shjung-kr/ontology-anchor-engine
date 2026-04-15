@@ -1,17 +1,19 @@
 {
   "queue_id": "iv_review_queue",
   "domain": "iv",
-  "generated_at_utc": "2026-04-14T08:31:49Z",
+  "generated_at_utc": "2026-04-15T05:35:25Z",
   "items": [
     {
       "overlay_type": "assumption",
       "target_id": "physical_assumption.room_temperature_operation",
-      "support_count": 6,
+      "support_count": 8,
       "source_runs": [
         "20260414T052822Z__5e86519ec5",
         "20260414T082035Z__b49215b5c3",
         "20260414T082622Z__b49215b5c3",
+        "20260415T053214Z__b49215b5c3",
         "20260414T051927Z__5e86519ec5",
+        "20260415T051526Z__b49215b5c3",
         "20260414T083115Z__b49215b5c3",
         "20260414T061612Z__b49215b5c3"
       ],
@@ -23,11 +25,13 @@
     {
       "overlay_type": "measurement_condition",
       "target_id": "measurement_conditions.room_temperature",
-      "support_count": 4,
+      "support_count": 6,
       "source_runs": [
         "20260414T051855Z__5e86519ec5",
         "20260414T082035Z__b49215b5c3",
         "20260414T082622Z__b49215b5c3",
+        "20260415T053214Z__b49215b5c3",
+        "20260415T051526Z__b49215b5c3",
         "20260414T083115Z__b49215b5c3"
       ],
       "last_promotion_reason": "user_approved",

@@ -1,0 +1,18 @@
+{
+  "run_id": "20260415T050740Z__2b9597703e",
+  "generated_at_utc": "2026-04-15T05:07:40Z",
+  "coverage_status": "low_confidence_candidates",
+  "items": [
+    {
+      "hypothesis_id": "existing::iv_interpretation.ohmic_transport",
+      "label": "iv_interpretation.ohmic_transport",
+      "kind": "existing_ontology_candidate",
+      "confidence": "tentative",
+      "basis": [
+        "iv_features.linear_iv_regime"
+      ],
+      "reason": "Existing ontology candidate retained as a tentative explanation.",
+      "candidate_only": true
+    }
+  ]
+}

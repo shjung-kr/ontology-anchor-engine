@@ -1,0 +1,241 @@
+{
+  "measurement_validation": {
+    "valid": true,
+    "applied_rules": [
+      "validation.common.basic_integrity",
+      "validation.common.dynamic_range",
+      "validation.sweep_iv.has_sweep",
+      "validation.sweep_iv.monotonic_or_segmented"
+    ],
+    "errors": [],
+    "warnings": [],
+    "info": [
+      {
+        "validation_id": "validation.sweep_iv.monotonic_or_segmented",
+        "level": "info",
+        "pass": true,
+        "emit": [
+          "sweep_profile"
+        ]
+      }
+    ],
+    "stats": {
+      "n_points": 41,
+      "V_nan_ratio": 0.0,
+      "I_nan_ratio": 0.0,
+      "V_finite_ratio": 1.0,
+      "I_finite_ratio": 1.0,
+      "V_unique": 41,
+      "I_unique": 41,
+      "V_series": [
+        -1.0,
+        -0.95,
+        -0.9,
+        -0.85,
+        -0.8,
+        -0.75,
+        -0.7,
+        -0.65,
+        -0.6,
+        -0.55,
+        -0.5,
+        -0.45,
+        -0.4,
+        -0.35,
+        -0.3,
+        -0.25,
+        -0.2,
+        -0.15,
+        -0.1,
+        -0.05,
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.6,
+        0.65,
+        0.7,
+        0.75,
+        0.8,
+        0.85,
+        0.9,
+        0.95,
+        1.0
+      ],
+      "I_series": [
+        -0.0012,
+        -0.00114,
+        -0.00108,
+        -0.00102,
+        -0.00096,
+        -0.0009,
+        -0.00084,
+        -0.00078,
+        -0.00072,
+        -0.00066,
+        -0.0006,
+        -0.00054,
+        -0.00048,
+        -0.00042,
+        -0.00036,
+        -0.0003,
+        -0.00024,
+        -0.00018,
+        -0.00012,
+        -6e-05,
+        0.0,
+        6e-05,
+        0.00012,
+        0.00018,
+        0.00024,
+        0.0003,
+        0.00036,
+        0.00042,
+        0.00048,
+        0.00054,
+        0.0006,
+        0.00066,
+        0.00072,
+        0.00078,
+        0.00084,
+        0.0009,
+        0.00096,
+        0.00102,
+        0.00108,
+        0.00114,
+        0.0012
+      ],
+      "metadata": {}
+    },
+    "measurement_conditions": [
+      "measurement_conditions.sweep_iv"
+    ],
+    "emitted_assumptions": [
+      "measurement_assumption.current_noise_floor_present"
+    ],
+    "applied_rule_files": [
+      "measurement_validations.json"
+    ]
+  },
+  "l1_state": {
+    "iv_regimes": [
+      "iv_regimes.high_field_regime",
+      "iv_regimes.low_field_regime"
+    ],
+    "iv_features": [
+      "iv_features.linear_iv_regime"
+    ],
+    "evidence": [
+      "Representative log-log slope is 1.00."
+    ],
+    "rejected_ids": [
+      "iv_features.constant_conductance_behavior"
+    ],
+    "metrics": {
+      "absI_decades_span": 1.3010299956639808,
+      "v_knee": 0.3,
+      "v_knee_criterion": "percentile_split_30"
+    },
+    "regimes": [
+      {
+        "name": "low_|V|",
+        "v_range": [
+          0.05,
+          0.3
+        ],
+        "delta_decades_robust": 0.7781512503836434,
+        "mean_slope_log_absI_per_logV": 1.0
+      },
+      {
+        "name": "high_|V|",
+        "v_range": [
+          0.35,
+          1.0
+        ],
+        "delta_decades_robust": 0.45593195564972433,
+        "mean_slope_log_absI_per_logV": 0.9999999999999996
+      }
+    ]
+  },
+  "assumptions": {
+    "assumptions": [
+      {
+        "assumption_id": "measurement_assumption.current_noise_floor_present",
+        "statement": "아주 작은 전류 값이 계측기 노이즈 플로어 또는 분해능 한계의 영향을 받아 저전류 구간 거동이 왜곡될 수 있다고 가정하는 전제.",
+        "impact_axis": [],
+        "labels": {
+          "en": "Current noise floor may be present",
+          "ko": "전류 노이즈 플로어 존재 가능 가정"
+        },
+        "category": "measurement_assumption"
+      },
+      {
+        "assumption_id": "physical_assumption.room_temperature_operation",
+        "statement": "소자가 상온 근처에서 동작하여 열적 평형 조건이 성립하며 극저온 또는 고온 효과가 수송 거동을 지배하지 않는다고 가정하는 전제.",
+        "impact_axis": [],
+        "labels": {
+          "en": "Room-temperature operation",
+          "ko": "상온 동작 가정"
+        },
+        "category": "physical_assumption"
+      }
+    ],
+    "assumption_ids": [
+      "measurement_assumption.current_noise_floor_present",
+      "physical_assumption.room_temperature_operation"
+    ],
+    "assumptions_meta": {
+      "from_validation": [
+        "measurement_assumption.current_noise_floor_present"
+      ],
+      "from_sj": [
+        "physical_assumption.room_temperature_operation"
+      ]
+    }
+  },
+  "sj_proposals": [
+    {
+      "ontology_file": "sj_ohmic_transport_room_temperature.json",
+      "claim_concept": "iv_interpretation.ohmic_transport",
+      "mechanism_id": "iv_interpretation.ohmic_transport",
+      "score": 1,
+      "measurement_conditions": [
+        "measurement_conditions.sweep_iv",
+        "measurement_conditions.steady_state_dc_iv"
+      ],
+      "required_features": [
+        "iv_features.linear_iv_regime"
+      ],
+      "observed_features": [
+        "iv_features.linear_iv_regime",
+        "iv_features.constant_conductance_behavior"
+      ],
+      "matched_features": [
+        "iv_features.linear_iv_regime"
+      ],
+      "explanation_notes": {
+        "en": "Under steady-state DC measurement conditions at room temperature, the I–V transport is interpreted as ohmic in both the low- and high-voltage regimes, as evidenced by a linear I–V relationship whose slope corresponds to a constant electrical resistance of the device.",
+        "ko": "상온에서 수행된 정상 상태 DC 측정 조건 하에서, 저전압 및 고전압 영역 모두에서 I–V 수송은 소자의 전기적 저항이 일정함을 의미하는 선형적인 I–V 관계가 관찰됨에 따라 옴의 법칙에 지배되는 거동으로 해석된다."
+      },
+      "sj_assumptions": [
+        "physical_assumption.room_temperature_operation"
+      ],
+      "mechanism_by_regime": [
+        {
+          "regime": "iv_regimes.low_field_regime",
+          "mechanisms": [
+            "electrical_mechanisms.ohmic_transport"
+          ]
+        }
+      ]
+    }
+  ]
+}

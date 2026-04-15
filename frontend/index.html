@@ -5,76 +5,163 @@
   <title>Ontology Anchor Engine</title>
 
   <style>
-    body {
-      font-family: monospace;
-      margin: 40px;
-      background: #fafafa;
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: linear-gradient(180deg, #f5efe2 0%, #fbfaf5 42%, #f1f4ee 100%);
+      --panel: rgba(255, 253, 247, 0.92);
+      --panel-strong: #fffdf7;
+      --line: #d8d1c3;
+      --ink: #1f2a1f;
+      --muted: #5f685c;
+      --accent: #1f6b52;
+      --accent-soft: #dff0e8;
+      --warn: #8a5a19;
+      --shadow: 0 18px 48px rgba(41, 55, 41, 0.08);
     }
 
-    h2 { margin-bottom: 6px; }
-    h3 { margin-top: 32px; margin-bottom: 8px; }
+    body {
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
 
-    p { font-size: 14px; color: #444; }
+    .app-shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 20px 64px;
+    }
 
-    input[type="file"] { margin-top: 10px; margin-bottom: 12px; }
+    .hero {
+      background:
+        radial-gradient(circle at top right, rgba(31, 107, 82, 0.18), transparent 34%),
+        linear-gradient(135deg, rgba(255,255,255,0.9), rgba(247,243,233,0.92));
+      border: 1px solid rgba(216, 209, 195, 0.9);
+      border-radius: 28px;
+      padding: 28px 28px 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      letter-spacing: -0.03em;
+    }
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    p { font-size: 14px; color: var(--muted); }
+
+    input[type="file"] {
+      margin-top: 10px;
+      margin-bottom: 12px;
+      color: var(--muted);
+    }
 
     select,
     textarea {
       width: 100%;
-      padding: 10px;
-      background: #f4f4f4;
-      border: 1px solid #ccc;
+      padding: 12px 13px;
+      background: rgba(248, 246, 239, 0.88);
+      border: 1px solid var(--line);
+      border-radius: 14px;
       resize: vertical;
-      font-family: monospace;
+      font-family: "IBM Plex Mono", monospace;
       font-size: 13px;
       box-sizing: border-box;
+      color: var(--ink);
     }
 
     textarea {
       height: 140px;
+      line-height: 1.45;
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     pre {
-      background: #f0f0f0;
+      background: rgba(245, 243, 236, 0.95);
       padding: 14px;
-      border-left: 4px solid #666;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 14px;
       overflow-x: auto;
       font-size: 13px;
       white-space: pre-wrap;
+      font-family: "IBM Plex Mono", monospace;
     }
 
     button {
       margin-top: 14px;
-      padding: 8px 18px;
+      padding: 10px 18px;
       font-size: 14px;
       cursor: pointer;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 107, 82, 0.18);
+      background: linear-gradient(135deg, var(--accent), #205b76);
+      color: white;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      box-shadow: 0 8px 18px rgba(31, 107, 82, 0.18);
     }
 
-    .section { margin-top: 26px; }
-    .hint { font-size: 12px; color: #666; }
-    .muted { color: #666; }
+    .section {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid rgba(216, 209, 195, 0.9);
+      border-radius: 22px;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .hint { font-size: 12px; color: var(--muted); }
+    .muted { color: var(--muted); }
     .small { font-size: 12px; }
     .row { margin-top: 6px; }
-    .subttl { margin: 10px 0 4px; font-weight: bold; }
+    .subttl { margin: 10px 0 6px; font-weight: 700; color: var(--ink); }
 
-    hr { margin-top: 30px; margin-bottom: 30px; }
+    hr {
+      margin-top: 22px;
+      margin-bottom: 22px;
+      border: 0;
+      border-top: 1px solid rgba(216, 209, 195, 0.75);
+    }
 
     .box {
-      background: #f0f0f0;
-      border-left: 4px solid #666;
+      background: rgba(245, 243, 236, 0.95);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 14px;
       padding: 12px 14px;
       white-space: pre-wrap;
       overflow-x: auto;
       font-size: 13px;
+      font-family: "IBM Plex Mono", monospace;
     }
 
     .card {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
+      background: var(--panel-strong);
+      border: 1px solid rgba(216, 209, 195, 0.95);
+      border-radius: 18px;
       padding: 12px 14px;
       margin-top: 10px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      box-shadow: 0 6px 18px rgba(35, 45, 35, 0.06);
     }
 
     .grid2 {
@@ -87,44 +174,163 @@
     .pill {
       display: inline-block;
       padding: 2px 8px;
-      border: 1px solid #ccc;
+      border: 1px solid rgba(31, 107, 82, 0.2);
       border-radius: 999px;
-      background: #fafafa;
+      background: var(--accent-soft);
       margin: 2px 4px 2px 0;
     }
 
     .chat-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: minmax(280px, 0.95fr) minmax(340px, 1.05fr);
+      gap: 16px;
       margin-top: 10px;
     }
 
     .status-ok {
       background: #eef7ee;
+      border: 1px solid rgba(47, 125, 50, 0.18);
       border-left: 4px solid #2f7d32;
+      border-radius: 14px;
       padding: 12px 14px;
       white-space: pre-wrap;
       font-size: 13px;
     }
 
     .status-muted {
-      background: #f7f7f7;
+      background: rgba(245, 243, 236, 0.95);
+      border: 1px solid var(--line);
       border-left: 4px solid #777;
+      border-radius: 14px;
       padding: 12px 14px;
       white-space: pre-wrap;
       font-size: 13px;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .action-btn {
+      margin-top: 0;
+      padding: 6px 10px;
+      font-size: 12px;
+      border: 1px solid rgba(31, 107, 82, 0.18);
+      background: #fff;
+      color: var(--ink);
+      box-shadow: none;
+    }
+
+    .text-answer {
+      margin-top: 8px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 18px;
+      align-items: end;
+    }
+
+    .hero-kicker {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(216, 209, 195, 0.9);
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .ghost-btn {
+      background: rgba(255,255,255,0.7);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    @media (max-width: 900px) {
+      .section-grid,
+      .chat-grid,
+      .hero-grid,
+      .hero-metrics,
+      .grid2 {
+        grid-template-columns: 1fr;
+      }
+
+      .app-shell {
+        padding: 18px 14px 48px;
+      }
+
+      h2 {
+        font-size: 28px;
+      }
     }
   </style>
 </head>
 
 <body>
-
-<h2>Ontology Anchor Engine</h2>
-<p>
-<strong>Pipeline:</strong><br/>
-Raw Data → Domain Validation → Feature Extraction → Ontology Proposal
-</p>
+<main class="app-shell">
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-kicker">Scientific Reasoning Workspace</div>
+      <h2>Ontology Anchor Engine</h2>
+      <p>
+      Raw data에서 해석 후보를 만들고, 대화로 가정과 우선순위를 조정하면서 연구 판단을 누적하는 실험 분석 인터페이스입니다.
+      </p>
+      <div class="cta-row">
+        <button onclick="runEngine()">Run Analysis</button>
+        <button class="ghost-btn" onclick="document.getElementById('chatInput').focus()">Open Conversation</button>
+      </div>
+    </div>
+    <div class="hero-metrics">
+      <div class="metric">
+        <div class="metric-label">Pipeline</div>
+        <div class="metric-value">Data → Features → Proposals</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Conversation Mode</div>
+        <div class="metric-value">Intent + Structured Q/A</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <hr />
 
@@ -136,16 +342,15 @@ Raw Data → Domain Validation → Feature Extraction → Ontology Proposal
   <input type="file" id="fileInput" />
   <p class="hint" id="domainHint">Upload raw numeric experimental data (TXT / CSV).</p>
 
-  <textarea id="rawData" readonly
+  <textarea id="rawData" class="hidden" readonly
     placeholder="Uploaded raw data preview will appear here"></textarea>
 </div>
 
-<button onclick="runEngine()">Run Engine</button>
-
 <hr />
 
+<div class="section-grid">
 <div class="section">
-  <h3>0. Measurement Validation</h3>
+  <h3>0. Validation Status</h3>
   <pre id="measurementLog">(waiting)</pre>
 </div>
 
@@ -155,7 +360,7 @@ Raw Data → Domain Validation → Feature Extraction → Ontology Proposal
 </div>
 
 <div class="section">
-  <h3>2. Feature Keywords / Evidence</h3>
+  <h3>2. Observed Clues</h3>
   <pre id="keywordLog">(waiting)</pre>
 </div>
 
@@ -166,19 +371,19 @@ Raw Data → Domain Validation → Feature Extraction → Ontology Proposal
 </div>
 
 <div class="section">
-  <h3>3. L1 Coordinate State</h3>
+  <h3>3. Interpretation State</h3>
   <pre id="l1StateLog">(waiting)</pre>
 </div>
 
 <div class="section">
-  <h3>4. Ontology Proposals</h3>
-  <pre id="proposalLog">(waiting)</pre>
+  <h3>4. Interpretation Paths</h3>
   <div id="proposalPretty" style="margin-top:10px;">(waiting)</div>
 </div>
 
 <div class="section">
   <h3>Summary</h3>
   <pre id="summaryLog">(waiting)</pre>
+</div>
 </div>
 
 <div class="section">
@@ -238,17 +443,29 @@ Raw Data → Domain Validation → Feature Extraction → Ontology Proposal
       <div class="subttl">추천 질문</div>
       <div id="questionBox" class="box">(대기 중)</div>
 
+      <div class="subttl">Coverage Assessment</div>
+      <div id="coverageLog" class="box">(대기 중)</div>
+
+      <div class="subttl">Exploratory Fallback</div>
+      <div id="fallbackBox" class="box">(대기 중)</div>
+
+      <div class="subttl">Candidate Hypotheses</div>
+      <div id="candidateLog" class="box">(대기 중)</div>
+
+      <div class="subttl">Chat History</div>
+      <div id="historyBox" class="box">(대기 중)</div>
+
       <div class="subttl">Intent Profile</div>
-      <pre id="intentLog">(대기 중)</pre>
+      <div id="intentLog" class="box">(대기 중)</div>
 
       <div class="subttl">Ontology Patch Candidate</div>
-      <pre id="patchLog">(대기 중)</pre>
+      <div id="patchLog" class="box">(대기 중)</div>
 
       <div class="subttl">Curated Overlay</div>
-      <pre id="overlayLog">(대기 중)</pre>
+      <div id="overlayLog" class="box">(대기 중)</div>
 
       <div class="subttl">Overlay Review Queue</div>
-      <pre id="reviewQueueLog">(대기 중)</pre>
+      <div id="reviewQueueLog" class="box">(대기 중)</div>
     </div>
   </div>
 </div>
@@ -269,7 +486,6 @@ const keywordLog = document.getElementById("keywordLog");
 const assumptionLog = document.getElementById("assumptionLog");
 const assumptionPretty = document.getElementById("assumptionPretty");
 const l1StateLog = document.getElementById("l1StateLog");
-const proposalLog = document.getElementById("proposalLog");
 const proposalPretty = document.getElementById("proposalPretty");
 const summaryLog = document.getElementById("summaryLog");
 const prioritySelect = document.getElementById("prioritySelect");
@@ -285,6 +501,10 @@ const intentStatusBox = document.getElementById("intentStatusBox");
 const intentDiffBox = document.getElementById("intentDiffBox");
 const assistantReplyBox = document.getElementById("assistantReplyBox");
 const questionBox = document.getElementById("questionBox");
+const coverageLog = document.getElementById("coverageLog");
+const fallbackBox = document.getElementById("fallbackBox");
+const candidateLog = document.getElementById("candidateLog");
+const historyBox = document.getElementById("historyBox");
 const intentLog = document.getElementById("intentLog");
 const patchLog = document.getElementById("patchLog");
 const overlayLog = document.getElementById("overlayLog");
@@ -503,10 +723,13 @@ function clearOutputs() {
   assumptionLog.innerText = "(running...)";
   assumptionPretty.innerText = "(running...)";
   l1StateLog.innerText = "(running...)";
-  proposalLog.innerText = "(running...)";
   proposalPretty.innerHTML = "(running...)";
   summaryLog.innerText = "(running...)";
   questionBox.innerText = "(대기 중)";
+  coverageLog.innerText = "(대기 중)";
+  fallbackBox.innerText = "(대기 중)";
+  candidateLog.innerText = "(대기 중)";
+  historyBox.innerText = "(대기 중)";
   intentLog.innerText = "(대기 중)";
   patchLog.innerText = "(대기 중)";
   overlayLog.innerText = "(대기 중)";
@@ -538,6 +761,50 @@ function pickSummary(response) {
   return response.system_narrative || "(no summary)";
 }
 
+function renderMeasurementValidation(validation) {
+  if (!validation || typeof validation !== "object") return "(none)";
+  const lines = [];
+  if (Array.isArray(validation.errors) && validation.errors.length > 0) {
+    lines.push("Errors:");
+    validation.errors.forEach(item => lines.push(`- ${item}`));
+  }
+  if (Array.isArray(validation.warnings) && validation.warnings.length > 0) {
+    if (lines.length) lines.push("");
+    lines.push("Warnings:");
+    validation.warnings.forEach(item => lines.push(`- ${item}`));
+  }
+  if (Array.isArray(validation.emitted_assumptions) && validation.emitted_assumptions.length > 0) {
+    if (lines.length) lines.push("");
+    lines.push("Emitted assumptions:");
+    validation.emitted_assumptions.forEach(item => lines.push(`- ${item}`));
+  }
+  if (validation.measurement_conditions) {
+    if (lines.length) lines.push("");
+    lines.push(`Measurement conditions: ${renderMeasurementConditions(validation.measurement_conditions)}`);
+  }
+  return lines.join("\n").trim() || "No validation issues detected.";
+}
+
+function humanizeConditionValue(value) {
+  if (Array.isArray(value)) return value.map(humanizeConditionValue).join(", ");
+  if (value == null || value === "") return "";
+  return String(value)
+    .replaceAll("_", " ")
+    .replaceAll("-", " ");
+}
+
+function renderMeasurementConditions(conditions) {
+  if (!conditions || typeof conditions !== "object") return "not specified";
+  const parts = [];
+  for (const [key, value] of Object.entries(conditions)) {
+    const label = humanizeConditionValue(key);
+    const rendered = humanizeConditionValue(value);
+    if (!rendered) continue;
+    parts.push(`${label}: ${rendered}`);
+  }
+  return parts.length ? parts.join("; ") : "not specified";
+}
+
 function parseCsvInput(text) {
   return String(text || "")
     .split(",")
@@ -547,12 +814,171 @@ function parseCsvInput(text) {
 
 function renderQuestions(questions) {
   if (!Array.isArray(questions) || questions.length === 0) return "(없음)";
-  return questions.map((item, index) => {
-    const prompt = item && typeof item === "object" ? item.prompt || safeStringify(item) : String(item);
-    const category = item && typeof item === "object" ? item.category || "question" : "question";
-    const qid = item && typeof item === "object" ? item.question_id || `q${index + 1}` : `q${index + 1}`;
-    return `${index + 1}. [${qid}] [${category}] ${prompt}`;
+  return questions.map((item, index) => renderQuestionCard(item, index)).join("");
+}
+
+function renderQuestionCard(item, index) {
+  if (!item || typeof item !== "object") {
+    return `<div class="row">${escapeHtml(String(item))}</div>`;
+  }
+  const prompt = item.prompt || safeStringify(item);
+  const category = item.category || "question";
+  const qid = item.question_id || `q${index + 1}`;
+  const actions = renderQuestionActions(item);
+  return `
+    <div class="card">
+      <div><b>${index + 1}. [${escapeHtml(qid)}]</b> <span class="muted">[${escapeHtml(category)}]</span></div>
+      <div class="row">${escapeHtml(prompt)}</div>
+      ${actions}
+    </div>
+  `;
+}
+
+function renderQuestionActions(item) {
+  const qid = item.question_id || "";
+  const selectedId = Array.isArray(item.target_ids) && item.target_ids.length > 0 ? item.target_ids[0] : "";
+  if (item.expected_answer_kind === "single_select" && Array.isArray(item.options) && item.options.length > 0) {
+    return `<div class="action-row">${
+      item.options.map(opt => `
+        <button class="action-btn" onclick="applySuggestedStructuredAnswer('${escapeHtml(qid)}', '${escapeHtml(item.category || "")}', 'single_select', ['${escapeHtml(opt.id || "")}'], false)">
+          ${escapeHtml(opt.label || opt.id || "select")}
+        </button>
+      `).join("")
+    }</div>`;
+  }
+  if (item.category === "assumption_confirmation" && selectedId) {
+    return `
+      <div class="action-row">
+        <button class="action-btn" onclick="applySuggestedStructuredAnswer('${escapeHtml(qid)}', '${escapeHtml(item.category || "")}', 'confirm', ['${escapeHtml(selectedId)}'], false)">확인</button>
+        <button class="action-btn" onclick="applySuggestedStructuredAnswer('${escapeHtml(qid)}', '${escapeHtml(item.category || "")}', 'reject', ['${escapeHtml(selectedId)}'], false)">배제</button>
+        <button class="action-btn" onclick="applySuggestedStructuredAnswer('${escapeHtml(qid)}', '${escapeHtml(item.category || "")}', 'approve', ['${escapeHtml(selectedId)}'], true)">Overlay 승인</button>
+      </div>
+    `;
+  }
+  if (item.expected_answer_kind === "text") {
+    const textareaId = `text-answer-${qid.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+    return `
+      <div class="text-answer">
+        <textarea id="${escapeHtml(textareaId)}" placeholder="예: Au top electrode / 5 nm oxide / DC sweep / forward-reverse 모두 측정"></textarea>
+        <div class="action-row">
+          <button class="action-btn" onclick="applySuggestedTextAnswer('${escapeHtml(qid)}', '${escapeHtml(item.category || "")}', '${escapeHtml(textareaId)}')">텍스트 답변 반영</button>
+        </div>
+      </div>
+    `;
+  }
+  return "";
+}
+
+function renderFallback(fallback) {
+  if (!fallback || typeof fallback !== "object") return "(none)";
+  const lines = [];
+  lines.push(`status: ${fallback.status || "(unknown)"}`);
+  lines.push(fallback.summary || "");
+  if (Array.isArray(fallback.observed_patterns) && fallback.observed_patterns.length) {
+    lines.push("");
+    lines.push("[observed_patterns]");
+    fallback.observed_patterns.forEach(item => lines.push(`- ${item}`));
+  }
+  if (Array.isArray(fallback.missing_metadata) && fallback.missing_metadata.length) {
+    lines.push("");
+    lines.push("[missing_metadata]");
+    fallback.missing_metadata.forEach(item => lines.push(`- ${item}`));
+  }
+  if (Array.isArray(fallback.recommended_next_experiments) && fallback.recommended_next_experiments.length) {
+    lines.push("");
+    lines.push("[recommended_next_experiments]");
+    fallback.recommended_next_experiments.forEach(item => lines.push(`- ${item}`));
+  }
+  if (Array.isArray(fallback.experiment_ideas) && fallback.experiment_ideas.length) {
+    lines.push("");
+    lines.push("[experiment_ideas]");
+    fallback.experiment_ideas.forEach(item => {
+      lines.push(`- ${item.title || "(untitled)"}`);
+      if (item.purpose) lines.push(`  purpose: ${item.purpose}`);
+      if (Array.isArray(item.actions) && item.actions.length) lines.push(`  actions: ${item.actions.join(" / ")}`);
+      if (item.expected_signal) lines.push(`  expected: ${item.expected_signal}`);
+    });
+  }
+  return lines.join("\n").trim() || "(none)";
+}
+
+function renderChatHistory(events) {
+  if (!Array.isArray(events) || events.length === 0) return "(없음)";
+  return events.slice(-12).map(item => {
+    const role = item?.role || "unknown";
+    const type = item?.type || "event";
+    const text = item?.text || safeStringify(item);
+    const ts = item?.timestamp_utc || "";
+    return `[${ts}] ${role}/${type}: ${text}`;
   }).join("\n");
+}
+
+function postChatPayload(payload) {
+  return fetch(CHAT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+    .then(async res => {
+      const text = await res.text();
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        throw new Error(text || "Server did not return JSON");
+      }
+      if (!res.ok) {
+        throw new Error(safeStringify(parsed));
+      }
+      return parsed;
+    });
+}
+
+function applySuggestedStructuredAnswer(questionId, category, answerKind, selectedIds, approveForOverlay) {
+  if (!currentRunId) return;
+  postChatPayload({
+    run_id: currentRunId,
+    user_text: "",
+    structured_answers: [{
+      question_id: questionId,
+      category: category || null,
+      answer_kind: answerKind,
+      selected_ids: Array.isArray(selectedIds) ? selectedIds : [],
+      approve_for_overlay: !!approveForOverlay
+    }],
+    intent_update: {}
+  })
+    .then(response => {
+      applyConversationState(response);
+    })
+    .catch(err => {
+      questionBox.innerHTML = `대화 반영에 실패했습니다.<br/><br/>${escapeHtml(err.message)}`;
+    });
+}
+
+function applySuggestedTextAnswer(questionId, category, textareaId) {
+  if (!currentRunId) return;
+  const el = document.getElementById(textareaId);
+  const note = el ? String(el.value || "").trim() : "";
+  if (!note) return;
+  postChatPayload({
+    run_id: currentRunId,
+    user_text: "",
+    structured_answers: [{
+      question_id: questionId,
+      category: category || null,
+      answer_kind: "text",
+      selected_ids: [],
+      note
+    }],
+    intent_update: {}
+  })
+    .then(response => {
+      applyConversationState(response);
+    })
+    .catch(err => {
+      questionBox.innerHTML = `대화 반영에 실패했습니다.<br/><br/>${escapeHtml(err.message)}`;
+    });
 }
 
 function shallowEqualArray(a, b) {
@@ -673,14 +1099,17 @@ function syncIntentForm(profile) {
 function applyConversationState(state) {
   if (!state || typeof state !== "object") return;
   if (state.reranked_sj_proposals) {
-    proposalLog.innerText = safeStringify(state.reranked_sj_proposals);
     proposalPretty.innerHTML = renderProposalPretty(state.reranked_sj_proposals);
   }
   if (state.system_narrative) {
     summaryLog.innerText = state.system_narrative;
     patternLog.innerText = state.system_narrative;
   }
-  questionBox.innerText = renderQuestions(state.suggested_questions || []);
+  questionBox.innerHTML = renderQuestions(state.suggested_questions || []);
+  coverageLog.innerText = safeStringify(state.coverage_assessment || {});
+  fallbackBox.innerText = renderFallback(state.exploratory_fallback || {});
+  candidateLog.innerText = safeStringify(state.candidate_hypotheses || {});
+  historyBox.innerText = renderChatHistory(state.chat_history || []);
   intentLog.innerText = safeStringify(state.intent_profile || {});
   patchLog.innerText = safeStringify(state.ontology_patch || {});
   overlayLog.innerText = safeStringify(state.curated_overlay || {});
@@ -712,13 +1141,12 @@ function runEngine() {
     })
     .then(response => {
       currentRunId = response.run_id || "";
-      measurementLog.innerText = safeStringify(response.measurement_validation || {});
+      measurementLog.innerText = renderMeasurementValidation(response.measurement_validation || {});
       patternLog.innerText = pickPatternText(response);
       keywordLog.innerText = safeStringify(pickKeywordPayload(response));
       assumptionLog.innerText = safeStringify(response.assumptions || []);
       assumptionPretty.innerText = renderAssumptionsPretty(response.assumptions);
       l1StateLog.innerText = safeStringify(response.l1_state || {});
-      proposalLog.innerText = safeStringify(response.sj_proposals || []);
       proposalPretty.innerHTML = renderProposalPretty(response.sj_proposals);
       summaryLog.innerText = pickSummary(response);
       applyConversationState(response.conversation_state || {});
@@ -730,10 +1158,13 @@ function runEngine() {
       assumptionLog.innerText = "(failed)";
       assumptionPretty.innerText = "(failed)";
       l1StateLog.innerText = "(failed)";
-      proposalLog.innerText = "(failed)";
       proposalPretty.innerHTML = "(failed)";
       summaryLog.innerText = "(failed)";
       questionBox.innerText = "(failed)";
+      coverageLog.innerText = "(failed)";
+      fallbackBox.innerText = "(failed)";
+      candidateLog.innerText = "(failed)";
+      historyBox.innerText = "(failed)";
       intentLog.innerText = "(failed)";
       patchLog.innerText = "(failed)";
       overlayLog.innerText = "(failed)";
@@ -838,39 +1269,22 @@ function sendChatTurn() {
     });
   }
 
-  fetch(CHAT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      run_id: currentRunId,
-      user_text: chatInput.value || "",
-      structured_answers: structuredAnswers,
-      intent_update: {
-        analysis_priority: prioritySelect.value || null,
-        focus_claims: focusClaims,
-        exclude_claims: excludeClaims,
-        confirmed_conditions: confirmedConditions,
-        uncertain_conditions: uncertainConditions,
-        confirmed_assumptions: confirmedAssumptions,
-        rejected_assumptions: rejectedAssumptions,
-        approved_claims: approvedClaims,
-        approved_assumptions: approvedAssumptions
-      }
-    })
+  postChatPayload({
+    run_id: currentRunId,
+    user_text: chatInput.value || "",
+    structured_answers: structuredAnswers,
+    intent_update: {
+      analysis_priority: prioritySelect.value || null,
+      focus_claims: focusClaims,
+      exclude_claims: excludeClaims,
+      confirmed_conditions: confirmedConditions,
+      uncertain_conditions: uncertainConditions,
+      confirmed_assumptions: confirmedAssumptions,
+      rejected_assumptions: rejectedAssumptions,
+      approved_claims: approvedClaims,
+      approved_assumptions: approvedAssumptions
+    }
   })
-    .then(async res => {
-      const text = await res.text();
-      let payload;
-      try {
-        payload = JSON.parse(text);
-      } catch {
-        throw new Error(text || "Server did not return JSON");
-      }
-      if (!res.ok) {
-        throw new Error(safeStringify(payload));
-      }
-      return payload;
-    })
     .then(response => {
       applyConversationState(response);
     })
@@ -880,5 +1294,6 @@ function sendChatTurn() {
 }
 </script>
 
+</main>
 </body>
 </html>

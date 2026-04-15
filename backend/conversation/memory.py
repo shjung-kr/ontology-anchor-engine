@@ -17,6 +17,7 @@ OVERLAY_DIR = Path(__file__).resolve().parents[1] / "ontology_overlays"
 CURATED_OVERLAY_PATH = OVERLAY_DIR / "iv_user_overlay.json"
 REVIEW_QUEUE_PATH = OVERLAY_DIR / "iv_review_queue.json"
 REVIEW_STATE_PATH = OVERLAY_DIR / "iv_review_state.json"
+CANDIDATE_HYPOTHESES_FILE = "candidate_hypotheses.json"
 
 
 def utc_now_iso() -> str:
@@ -62,6 +63,15 @@ def default_patch_payload(run_id: str) -> Dict[str, Any]:
     }
 
 
+def default_candidate_hypotheses(run_id: str) -> Dict[str, Any]:
+    return {
+        "run_id": run_id,
+        "generated_at_utc": utc_now_iso(),
+        "coverage_status": "unknown",
+        "items": [],
+    }
+
+
 def default_curated_overlay() -> Dict[str, Any]:
     return {
         "overlay_id": "iv_user_overlay",
@@ -96,6 +106,7 @@ def ensure_memory_files(run_dir: Path) -> None:
     chat_path = run_dir / "chat_history.jsonl"
     intent_path = run_dir / "intent_profile.json"
     patch_path = run_dir / "ontology_patch.json"
+    candidate_path = run_dir / CANDIDATE_HYPOTHESES_FILE
 
     if not chat_path.exists():
         chat_path.write_text("", encoding="utf-8")
@@ -103,6 +114,8 @@ def ensure_memory_files(run_dir: Path) -> None:
         write_json(intent_path, default_intent_profile(run_id))
     if not patch_path.exists():
         write_json(patch_path, default_patch_payload(run_id))
+    if not candidate_path.exists():
+        write_json(candidate_path, default_candidate_hypotheses(run_id))
 
 
 def load_json(path: Path, fallback: Dict[str, Any] | None = None) -> Dict[str, Any]:
@@ -210,6 +223,11 @@ def load_intent_profile(run_dir: Path) -> Dict[str, Any]:
     return load_json(run_dir / "intent_profile.json", fallback=default_intent_profile(run_dir.name))
 
 
+def load_candidate_hypotheses(run_dir: Path) -> Dict[str, Any]:
+    ensure_memory_files(run_dir)
+    return load_json(run_dir / CANDIDATE_HYPOTHESES_FILE, fallback=default_candidate_hypotheses(run_dir.name))
+
+
 def load_curated_overlay() -> Dict[str, Any]:
     return load_json(CURATED_OVERLAY_PATH, fallback=default_curated_overlay())
 
@@ -236,6 +254,38 @@ def _merge_unique(existing: Iterable[str], new_items: Iterable[str]) -> List[str
 def _remove_values(existing: Iterable[str], removed: Iterable[str]) -> List[str]:
     removed_set = {item for item in removed if isinstance(item, str)}
     return [item for item in existing if item not in removed_set]
+
+
+def _normalize_text_detail(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    return value.strip()
+
+
+def infer_structured_context_from_text(user_text: str) -> Dict[str, Any]:
+    text = (user_text or "").strip()
+    lowered = text.lower()
+    conditions: Dict[str, Any] = {}
+
+    if any(token in lowered for token in ("pulse", "pulsed", "펄스")):
+        conditions["measurement_setup"] = "pulsed_bias"
+    elif any(token in lowered for token in ("dc", "steady-state", "steady state", "직류")):
+        conditions["measurement_setup"] = "steady_state_dc"
+
+    if any(token in lowered for token in ("repeat", "reproduc", "재현", "반복 측정")):
+        if any(token in lowered for token in ("not", "fail", "안", "불", "no")):
+            conditions["reproducibility"] = "not_reproducible"
+        else:
+            conditions["reproducibility"] = "reproducible"
+
+    if any(token in lowered for token in ("electrode", "au", "ag", "pt", "전극")):
+        conditions["device_context"] = text
+    if any(token in lowered for token in ("thickness", "nm", "두께", "oxide", "barrier", "절연층")):
+        conditions["stack_or_thickness"] = text
+    if any(token in lowered for token in ("sweep direction", "forward", "reverse", "hysteresis", "스윕", "히스테리시스")):
+        conditions["sweep_context"] = text
+
+    return conditions
 
 
 def infer_intent_from_text(user_text: str) -> Dict[str, Any]:
@@ -386,6 +436,7 @@ def build_direct_answer(
     top = reranked_proposals[0] if reranked_proposals else {}
     claim = top.get("claim_concept") or "해석 후보 없음"
     final_score = top.get("final_score", top.get("score"))
+    coverage = assess_ontology_coverage(snapshot, reranked_proposals)
     confirmed_conditions = intent_profile.get("confirmed_conditions", {}) or {}
     assumptions = top.get("sj_assumptions", []) or []
     required_features = top.get("required_features", []) or []
@@ -393,6 +444,8 @@ def build_direct_answer(
 
     answer_lines: List[str] = []
     answer_lines.append(f"현재 run 기준 최상위 해석은 `{claim}` 이고 score는 {final_score} 입니다.")
+    if coverage.get("status") != "sufficient":
+        answer_lines.append("다만 현재 ontology coverage가 충분하지 않아, 아래 답변은 확정 결론이 아니라 탐색형 가설로 읽는 편이 맞습니다.")
 
     priority = intent_profile.get("analysis_priority")
     if priority == "next_experiment_planning":
@@ -427,6 +480,281 @@ def build_direct_answer(
     return "\n".join(answer_lines)
 
 
+def assess_ontology_coverage(snapshot: Dict[str, Any], proposals: List[Dict[str, Any]]) -> Dict[str, Any]:
+    proposal_count = len(proposals or [])
+    top_score = 0.0
+    second_score = 0.0
+    if proposal_count >= 1:
+        try:
+            top_score = float((proposals or [{}])[0].get("score", 0.0) or 0.0)
+        except Exception:
+            top_score = 0.0
+    if proposal_count >= 2:
+        try:
+            second_score = float((proposals or [{}, {}])[1].get("score", 0.0) or 0.0)
+        except Exception:
+            second_score = 0.0
+
+    feature_count = len((snapshot.get("l1_state", {}) or {}).get("iv_features", []) or [])
+    warning_count = len((snapshot.get("measurement_validation", {}) or {}).get("warnings", []) or [])
+    status = "sufficient"
+    reason = "Strong ontology-backed proposal is available."
+
+    if proposal_count == 0:
+        status = "insufficient_ontology_coverage"
+        reason = "No ontology proposal matched the extracted features."
+    elif top_score < 2:
+        status = "low_confidence_candidates"
+        reason = "Top proposal is supported by too few matched features."
+    elif proposal_count >= 2 and abs(top_score - second_score) <= 0.5:
+        status = "ambiguous_competing_candidates"
+        reason = "Top ontology candidates are too close to treat as settled."
+    elif feature_count <= 1 and warning_count > 0:
+        status = "measurement_context_limited"
+        reason = "Observed feature coverage is narrow and validation warnings remain."
+
+    return {
+        "status": status,
+        "reason": reason,
+        "proposal_count": proposal_count,
+        "top_score": top_score,
+        "second_score": second_score,
+        "observed_feature_count": feature_count,
+        "warning_count": warning_count,
+    }
+
+
+def build_exploratory_fallback(
+    snapshot: Dict[str, Any],
+    reranked_proposals: List[Dict[str, Any]],
+    intent_profile: Dict[str, Any],
+    coverage: Dict[str, Any],
+) -> Dict[str, Any]:
+    measurement_validation = snapshot.get("measurement_validation", {}) or {}
+    l1_state = snapshot.get("l1_state", {}) or {}
+    top = (reranked_proposals or [{}])[0] if reranked_proposals else {}
+    llm_pattern = str(snapshot.get("llm_pattern") or "").strip()
+    observed_patterns: List[str] = []
+    if llm_pattern:
+        observed_patterns.append(llm_pattern)
+    features = l1_state.get("iv_features", []) or []
+    if features:
+        observed_patterns.append(f"관측 feature: {', '.join(features)}")
+    warnings = measurement_validation.get("warnings", []) or []
+    if warnings:
+        observed_patterns.append(f"validation warning {len(warnings)}건")
+
+    possible_hypotheses: List[Dict[str, Any]] = []
+    for proposal in reranked_proposals[:3]:
+        possible_hypotheses.append(
+            {
+                "hypothesis_id": f"existing::{proposal.get('claim_concept')}",
+                "label": proposal.get("claim_concept") or "unknown_claim",
+                "kind": "existing_ontology_candidate",
+                "confidence": "tentative",
+                "basis": proposal.get("matched_features", []) or [],
+                "reason": "Existing ontology candidate retained as a tentative explanation.",
+            }
+        )
+
+    if not possible_hypotheses:
+        if any("field_enhanced" in item or "nonlinear" in item for item in features):
+            possible_hypotheses.append(
+                {
+                    "hypothesis_id": "candidate::field_enhanced_transport",
+                    "label": "field-enhanced transport candidate",
+                    "kind": "exploratory_candidate",
+                    "confidence": "exploratory",
+                    "basis": features,
+                    "reason": "Nonlinear/high-field signatures exist but no strong ontology mapping succeeded.",
+                }
+            )
+        if warnings:
+            possible_hypotheses.append(
+                {
+                    "hypothesis_id": "candidate::measurement_artifact",
+                    "label": "measurement artifact candidate",
+                    "kind": "exploratory_candidate",
+                    "confidence": "exploratory",
+                    "basis": warnings,
+                    "reason": "Validation warnings suggest setup or acquisition artifacts may still explain the trace.",
+                }
+            )
+        possible_hypotheses.append(
+            {
+                "hypothesis_id": "candidate::interface_or_barrier_limited_transport",
+                "label": "interface/barrier-limited transport candidate",
+                "kind": "exploratory_candidate",
+                "confidence": "exploratory",
+                "basis": features,
+                "reason": "Use as a temporary bucket until temperature, electrode, and sweep metadata are confirmed.",
+            }
+        )
+
+    missing_metadata: List[str] = []
+    confirmed_conditions = intent_profile.get("confirmed_conditions", {}) or {}
+    if "temperature" not in confirmed_conditions:
+        missing_metadata.append("temperature dependence / measurement temperature")
+    if not measurement_validation.get("measurement_conditions"):
+        missing_metadata.append("measurement setup: DC vs pulse, compliance, sweep direction")
+    if not intent_profile.get("notes"):
+        missing_metadata.append("device stack / electrode / thickness context")
+
+    experiment_ideas = build_experiment_ideas(
+        possible_hypotheses=possible_hypotheses,
+        confirmed_conditions=confirmed_conditions,
+        top_proposal=top,
+        measurement_validation=measurement_validation,
+    )
+    recommended_next_experiments = [item.get("title", "") for item in experiment_ideas if item.get("title")]
+
+    summary = (
+        "기존 ontology 안에서 충분히 강한 해석이 확보되지 않아, 현재 결과는 확정 결론보다 탐색형 가설 정리로 다루는 편이 적절합니다."
+        if coverage.get("status") != "sufficient"
+        else "현재 ontology coverage는 충분합니다."
+    )
+    return {
+        "status": "fallback_active" if coverage.get("status") != "sufficient" else "fallback_not_needed",
+        "summary": summary,
+        "observed_patterns": observed_patterns,
+        "possible_hypotheses": possible_hypotheses,
+        "missing_metadata": missing_metadata,
+        "recommended_next_experiments": _merge_unique([], recommended_next_experiments),
+        "experiment_ideas": experiment_ideas,
+    }
+
+
+def build_experiment_ideas(
+    possible_hypotheses: List[Dict[str, Any]],
+    confirmed_conditions: Dict[str, Any],
+    top_proposal: Dict[str, Any],
+    measurement_validation: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    ideas: List[Dict[str, Any]] = []
+    seen_titles = set()
+
+    def add_idea(title: str, purpose: str, actions: List[str], expected: str, target_hypothesis: str) -> None:
+        if not title or title in seen_titles:
+            return
+        seen_titles.add(title)
+        ideas.append(
+            {
+                "title": title,
+                "purpose": purpose,
+                "actions": actions,
+                "expected_signal": expected,
+                "target_hypothesis": target_hypothesis,
+            }
+        )
+
+    temperature_known = "temperature" in confirmed_conditions
+    setup = confirmed_conditions.get("measurement_setup")
+    reproducibility = confirmed_conditions.get("reproducibility")
+    warnings = measurement_validation.get("warnings", []) or []
+
+    if not temperature_known:
+        add_idea(
+            "온도 의존성 매핑",
+            "transport mechanism과 artifact 가능성을 1차 분리",
+            ["상온 외 2~3개 온도점에서 동일 sweep 수행", "동일 bias window에서 turn-on/기울기 변화 비교"],
+            "온도 민감성이 크면 barrier/trap/thermally activated 성분 가능성이 올라감",
+            "all_candidates",
+        )
+
+    if setup != "pulsed_bias":
+        add_idea(
+            "DC vs Pulse 비교",
+            "self-heating 또는 charging artifact를 구분",
+            ["동일 소자에서 DC sweep와 pulse sweep를 같은 범위로 비교", "pulse width와 duty cycle도 함께 기록"],
+            "pulse에서 비선형성이 완화되면 heating/charging artifact 가능성이 올라감",
+            "candidate::measurement_artifact",
+        )
+
+    for hypothesis in possible_hypotheses:
+        hid = hypothesis.get("hypothesis_id", "")
+        label = hypothesis.get("label", hid)
+        if "field_enhanced" in hid or "fn_tunneling" in hid.lower():
+            add_idea(
+                f"{label} 검증용 두께/전극 스플릿",
+                "field-enhanced 또는 barrier-limited 가설 검증",
+                ["절연층 두께를 2수준 이상으로 나눈 샘플 비교", "전극 work function이 다른 조합 비교"],
+                "두께/전극 변화에 따라 turn-on 또는 고전계 slope가 체계적으로 이동하면 지지 근거가 강해짐",
+                hid,
+            )
+        elif "measurement_artifact" in hid:
+            add_idea(
+                "재현성 및 sweep 방향 체크",
+                "artifact와 진짜 transport signature를 구분",
+                ["forward/reverse sweep 비교", "반복 측정 3회 이상", "compliance/settling time 변경"],
+                "재현성이 낮거나 sweep history 의존성이 크면 artifact 가능성이 높아짐",
+                hid,
+            )
+        elif "barrier" in hid or "interface" in hid:
+            add_idea(
+                f"{label} 검증용 계면 제어 실험",
+                "interface/barrier 지배 여부를 확인",
+                ["계면 처리 전후 샘플 비교", "전극 치환 또는 annealing 전후 비교"],
+                "계면 처리 변화에 따라 비선형성이나 turn-on 이동이 크면 계면 지배 가능성이 올라감",
+                hid,
+            )
+
+    if reproducibility == "not_reproducible" or warnings:
+        add_idea(
+            "측정 안정성 점검 세트",
+            "현재 데이터 품질 문제를 먼저 줄이기",
+            ["케이블/접촉/접지 재확인", "compliance current 기록", "baseline noise와 zero-bias offset 확인"],
+            "안정성 개선 후에도 패턴이 유지될 때만 메커니즘 논의를 강화하는 것이 안전함",
+            "all_candidates",
+        )
+
+    if top_proposal.get("required_features"):
+        required = ", ".join((top_proposal.get("required_features") or [])[:3])
+        add_idea(
+            "상위 가설 구분 feature 재측정",
+            "현재 최상위 가설을 더 엄밀하게 검증",
+            ["측정 범위와 분해능을 조정해 핵심 feature 재관측", "필요 시 low-field/high-field 구간을 분리 저장"],
+            f"핵심 feature({required})가 안정적으로 재현되면 상위 가설의 신뢰도가 상승",
+            str(top_proposal.get("claim_concept") or "top_proposal"),
+        )
+
+    return ideas[:6]
+
+
+def write_candidate_hypotheses(
+    run_dir: Path,
+    coverage: Dict[str, Any],
+    exploratory_fallback: Dict[str, Any],
+) -> Dict[str, Any]:
+    payload = {
+        "run_id": run_dir.name,
+        "generated_at_utc": utc_now_iso(),
+        "coverage_status": coverage.get("status", "unknown"),
+        "items": [],
+    }
+    for item in exploratory_fallback.get("possible_hypotheses", []) or []:
+        hypothesis_id = item.get("hypothesis_id")
+        if not isinstance(hypothesis_id, str) or not hypothesis_id:
+            continue
+        related_ideas = [
+            idea for idea in exploratory_fallback.get("experiment_ideas", []) or []
+            if idea.get("target_hypothesis") in (hypothesis_id, "all_candidates")
+        ]
+        payload["items"].append(
+            {
+                "hypothesis_id": hypothesis_id,
+                "label": item.get("label", hypothesis_id),
+                "kind": item.get("kind", "exploratory_candidate"),
+                "confidence": item.get("confidence", "exploratory"),
+                "basis": item.get("basis", []),
+                "reason": item.get("reason", ""),
+                "experiment_ideas": related_ideas,
+                "candidate_only": True,
+            }
+        )
+    write_json(run_dir / CANDIDATE_HYPOTHESES_FILE, payload)
+    return payload
+
+
 def _apply_structured_answers(profile: Dict[str, Any], answers: List[StructuredAnswer]) -> None:
     approved = dict(profile.get("approved_patch_items", {}))
     assumption_states = dict(profile.get("assumption_states", {}))
@@ -453,6 +781,25 @@ def _apply_structured_answers(profile: Dict[str, Any], answers: List[StructuredA
                     )
             elif answer.answer_kind == "unknown":
                 uncertain_conditions = _merge_unique(uncertain_conditions, ["temperature"])
+        elif answer.question_id == "conditions.reproducibility":
+            if answer.selected_ids:
+                confirmed_conditions["reproducibility"] = answer.selected_ids[0]
+        elif answer.question_id == "conditions.measurement_setup":
+            if isinstance(answer.note, str) and answer.note.strip():
+                confirmed_conditions["measurement_setup_details"] = answer.note.strip()
+                setup_text = answer.note.strip().lower()
+                if any(token in setup_text for token in ("pulse", "pulsed", "펄스")):
+                    confirmed_conditions["measurement_setup"] = "pulsed_bias"
+                elif any(token in setup_text for token in ("dc", "steady", "직류")):
+                    confirmed_conditions["measurement_setup"] = "steady_state_dc"
+        elif answer.question_id == "conditions.device_context":
+            if isinstance(answer.note, str) and answer.note.strip():
+                confirmed_conditions["device_context"] = answer.note.strip()
+                lowered = answer.note.strip().lower()
+                if any(token in lowered for token in ("thickness", "nm", "두께")):
+                    confirmed_conditions["stack_or_thickness"] = answer.note.strip()
+                if any(token in lowered for token in ("electrode", "au", "ag", "pt", "전극")):
+                    confirmed_conditions["electrode_context"] = answer.note.strip()
         elif answer.category == "competing_proposal_disambiguation":
             if answer.answer_kind in ("single_select", "approve"):
                 profile["focus_claims"] = _merge_unique(profile.get("focus_claims", []), answer.selected_ids)
@@ -511,6 +858,18 @@ def build_question_catalog(snapshot: Dict[str, Any], intent_profile: Dict[str, A
         "category": "missing_condition_check",
         "expected_answer_kind": "text",
         "allow_any_target_ids": True,
+    }
+    catalog["conditions.device_context"] = {
+        "question_id": "conditions.device_context",
+        "category": "missing_condition_check",
+        "expected_answer_kind": "text",
+        "allow_any_target_ids": True,
+    }
+    catalog["conditions.reproducibility"] = {
+        "question_id": "conditions.reproducibility",
+        "category": "missing_condition_check",
+        "expected_answer_kind": "single_select",
+        "target_ids": ["reproducible", "not_reproducible", "unknown"],
     }
     catalog["proposals.primary_focus"] = {
         "question_id": "proposals.primary_focus",
@@ -625,6 +984,7 @@ def update_intent_profile(run_dir: Path, chat_request: ChatTurnRequest) -> Dict[
     update = chat_request.intent_update.model_dump()
     inferred = infer_intent_from_text(chat_request.user_text)
     contextual = infer_contextual_intent_from_text(chat_request.user_text, snapshot)
+    inferred_context = infer_structured_context_from_text(chat_request.user_text)
 
     analysis_priority = update.get("analysis_priority") or contextual.get("analysis_priority") or inferred.get("analysis_priority")
     if analysis_priority:
@@ -642,6 +1002,7 @@ def update_intent_profile(run_dir: Path, chat_request: ChatTurnRequest) -> Dict[
     confirmed_conditions = dict(profile.get("confirmed_conditions", {}))
     confirmed_conditions.update(inferred.get("confirmed_conditions", {}))
     confirmed_conditions.update(contextual.get("confirmed_conditions", {}))
+    confirmed_conditions.update(inferred_context)
     confirmed_conditions.update(update.get("confirmed_conditions", {}))
     profile["confirmed_conditions"] = confirmed_conditions
     profile["uncertain_conditions"] = _merge_unique(
@@ -1035,6 +1396,7 @@ def generate_follow_up_questions(snapshot: Dict[str, Any], intent_profile: Dict[
     questions: List[DomainChatQuestion] = []
     measurement_validation = snapshot.get("measurement_validation", {}) or {}
     proposals = snapshot.get("sj_proposals", []) or []
+    coverage = assess_ontology_coverage(snapshot, proposals)
     confirmed_conditions = intent_profile.get("confirmed_conditions", {}) or {}
     assumption_states = intent_profile.get("assumption_states", {}) or {}
     asked_ids = {
@@ -1093,6 +1455,35 @@ def generate_follow_up_questions(snapshot: Dict[str, Any], intent_profile: Dict[
             )
         )
 
+    if coverage.get("status") != "sufficient":
+        if "conditions.device_context" not in asked_ids:
+            questions.append(
+                DomainChatQuestion(
+                    question_id="conditions.device_context",
+                    category="missing_condition_check",
+                    prompt="전극 재료, 절연층 두께, sweep direction, compliance 같은 디바이스/측정 맥락을 더 알려주실 수 있나요?",
+                    reason="지금은 ontology coverage가 약해서, 해석보다 메타데이터 보강이 우선입니다.",
+                    target_ids=["device_context"],
+                    expected_answer_kind="text",
+                )
+            )
+        if "conditions.reproducibility" not in asked_ids:
+            questions.append(
+                DomainChatQuestion(
+                    question_id="conditions.reproducibility",
+                    category="missing_condition_check",
+                    prompt="이 패턴이 반복 측정에서도 재현되는지, sweep 방향을 바꿔도 유지되는지 확인되었나요?",
+                    reason="재현성 정보가 있어야 artifact와 transport hypothesis를 구분하기 쉽습니다.",
+                    target_ids=["reproducible", "not_reproducible", "unknown"],
+                    expected_answer_kind="single_select",
+                    options=[
+                        {"id": "reproducible", "label": "반복 측정에서도 재현됨"},
+                        {"id": "not_reproducible", "label": "재현되지 않음"},
+                        {"id": "unknown", "label": "아직 모름"},
+                    ],
+                )
+            )
+
     if len(proposals) >= 2 and "proposals.primary_focus" not in asked_ids:
         first = proposals[0]
         second = proposals[1]
@@ -1150,6 +1541,9 @@ def build_chat_response(run_dir: Path) -> Dict[str, Any]:
         intent_profile,
         curated_overlay=curated_overlay,
     )
+    coverage = assess_ontology_coverage(snapshot, reranked_proposals)
+    exploratory_fallback = build_exploratory_fallback(snapshot, reranked_proposals, intent_profile, coverage)
+    candidate_hypotheses = write_candidate_hypotheses(run_dir, coverage, exploratory_fallback)
     derived = snapshot.get("assumptions", {}) or {}
     narrative = render_system_narrative_ko(
         measurement_validation=snapshot.get("measurement_validation", {}),
@@ -1171,12 +1565,16 @@ def build_chat_response(run_dir: Path) -> Dict[str, Any]:
         "curated_overlay": curated_overlay,
         "overlay_review_queue": review_queue,
         "overlay_review_state": review_state,
+        "coverage_assessment": coverage,
+        "exploratory_fallback": exploratory_fallback,
+        "candidate_hypotheses": candidate_hypotheses,
         "reranked_sj_proposals": reranked_proposals,
         "proposal_adjustments": adjustments,
         "system_narrative": narrative["system_narrative"],
         "L1 좌표 요약": narrative["L1 좌표 요약"],
         "과학적 정당화 제안": narrative["과학적 정당화 제안"],
         "suggested_questions": questions,
+        "chat_history": load_chat_history(run_dir),
         "chat_mode": "intent_update",
         "assistant_reply": "",
     }
