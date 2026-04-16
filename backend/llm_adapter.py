@@ -27,7 +27,7 @@ except Exception:
 BASE_DIR = Path(__file__).resolve().parent
 RUNS_DIR = BASE_DIR / "runs"
 PROMPTS_DIR = BASE_DIR.parent / "prompts"
-DEFAULT_MODEL = "gpt-4.1-mini"
+DEFAULT_MODEL = "gpt-5.4"
 
 
 def _get_openai_client():
@@ -40,6 +40,57 @@ def _get_openai_client():
         return OpenAI(api_key=api_key)
     except Exception:
         return None
+
+
+def _extract_goal_like_note(text: str) -> str:
+    value = (text or "").strip()
+    if not value:
+        return ""
+    lowered = value.lower()
+    goal_markers = (
+        "목적",
+        "목표",
+        "goal",
+        "aim",
+        "줄이는거",
+        "줄이고",
+        "낮추고",
+        "억제",
+        "증가",
+        "늘리",
+        "향상",
+        "개선",
+        "without carrier loss",
+        "캐리어 손실없이",
+        "캐리어 손실 없이",
+    )
+    domain_markers = (
+        "누설전류",
+        "leakage",
+        "턴온",
+        "turn-on",
+        "turn on",
+        "터널링",
+        "tunneling",
+        "전류",
+        "장벽",
+        "carrier",
+        "캐리어",
+    )
+    if any(marker in lowered for marker in goal_markers) and any(marker in lowered for marker in domain_markers):
+        return value
+    return ""
+
+
+def _resolve_research_goal(intent_profile: Dict[str, Any]) -> str:
+    research_goal = str(intent_profile.get("research_goal") or "").strip()
+    if research_goal:
+        return research_goal
+    for note in reversed(intent_profile.get("notes", [])):
+        candidate = _extract_goal_like_note(str(note))
+        if candidate:
+            return candidate
+    return ""
 
 
 def llm_analyze_numeric(raw_data: str) -> Dict[str, Any]:
@@ -232,6 +283,7 @@ def _build_analysis_context_prompt(
     required_features = top.get("required_features", []) or []
     warnings = (snapshot.get("measurement_validation", {}) or {}).get("warnings", []) or []
     conditions = intent_profile.get("confirmed_conditions", {}) or {}
+    research_goal = _resolve_research_goal(intent_profile)
 
     feature_notes: List[str] = []
     for feature_id in matched[:3]:
@@ -247,6 +299,7 @@ def _build_analysis_context_prompt(
 
     context_lines = [
         f"[user_question]\n{user_text}",
+        f"[user_goal]\n{research_goal or '(none)'}",
         f"[top_mechanism]\n- 최상위 해석: {claim}\n- score: {top.get('final_score', top.get('score'))}",
         f"[observed_features]\n- 매칭 feature: {join_term_labels(matched) if matched else '(none)'}",
         f"[feature_meanings]\n" + ("\n".join(feature_notes) if feature_notes else "- (none)"),
@@ -258,7 +311,7 @@ def _build_analysis_context_prompt(
         f"[warnings]\n- 경고 수: {len(warnings)}",
     ]
     context_lines.append(
-        "[answer_style]\n- 질문에 바로 답하기\n- 관련 있는 근거만 사용하기\n- 필요할 때만 가정과 불확실성 언급하기\n- 사용자가 묻지 않은 run 요약 반복하지 않기"
+        "[answer_style]\n- [user_goal]이 있으면 그 목표를 답변의 최우선 제약으로 사용하기\n- 질문에 바로 답하기\n- 관련 있는 근거만 사용하기\n- 필요할 때만 가정과 불확실성 언급하기\n- 사용자가 묻지 않은 run 요약 반복하지 않기\n- 저전압 누설 억제, 캐리어 손실 최소화, 터널링 전류 증가 같은 목표가 있으면 그 관점에서 원인, 해석, 실험 제안을 정리하기\n- 목표와 무관한 일반론보다 사용자의 실험 목적에 직접 연결되는 설명을 우선하기"
     )
     if run_dir is not None:
         artifact_context = _build_run_artifacts_context(run_dir)

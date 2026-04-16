@@ -42,6 +42,7 @@ def default_intent_profile(run_id: str) -> Dict[str, Any]:
     return {
         "run_id": run_id,
         "analysis_priority": None,
+        "research_goal": None,
         "focus_claims": [],
         "exclude_claims": [],
         "keep_open_claims": [],
@@ -382,8 +383,63 @@ def infer_structured_context_from_text(user_text: str) -> Dict[str, Any]:
     return conditions
 
 
+def extract_research_goal_from_text(user_text: str) -> str | None:
+    text = (user_text or "").strip()
+    if not text:
+        return None
+
+    lowered = text.lower()
+    goal_markers = (
+        "목적",
+        "목표",
+        "goal",
+        "aim",
+        "줄이는거",
+        "줄이고",
+        "낮추고",
+        "억제",
+        "증가",
+        "늘리",
+        "향상",
+        "개선",
+        "without carrier loss",
+        "캐리어 손실없이",
+        "캐리어 손실 없이",
+    )
+    domain_markers = (
+        "누설전류",
+        "leakage",
+        "턴온",
+        "turn-on",
+        "turn on",
+        "터널링",
+        "tunneling",
+        "전류",
+        "장벽",
+        "carrier",
+        "캐리어",
+    )
+    if not any(marker in lowered for marker in goal_markers):
+        return None
+    if not any(marker in lowered for marker in domain_markers):
+        return None
+    return text
+
+
+def resolve_research_goal(intent_profile: Dict[str, Any]) -> str:
+    research_goal = str(intent_profile.get("research_goal") or "").strip()
+    if research_goal:
+        return research_goal
+    for note in reversed(intent_profile.get("notes", [])):
+        candidate = extract_research_goal_from_text(str(note))
+        if candidate:
+            return candidate
+    return ""
+
+
 def infer_intent_from_text(user_text: str) -> Dict[str, Any]:
-    text = (user_text or "").lower()
+    raw_text = (user_text or "").strip()
+    text = raw_text.lower()
     inferred: Dict[str, Any] = {}
     if any(
         phrase in text
@@ -457,6 +513,11 @@ def infer_intent_from_text(user_text: str) -> Dict[str, Any]:
         term in text for term in ("exclude", "deprioritize", "빼", "배제", "제외")
     ):
         exclude_claims.append("iv_interpretation.fn_tunneling_asserted")
+
+    research_goal = extract_research_goal_from_text(raw_text)
+    if research_goal:
+        inferred["research_goal"] = research_goal
+        inferred.setdefault("analysis_priority", "next_experiment_planning")
 
     if focus_claims:
         inferred["focus_claims"] = _merge_unique([], focus_claims)
@@ -558,6 +619,7 @@ def _build_answer_context(
         "final_score": top.get("final_score", top.get("score")),
         "coverage": assess_ontology_coverage(snapshot, reranked_proposals),
         "confirmed_conditions": intent_profile.get("confirmed_conditions", {}) or {},
+        "research_goal": resolve_research_goal(intent_profile),
         "assumptions": top.get("sj_assumptions", []) or [],
         "required_features": top.get("required_features", []) or [],
         "matched": top.get("matched_features", []) or [],
@@ -601,11 +663,14 @@ def _render_turn_on_cause_answer(context: Dict[str, Any]) -> str:
 
 
 def _render_turn_on_reduction_answer(context: Dict[str, Any]) -> str:
+    research_goal = context.get("research_goal") or ""
     lines = [
         "턴온 전압을 낮추려면 초기 전류 주입을 막는 요인을 줄이는 방향으로 접근하는 것이 맞습니다.",
         "우선적으로 볼 변수는 장벽 높이, 유효 절연층 두께, 계면 trap/defect 상태, 전극 물질 조합입니다.",
         "실험적으로는 전극 변경, 절연층 두께 split, 계면 처리 전후 비교를 먼저 하는 것이 효율적입니다.",
     ]
+    if research_goal:
+        lines.insert(0, f"현재 사용자가 둔 연구 목표는 '{research_goal}' 이므로, 턴온만 낮추는 것이 아니라 저전압 누설과 고전계 터널링을 함께 봐야 합니다.")
     required_features = context.get("required_features", []) or []
     if required_features:
         lines.append(f"현재 상위 해석과 연결된 핵심 관측 feature는 {join_term_labels(required_features)} 이므로, 위 변수들을 바꿨을 때 그 패턴이 어떻게 이동하는지 같이 봐야 합니다.")
@@ -670,11 +735,14 @@ def _render_assumption_check_answer(context: Dict[str, Any]) -> str:
 
 
 def _render_next_experiment_answer(context: Dict[str, Any]) -> str:
+    research_goal = context.get("research_goal") or ""
     required_features = context.get("required_features", []) or []
     lines = [
         "다음 실험은 현재 상위 가설을 가장 잘 흔들거나 지지할 수 있는 변수부터 바꾸는 것이 좋습니다.",
         "우선순위는 온도 의존성 확인, sweep mode(DC/pulse) 비교, 전극 또는 절연층 두께 split입니다.",
     ]
+    if research_goal:
+        lines.insert(0, f"현재 실험 목표는 '{research_goal}' 이므로, 다음 실험도 그 목표를 직접 검증하는 방향으로 짜는 편이 맞습니다.")
     if required_features:
         lines.append(f"특히 {join_term_labels(required_features)} 같은 핵심 feature가 조건 변화에 따라 유지되는지 확인하는 것이 중요합니다.")
     _append_common_caveats(lines, context, "next_experiment")
@@ -685,7 +753,11 @@ def _render_generic_summary_answer(context: Dict[str, Any]) -> str:
     claim = context.get("claim_label") or "해석 후보 없음"
     final_score = context.get("final_score")
     matched = context.get("matched", []) or []
-    lines = [f"현재 run 기준 최상위 해석은 {claim}이고 score는 {final_score} 입니다."]
+    research_goal = context.get("research_goal") or ""
+    lines = []
+    if research_goal:
+        lines.append(f"현재 대화의 분석 목표는 '{research_goal}' 입니다.")
+    lines.append(f"현재 run 기준 최상위 해석은 {claim}이고 score는 {final_score} 입니다.")
     if matched:
         lines.append(f"현재 답변은 상위 해석과 일치하는 관측 feature인 {join_term_labels(matched)}을 기준으로 구성했습니다.")
     _append_common_caveats(lines, context, "generic_summary")
@@ -1244,6 +1316,9 @@ def update_intent_profile(run_dir: Path, chat_request: ChatTurnRequest) -> Dict[
     analysis_priority = update.get("analysis_priority") or contextual.get("analysis_priority") or inferred.get("analysis_priority")
     if analysis_priority:
         profile["analysis_priority"] = analysis_priority
+    research_goal = inferred.get("research_goal")
+    if isinstance(research_goal, str) and research_goal.strip():
+        profile["research_goal"] = research_goal.strip()
 
     merged_focus = list(update.get("focus_claims", [])) + list(contextual.get("focus_claims", [])) + list(inferred.get("focus_claims", []))
     merged_exclude = list(update.get("exclude_claims", [])) + list(contextual.get("exclude_claims", [])) + list(inferred.get("exclude_claims", []))
@@ -1298,6 +1373,10 @@ def update_intent_profile(run_dir: Path, chat_request: ChatTurnRequest) -> Dict[
         profile["notes"] = _merge_unique(profile.get("notes", []), [note.strip()])
     elif chat_request.user_text.strip():
         profile["notes"] = _merge_unique(profile.get("notes", []), [chat_request.user_text.strip()])
+    if not profile.get("research_goal"):
+        fallback_goal = extract_research_goal_from_text(chat_request.user_text)
+        if fallback_goal:
+            profile["research_goal"] = fallback_goal
 
     _apply_structured_answers(profile, chat_request.structured_answers)
 

@@ -1,0 +1,46 @@
+{
+  "metrics": {
+    "absI_decades_span": 28.142538760645678,
+    "v_knee": 1.8500000000000008,
+    "v_knee_criterion": "percentile_split_30"
+  },
+  "regimes": [
+    {
+      "name": "low_|V|",
+      "v_range": [
+        0.1,
+        1.8500000000000008
+      ],
+      "delta_decades_robust": 92.9062821392738,
+      "mean_slope_log_absI_per_logV": 38.55057893875147
+    },
+    {
+      "name": "high_|V|",
+      "v_range": [
+        1.9,
+        6.000000000000002
+      ],
+      "delta_decades_robust": 4.323175800154074,
+      "mean_slope_log_absI_per_logV": 8.589021829625462
+    }
+  ],
+  "llm_pattern": "The absolute current values decrease exponentially as voltage approaches zero from both negative and positive sides, spanning many orders of magnitude. The current magnitude ranges from approximately 2.4E-5 A at -6 V to about 2.2E-5 A at 6 V, with a minimum near zero voltage around 6.9E-103 A. The reciprocal of absolute voltage decreases linearly with increasing voltage magnitude. The natural logarithm of the ratio of absolute current to voltage squared decreases monotonically with decreasing voltage magnitude, reaching very large negative values near zero voltage. The device area and thickness remain constant throughout the data.",
+  "llm_keywords": [
+    {
+      "keyword": "exponential decrease of current near zero voltage",
+      "evidence": "Current magnitude decreases from about 2.4E-5 A at -6 V to approximately 6.9E-103 A near 0 V."
+    },
+    {
+      "keyword": "symmetry in current magnitude around zero voltage",
+      "evidence": "Current values at positive voltages mirror those at corresponding negative voltages, e.g., 2.4E-5 A at -6 V and 2.2E-5 A at 6 V."
+    },
+    {
+      "keyword": "monotonic decrease of ln(|I|/V^2) with decreasing voltage magnitude",
+      "evidence": "ln(|I|/V^2) decreases from about -14 at high voltage magnitude to approximately -230 near zero voltage."
+    },
+    {
+      "keyword": "constant device geometry",
+      "evidence": "Device_area is 20 um^2 and Device_thickness is 2 nm for all data points."
+    }
+  ]
+}
