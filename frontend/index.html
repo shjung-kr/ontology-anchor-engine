@@ -514,6 +514,7 @@
 
   <input type="file" id="fileInput" />
   <p class="hint" id="domainHint">Upload raw numeric experimental data (TXT / CSV).</p>
+  <input type="text" id="requestedRunIdInput" placeholder="Run Number / ID (예: exp-042)" />
 
   <textarea id="rawData" class="hidden" readonly
     placeholder="Uploaded raw data preview will appear here"></textarea>
@@ -752,6 +753,7 @@ const fileInput = document.getElementById("fileInput");
 const domainSelect = document.getElementById("domainSelect");
 const domainHint = document.getElementById("domainHint");
 const rawArea = document.getElementById("rawData");
+const requestedRunIdInput = document.getElementById("requestedRunIdInput");
 const analyzeView = document.getElementById("analyzeView");
 const historyView = document.getElementById("historyView");
 const compareView = document.getElementById("compareView");
@@ -2095,6 +2097,7 @@ function runEngine() {
     body: JSON.stringify({
       domain: domainSelect.value || "iv",
       raw_data: rawArea.value,
+      requested_run_id: requestedRunIdInput.value.trim() || null,
       metadata: {}
     })
   })

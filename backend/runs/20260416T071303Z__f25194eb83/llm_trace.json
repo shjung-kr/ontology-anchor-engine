@@ -1,0 +1,82 @@
+{
+  "used_llm": true,
+  "status": "ok",
+  "model": "gpt-4.1-mini",
+  "raw_response": "{\n  \"pattern\": \"The absolute current magnitude |I| decreases exponentially as voltage V approaches zero from negative values, spanning many orders of magnitude, and then increases symmetrically for positive voltages. The inverse of the absolute voltage 1/|V| decreases monotonically as |V| increases. The natural logarithm of |I|/V^2 decreases approximately linearly with increasing 1/|V|. The current magnitude |I| spans approximately 88 decades across the voltage range from -6 V to 6 V.\",\n  \"metrics\": {\n    \"absI_decades_span\": 88\n  },\n  \"keywords\": [\n    {\n      \"keyword\": \"exponential decrease of |I| near zero voltage\",\n      \"evidence\": \"At V = -0.1, |I| = 8.897350992969297e-103 A; at V = -6, |I| = 2.3994540300343092e-05 A\"\n    },\n    {\n      \"keyword\": \"symmetry of |I| about zero voltage\",\n      \"evidence\": \"At V = -0.1, |I| = 8.897350992969297e-103 A; at V = 0.1, |I| = 6.899103373692976e-103 A\"\n    },\n    {\n      \"keyword\": \"monotonic decrease of 1/|V| with increasing |V|\",\n      \"evidence\": \"1/|V| decreases from 0.1667 at |V|=6 to 10 at |V|=0.1\"\n    },\n    {\n      \"keyword\": \"linear decrease of ln(|I|/V^2) with increasing 1/|V|\",\n      \"evidence\": \"ln(|I|/V^2) decreases from about -14.22 at 1/|V|=0.1667 to about -230.38 at 1/|V|=10\"\n    },\n    {\n      \"keyword\": \"current magnitude |I| spans approximately 88 decades\",\n      \"evidence\": \"Maximum |I| ~ 2.4e-5 A at V=-6; minimum |I| ~ 8.9e-103 A near V=-0.1\"\n    }\n  ]\n}",
+  "selected_ids": {
+    "iv_regimes": [
+      "iv_regimes.high_field_regime",
+      "iv_regimes.low_field_regime"
+    ],
+    "iv_features": [
+      "iv_features.field_enhanced_current",
+      "iv_features.nonlinear_iv_regime"
+    ],
+    "assumption_ids": [
+      "measurement_assumption.current_noise_floor_present",
+      "physical_assumption.room_temperature_operation",
+      "physical_assumption.effective_potential_barrier_present",
+      "fn_assumption.high_field_barrier_thinning_applies",
+      "fn_assumption.field_estimation_e_equals_v_over_t",
+      "fn_assumption.fn_plot_linearity_indicates_dominant_fn_like_mechanism",
+      "fn_assumption.trap_assisted_contributions_are_minor_or_separable",
+      "fn_assumption.uniform_current_distribution_or_area_effective_constant"
+    ],
+    "sj_claims": [
+      "iv_interpretation.fn_tunneling_asserted"
+    ]
+  },
+  "evidence_fields": {
+    "llm_keywords": [
+      {
+        "keyword": "exponential decrease of |I| near zero voltage",
+        "evidence": "At V = -0.1, |I| = 8.897350992969297e-103 A; at V = -6, |I| = 2.3994540300343092e-05 A"
+      },
+      {
+        "keyword": "symmetry of |I| about zero voltage",
+        "evidence": "At V = -0.1, |I| = 8.897350992969297e-103 A; at V = 0.1, |I| = 6.899103373692976e-103 A"
+      },
+      {
+        "keyword": "monotonic decrease of 1/|V| with increasing |V|",
+        "evidence": "1/|V| decreases from 0.1667 at |V|=6 to 10 at |V|=0.1"
+      },
+      {
+        "keyword": "linear decrease of ln(|I|/V^2) with increasing 1/|V|",
+        "evidence": "ln(|I|/V^2) decreases from about -14.22 at 1/|V|=0.1667 to about -230.38 at 1/|V|=10"
+      },
+      {
+        "keyword": "current magnitude |I| spans approximately 88 decades",
+        "evidence": "Maximum |I| ~ 2.4e-5 A at V=-6; minimum |I| ~ 8.9e-103 A near V=-0.1"
+      }
+    ],
+    "metrics": {
+      "absI_decades_span": 28.142538760645678,
+      "v_knee": 1.8500000000000008,
+      "v_knee_criterion": "percentile_split_30"
+    },
+    "regimes": [
+      {
+        "name": "low_|V|",
+        "v_range": [
+          0.1,
+          1.8500000000000008
+        ],
+        "delta_decades_robust": 92.9062821392738,
+        "mean_slope_log_absI_per_logV": 38.55057893875147
+      },
+      {
+        "name": "high_|V|",
+        "v_range": [
+          1.9,
+          6.000000000000002
+        ],
+        "delta_decades_robust": 4.323175800154074,
+        "mean_slope_log_absI_per_logV": 8.589021829625462
+      }
+    ]
+  },
+  "prompt_hashes": {
+    "system_prompt_hash": "sha256:4f90418e8b649fc24ae105f31ab7c9d2dcfe178884ca508ebba15074a15d784a",
+    "user_template_hash": "sha256:54bbe84dda2695ed0338b1a575059550dfcf1c5cf7ac1b6c4b25c389eae44299"
+  }
+}

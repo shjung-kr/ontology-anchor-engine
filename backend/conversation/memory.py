@@ -10,6 +10,13 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
 from backend.conversation.models import ChatTurnRequest, DomainChatQuestion, IntentUpdate, StructuredAnswer
+from backend.domains.iv.common import (
+    format_confirmed_conditions_ko,
+    join_term_labels,
+    term_description,
+    term_label,
+)
+from backend.llm_adapter import answer_with_analysis_context
 
 
 RUNS_DIR = Path(__file__).resolve().parents[1] / "runs"
@@ -510,61 +517,222 @@ def classify_user_message(user_text: str, structured_answers: List[StructuredAns
     return "intent_update"
 
 
+def classify_direct_question(user_text: str) -> str:
+    text = (user_text or "").strip().lower()
+    if not text:
+        return "generic_summary"
+
+    if any(token in text for token in ("턴온", "turn-on", "turn on")):
+        if any(token in text for token in ("낮추", "줄이", "decrease", "lower", "reduce")):
+            return "turn_on_reduction"
+        if any(token in text for token in ("왜", "이유", "원인", "cause", "reason")):
+            return "turn_on_cause"
+        return "turn_on_meaning"
+
+    if any(token in text for token in ("다음 실험", "후속 실험", "추천", "next experiment")):
+        return "next_experiment"
+
+    if any(token in text for token in ("가정", "assumption")):
+        return "assumption_check"
+
+    if any(token in text for token in ("왜", "이유", "근거", "why", "reason", "basis")):
+        return "mechanism_why"
+
+    if any(token in text for token in ("무슨 뜻", "의미", "meaning", "what does")):
+        return "meaning_explanation"
+
+    return "generic_summary"
+
+
+def _build_answer_context(
+    snapshot: Dict[str, Any],
+    intent_profile: Dict[str, Any],
+    reranked_proposals: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    top = reranked_proposals[0] if reranked_proposals else {}
+    claim_id = str(top.get("claim_concept") or "")
+    return {
+        "top": top,
+        "claim_id": claim_id,
+        "claim_label": term_label(claim_id) if claim_id else "해석 후보 없음",
+        "final_score": top.get("final_score", top.get("score")),
+        "coverage": assess_ontology_coverage(snapshot, reranked_proposals),
+        "confirmed_conditions": intent_profile.get("confirmed_conditions", {}) or {},
+        "assumptions": top.get("sj_assumptions", []) or [],
+        "required_features": top.get("required_features", []) or [],
+        "matched": top.get("matched_features", []) or [],
+        "warnings": snapshot.get("measurement_validation", {}).get("warnings", []) or [],
+    }
+
+
+def _append_common_caveats(answer_lines: List[str], context: Dict[str, Any], question_type: str) -> None:
+    coverage = context.get("coverage", {}) or {}
+    confirmed_conditions = context.get("confirmed_conditions", {}) or {}
+    warnings = context.get("warnings", []) or []
+    assumptions = context.get("assumptions", []) or []
+
+    if coverage.get("status") != "sufficient":
+        answer_lines.append("다만 현재 근거는 확정 결론이라기보다 탐색형 해석으로 보는 편이 안전합니다.")
+    if question_type in {"mechanism_why", "generic_summary", "assumption_check"} and confirmed_conditions:
+        answer_lines.append(f"현재 확인된 조건은 다음과 같습니다: {format_confirmed_conditions_ko(confirmed_conditions)}.")
+    if warnings and question_type not in {"next_experiment"}:
+        answer_lines.append(f"또한 validation warning이 {len(warnings)}건 있어 측정 조건 점검도 병행하는 편이 좋습니다.")
+    if assumptions and question_type in {"mechanism_why", "generic_summary", "assumption_check"}:
+        answer_lines.append(f"확인 또는 배제가 필요한 대표 가정은 {join_term_labels(assumptions, max_items=2)} 입니다.")
+
+
+def _render_turn_on_cause_answer(context: Dict[str, Any]) -> str:
+    matched = context.get("matched", []) or []
+    assumptions = context.get("assumptions", []) or []
+    claim = context.get("claim_label") or "현재 상위 해석"
+    lines = [
+        "턴온 전압이 왜 그렇게 보이는지를 묻는 질문이라면, 지금은 메커니즘 이름보다 초기 전류 주입이 왜 늦게 시작되는지를 봐야 합니다.",
+        "현재 run에서는 비선형 I-V와 전계 강화 전류가 보여서, 낮은 전압에서는 전류가 잘 안 흐르다가 특정 전압 이상에서 급격히 커지는 장벽 지배 거동 가능성을 먼저 의심하게 됩니다.",
+    ]
+    if matched:
+        lines.append(f"이 판단의 직접 근거는 {join_term_labels(matched)} 입니다.")
+    if "physical_assumption.effective_potential_barrier_present" in set(assumptions):
+        lines.append("즉 턴온이 높게 보인다면 유효 장벽의 높이 또는 두께, 계면 상태, 전극과의 일함수 차이 같은 요소가 원인일 가능성이 큽니다.")
+    else:
+        lines.append("다만 현재 데이터만으로는 장벽 효과와 측정 조건 영향을 완전히 분리하긴 어렵습니다.")
+    lines.append(f"현재 최상위 해석이 {claim}인 것도, 이런 고전계 이후 급격한 전류 증가 패턴과 잘 맞기 때문입니다.")
+    _append_common_caveats(lines, context, "turn_on_cause")
+    return "\n".join(lines)
+
+
+def _render_turn_on_reduction_answer(context: Dict[str, Any]) -> str:
+    lines = [
+        "턴온 전압을 낮추려면 초기 전류 주입을 막는 요인을 줄이는 방향으로 접근하는 것이 맞습니다.",
+        "우선적으로 볼 변수는 장벽 높이, 유효 절연층 두께, 계면 trap/defect 상태, 전극 물질 조합입니다.",
+        "실험적으로는 전극 변경, 절연층 두께 split, 계면 처리 전후 비교를 먼저 하는 것이 효율적입니다.",
+    ]
+    required_features = context.get("required_features", []) or []
+    if required_features:
+        lines.append(f"현재 상위 해석과 연결된 핵심 관측 feature는 {join_term_labels(required_features)} 이므로, 위 변수들을 바꿨을 때 그 패턴이 어떻게 이동하는지 같이 봐야 합니다.")
+    _append_common_caveats(lines, context, "turn_on_reduction")
+    return "\n".join(lines)
+
+
+def _render_turn_on_meaning_answer(context: Dict[str, Any]) -> str:
+    lines = [
+        "턴온 전압은 전류가 눈에 띄게 증가하기 시작하는 기준 전압으로 이해하면 됩니다.",
+        "물리적으로는 그 전압 이하에서는 전하 주입이나 이동이 억제되어 있다가, 그 이상에서 장벽을 넘거나 터널링/주입이 쉬워지면서 전류가 급격히 커진다는 뜻으로 읽습니다.",
+        "그래서 턴온 전압 질문은 단순한 수치 하나보다 장벽, 계면, 두께, 전극 조건과 함께 해석해야 의미가 있습니다.",
+    ]
+    _append_common_caveats(lines, context, "turn_on_meaning")
+    return "\n".join(lines)
+
+
+def _render_mechanism_why_answer(context: Dict[str, Any]) -> str:
+    claim = context.get("claim_label") or "해석 후보 없음"
+    final_score = context.get("final_score")
+    matched = context.get("matched", []) or []
+    assumptions = context.get("assumptions", []) or []
+    lines = [f"현재 run 기준 최상위 해석은 {claim}이고 score는 {final_score} 입니다."]
+    if matched:
+        lines.append(f"이 해석이 올라온 직접 근거는 {join_term_labels(matched)} 입니다.")
+    if assumptions:
+        lines.append(f"다만 이 해석은 {join_term_labels(assumptions, max_items=3)} 같은 가정이 성립할 때 더 설득력이 생깁니다.")
+    _append_common_caveats(lines, context, "mechanism_why")
+    return "\n".join(lines)
+
+
+def _render_meaning_explanation_answer(context: Dict[str, Any]) -> str:
+    matched = context.get("matched", []) or []
+    lines = []
+    if matched:
+        lines.append(f"지금 중요하게 본 관측은 {join_term_labels(matched)} 입니다.")
+        detailed_feature_lines = []
+        for feature_id in matched[:2]:
+            description = term_description(str(feature_id))
+            if description:
+                detailed_feature_lines.append(description)
+        if detailed_feature_lines:
+            lines.append("쉽게 풀면, 현재 데이터에서는 " + " ".join(detailed_feature_lines))
+    else:
+        lines.append("현재 run에서 의미를 풀어 설명할 만한 핵심 feature가 아직 충분히 정리되지 않았습니다.")
+    _append_common_caveats(lines, context, "meaning_explanation")
+    return "\n".join(lines)
+
+
+def _render_assumption_check_answer(context: Dict[str, Any]) -> str:
+    assumptions = context.get("assumptions", []) or []
+    if not assumptions:
+        return "현재 상위 해석에 대해 별도로 확인이 필요한 대표 가정이 두드러지지 않습니다."
+
+    lines = ["현재 해석이 유지되려면 다음 가정들이 중요합니다."]
+    for assumption_id in assumptions[:2]:
+        label = term_label(str(assumption_id))
+        description = term_description(str(assumption_id))
+        lines.append(f"- {label}: {description or '설명 정보 없음'}")
+    _append_common_caveats(lines, context, "assumption_check")
+    return "\n".join(lines)
+
+
+def _render_next_experiment_answer(context: Dict[str, Any]) -> str:
+    required_features = context.get("required_features", []) or []
+    lines = [
+        "다음 실험은 현재 상위 가설을 가장 잘 흔들거나 지지할 수 있는 변수부터 바꾸는 것이 좋습니다.",
+        "우선순위는 온도 의존성 확인, sweep mode(DC/pulse) 비교, 전극 또는 절연층 두께 split입니다.",
+    ]
+    if required_features:
+        lines.append(f"특히 {join_term_labels(required_features)} 같은 핵심 feature가 조건 변화에 따라 유지되는지 확인하는 것이 중요합니다.")
+    _append_common_caveats(lines, context, "next_experiment")
+    return "\n".join(lines)
+
+
+def _render_generic_summary_answer(context: Dict[str, Any]) -> str:
+    claim = context.get("claim_label") or "해석 후보 없음"
+    final_score = context.get("final_score")
+    matched = context.get("matched", []) or []
+    lines = [f"현재 run 기준 최상위 해석은 {claim}이고 score는 {final_score} 입니다."]
+    if matched:
+        lines.append(f"현재 답변은 상위 해석과 일치하는 관측 feature인 {join_term_labels(matched)}을 기준으로 구성했습니다.")
+    _append_common_caveats(lines, context, "generic_summary")
+    return "\n".join(lines)
+
+
 def build_direct_answer(
     user_text: str,
     snapshot: Dict[str, Any],
     intent_profile: Dict[str, Any],
     reranked_proposals: List[Dict[str, Any]],
+    chat_history: List[Dict[str, Any]] | None = None,
+    run_dir: Path | None = None,
+    prefer_llm: bool = True,
 ) -> str:
     text = (user_text or "").strip()
     if not text:
         return ""
+    if prefer_llm:
+        llm_result = answer_with_analysis_context(
+            user_text=text,
+            snapshot=snapshot,
+            intent_profile=intent_profile,
+            reranked_proposals=reranked_proposals,
+            chat_history=chat_history,
+            run_dir=run_dir,
+        )
+        if llm_result.get("used_llm") and llm_result.get("answer"):
+            return str(llm_result["answer"]).strip()
+    question_type = classify_direct_question(text)
+    context = _build_answer_context(snapshot, intent_profile, reranked_proposals)
 
-    top = reranked_proposals[0] if reranked_proposals else {}
-    claim = top.get("claim_concept") or "해석 후보 없음"
-    final_score = top.get("final_score", top.get("score"))
-    coverage = assess_ontology_coverage(snapshot, reranked_proposals)
-    confirmed_conditions = intent_profile.get("confirmed_conditions", {}) or {}
-    assumptions = top.get("sj_assumptions", []) or []
-    required_features = top.get("required_features", []) or []
-    warnings = snapshot.get("measurement_validation", {}).get("warnings", []) or []
-
-    answer_lines: List[str] = []
-    answer_lines.append(f"현재 run 기준 최상위 해석은 `{claim}` 이고 score는 {final_score} 입니다.")
-    if coverage.get("status") != "sufficient":
-        answer_lines.append("다만 현재 ontology coverage가 충분하지 않아, 아래 답변은 확정 결론이 아니라 탐색형 가설로 읽는 편이 맞습니다.")
-
-    priority = intent_profile.get("analysis_priority")
-    if priority == "next_experiment_planning":
-        answer_lines.append("질문이 다음 실험 설계에 가깝기 때문에, 현재는 메커니즘 확정보다 구분 실험 제안 중심으로 답하는 것이 적절합니다.")
-    elif priority == "measurement_anomaly_diagnosis":
-        answer_lines.append("질문이 이상 진단 맥락으로 해석되므로, 메커니즘 결론보다 측정 검증 포인트를 먼저 보는 것이 맞습니다.")
-
-    if confirmed_conditions:
-        answer_lines.append(f"현재 확인된 조건은 {confirmed_conditions} 입니다.")
-    if warnings:
-        answer_lines.append(f"다만 validation warning이 {len(warnings)}건 있어 해석 전에 함께 점검하는 편이 좋습니다.")
-
-    if "turn-on voltage" in text.lower() or "턴온" in text or "turn on" in text.lower():
-        answer_lines.append("턴온 전압을 낮추는 방향을 보려면 장벽 높이/두께, 계면 상태, 전극 일함수 차이, 트랩 분포를 먼저 의심하는 것이 일반적입니다.")
-        answer_lines.append("현재 상위 해석이 FN 계열이라면, 다음으로는 전극 변경, 절연층 두께 변화, 온도 의존성 비교 실험이 우선순위가 높습니다.")
-    elif any(token in text.lower() for token in ("next experiment", "다음 실험", "후속 실험", "추천")):
-        answer_lines.append("다음 실험은 상위 가설을 구분할 수 있는 변수부터 바꾸는 것이 좋습니다.")
-        if required_features:
-            answer_lines.append(f"현재 상위 해석이 기대하는 핵심 feature는 {', '.join(required_features)} 입니다.")
-        answer_lines.append("권장 순서는 온도 의존성, sweep mode(DC/pulse), 전극 또는 두께 변경 비교입니다.")
-    elif any(token in text.lower() for token in ("why", "왜", "이유", "근거")):
-        matched = top.get("matched_features", []) or []
-        answer_lines.append(f"현재 해석이 올라온 직접 근거는 {', '.join(matched) if matched else 'matched feature 없음'} 입니다.")
-        if assumptions:
-            answer_lines.append(f"다만 이 해석은 {', '.join(assumptions[:3])} 같은 가정에 의존합니다.")
-    else:
-        matched = top.get("matched_features", []) or []
-        answer_lines.append(f"현재 답변은 상위 해석과 일치하는 관측 feature인 {', '.join(matched) if matched else '없음'}을 기준으로 구성했습니다.")
-        if assumptions:
-            answer_lines.append(f"확인 또는 배제가 필요한 대표 가정은 {', '.join(assumptions[:2])} 입니다.")
-
-    return "\n".join(answer_lines)
+    if question_type == "turn_on_cause":
+        return _render_turn_on_cause_answer(context)
+    if question_type == "turn_on_reduction":
+        return _render_turn_on_reduction_answer(context)
+    if question_type == "turn_on_meaning":
+        return _render_turn_on_meaning_answer(context)
+    if question_type == "next_experiment":
+        return _render_next_experiment_answer(context)
+    if question_type == "assumption_check":
+        return _render_assumption_check_answer(context)
+    if question_type == "mechanism_why":
+        return _render_mechanism_why_answer(context)
+    if question_type == "meaning_explanation":
+        return _render_meaning_explanation_answer(context)
+    return _render_generic_summary_answer(context)
 
 
 def assess_ontology_coverage(snapshot: Dict[str, Any], proposals: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -1388,19 +1556,19 @@ def rerank_proposals_with_intent(
                 {
                     "type": "curated_overlay_claim",
                     "delta": delta,
-                    "reason": f"Curated overlay support_count={overlay_claim.get('support_count')}.",
+                    "reason": f"검토된 overlay에서 같은 해석을 지지한 run이 {overlay_claim.get('support_count')}개 있습니다.",
                 }
             )
 
         if claim in focus_claims:
             score += 3.0
-            adjustments.append({"type": "focus_claim", "delta": 3.0, "reason": "User asked to prioritize this interpretation."})
+            adjustments.append({"type": "focus_claim", "delta": 3.0, "reason": "사용자가 이 해석을 우선해서 보길 원했습니다."})
         if claim in keep_open_claims:
             score += 1.0
-            adjustments.append({"type": "keep_open", "delta": 1.0, "reason": "User wants to keep this candidate active."})
+            adjustments.append({"type": "keep_open", "delta": 1.0, "reason": "사용자가 이 후보를 계속 열어 두길 원했습니다."})
         if claim in exclude_claims:
             score -= 5.0
-            adjustments.append({"type": "exclude_claim", "delta": -5.0, "reason": "User asked to de-prioritize this interpretation."})
+            adjustments.append({"type": "exclude_claim", "delta": -5.0, "reason": "사용자가 이 해석의 우선순위를 낮추길 원했습니다."})
 
         if analysis_priority == "measurement_anomaly_diagnosis":
             validation_penalty = len(proposal.get("matched_features", []) or []) * -0.1
@@ -1410,7 +1578,7 @@ def rerank_proposals_with_intent(
                     {
                         "type": "analysis_priority",
                         "delta": validation_penalty,
-                        "reason": "Anomaly diagnosis mode reduces confidence in mechanism-first ranking.",
+                        "reason": "측정 이상 진단을 우선하므로 메커니즘 중심 랭킹을 조금 낮췄습니다.",
                     }
                 )
         elif analysis_priority == "next_experiment_planning":
@@ -1421,7 +1589,7 @@ def rerank_proposals_with_intent(
                     {
                         "type": "analysis_priority",
                         "delta": planning_bonus,
-                        "reason": "Next-experiment planning favors hypotheses with clear follow-up discriminators.",
+                        "reason": "다음 실험 설계 목적이므로 구분 실험을 제안하기 쉬운 가설에 가점을 주었습니다.",
                     }
                 )
 
@@ -1429,7 +1597,7 @@ def rerank_proposals_with_intent(
             if "physical_assumption.room_temperature_operation" in set(proposal.get("sj_assumptions", []) or []):
                 score += 1.0
                 adjustments.append(
-                    {"type": "confirmed_condition", "delta": 1.0, "reason": "User confirmed room-temperature operation."}
+                    {"type": "confirmed_condition", "delta": 1.0, "reason": "사용자가 상온 측정 조건을 확인했습니다."}
                 )
 
         for assumption_id in proposal.get("sj_assumptions", []) or []:
@@ -1441,20 +1609,20 @@ def rerank_proposals_with_intent(
                     {
                         "type": "curated_overlay_assumption",
                         "delta": delta,
-                        "reason": f"Curated overlay assumption support_count={overlay_assumption.get('support_count')}.",
+                        "reason": f"검토된 overlay에서 같은 가정을 지지한 run이 {overlay_assumption.get('support_count')}개 있습니다.",
                     }
                 )
 
             state = assumption_states.get(assumption_id)
             if state == "confirmed":
                 score += 0.75
-                adjustments.append({"type": "confirmed_assumption", "delta": 0.75, "reason": f"User confirmed assumption {assumption_id}."})
+                adjustments.append({"type": "confirmed_assumption", "delta": 0.75, "reason": f"사용자가 {term_label(assumption_id)}을(를) 확인했습니다."})
             elif state == "approved":
                 score += 1.5
-                adjustments.append({"type": "approved_assumption", "delta": 1.5, "reason": f"User approved assumption {assumption_id} for overlay consideration."})
+                adjustments.append({"type": "approved_assumption", "delta": 1.5, "reason": f"사용자가 {term_label(assumption_id)}을(를) overlay 후보로 승인했습니다."})
             elif state == "rejected":
                 score -= 2.0
-                adjustments.append({"type": "rejected_assumption", "delta": -2.0, "reason": f"User rejected assumption {assumption_id}."})
+                adjustments.append({"type": "rejected_assumption", "delta": -2.0, "reason": f"사용자가 {term_label(assumption_id)}을(를) 배제했습니다."})
 
         reranked_item = dict(proposal)
         reranked_item["base_score"] = base_score
@@ -1579,17 +1747,19 @@ def generate_follow_up_questions(snapshot: Dict[str, Any], intent_profile: Dict[
         except Exception:
             score_gap = 999.0
         if score_gap <= 1.0:
+            first_label = term_label(str(first.get("claim_concept") or ""))
+            second_label = term_label(str(second.get("claim_concept") or ""))
             questions.append(
                 DomainChatQuestion(
                     question_id="proposals.primary_focus",
                     category="competing_proposal_disambiguation",
-                    prompt=f"{first.get('claim_concept')}와 {second.get('claim_concept')} 중 어느 해석을 더 집중해서 보고 싶으신가요?",
+                    prompt=f"{first_label}와 {second_label} 중 어느 해석을 더 집중해서 보고 싶으신가요?",
                     reason="상위 제안들의 점수 차이가 작아서, 여기서는 사용자 선호를 반영해도 안전합니다.",
                     target_ids=[str(first.get("claim_concept") or ""), str(second.get("claim_concept") or "")],
                     expected_answer_kind="single_select",
                     options=[
-                        {"id": str(first.get("claim_concept") or ""), "label": str(first.get("claim_concept") or "")},
-                        {"id": str(second.get("claim_concept") or ""), "label": str(second.get("claim_concept") or "")},
+                        {"id": str(first.get("claim_concept") or ""), "label": first_label},
+                        {"id": str(second.get("claim_concept") or ""), "label": second_label},
                     ],
                 )
             )
@@ -1597,16 +1767,21 @@ def generate_follow_up_questions(snapshot: Dict[str, Any], intent_profile: Dict[
     top = proposals[0] if proposals else {}
     for index, assumption_id in enumerate((top.get("sj_assumptions", []) or [])[:2]):
         if assumption_id not in assumption_states:
+            assumption_label = term_label(str(assumption_id))
+            assumption_desc = term_description(str(assumption_id))
+            prompt = f"{assumption_label}을(를) 확인할지, 배제할지, overlay 후보로 승인할지 알려주세요."
+            if assumption_desc:
+                prompt += f" {assumption_desc}"
             questions.append(
                 DomainChatQuestion(
                     question_id=f"assumption.{index + 1}",
                     category="assumption_confirmation",
-                    prompt=f"`{assumption_id}` 가정을 확인할지, 배제할지, overlay 후보로 승인할지 알려주세요.",
+                    prompt=prompt,
                     reason="현재 최상위 해석은 아직 사용자 확인이 없는 가정에 의존하고 있습니다.",
                     target_ids=[assumption_id],
                     expected_answer_kind="confirm",
                     options=[
-                        {"id": assumption_id, "label": "이 가정 확인 또는 승인"},
+                        {"id": assumption_id, "label": f"{assumption_label} 확인 또는 승인"},
                     ],
                 )
             )

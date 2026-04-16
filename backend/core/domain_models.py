@@ -14,6 +14,10 @@ class DomainExecutionRequest(BaseModel):
 
     domain: str = Field(default="iv", description="실행할 도메인 식별자")
     raw_data: str = Field(description="분석할 원시 데이터")
+    requested_run_id: Optional[str] = Field(
+        default=None,
+        description="사용자가 직접 지정하는 run 식별자. 비어 있으면 자동 생성된다.",
+    )
     metadata: Dict[str, Any] = Field(default_factory=dict, description="선택적 메타데이터")
 
 
@@ -31,4 +35,3 @@ class DomainSummary(BaseModel):
     ontology_dir: Optional[str] = None
     prompt_dir: Optional[str] = None
     tags: List[str] = Field(default_factory=list)
-

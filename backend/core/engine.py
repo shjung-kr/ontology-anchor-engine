@@ -15,7 +15,11 @@ def run_domain_engine(request: DomainExecutionRequest) -> Dict[str, Any]:
 
     config = get_domain_config(request.domain)
     runner = resolve_domain_runner(request.domain)
-    result = runner(raw_data=request.raw_data, metadata=request.metadata)
+    metadata = dict(request.metadata or {})
+    if request.requested_run_id:
+        metadata["requested_run_id"] = request.requested_run_id
+
+    result = runner(raw_data=request.raw_data, metadata=metadata)
 
     if not isinstance(result, dict):
         raise ValueError(f"domain runner must return dict: {request.domain}")
@@ -31,4 +35,3 @@ def run_domain_engine(request: DomainExecutionRequest) -> Dict[str, Any]:
         **result["domain_config"],
     }
     return result
-

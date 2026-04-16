@@ -1,0 +1,897 @@
+{
+  "generated_at_utc": "2026-04-16T07:30:52Z",
+  "benchmark_file": "/home/shjung/projects/ontology-anchor-engine/data/evals/chat_eval_questions.json",
+  "judge_mode": "heuristic",
+  "strategies": {
+    "rule_based": {
+      "summary": {
+        "case_count": 10,
+        "average_scores": {
+          "merged": {
+            "question_fit": 3.9,
+            "evidence_use": 2.3,
+            "depth": 3.3,
+            "accuracy_guardedness": 5,
+            "naturalness": 4.6,
+            "actionability": 3.4
+          },
+          "heuristic": {
+            "question_fit": 3.9,
+            "evidence_use": 2.3,
+            "depth": 3.3,
+            "accuracy_guardedness": 5,
+            "naturalness": 4.6,
+            "actionability": 3.4
+          },
+          "llm": null
+        },
+        "by_category": {
+          "artifact_check": {
+            "question_fit": 2,
+            "evidence_use": 1,
+            "depth": 2,
+            "accuracy_guardedness": 5,
+            "naturalness": 4,
+            "actionability": 3
+          },
+          "assumption_check": {
+            "question_fit": 5,
+            "evidence_use": 3,
+            "depth": 4,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3
+          },
+          "meaning_explanation": {
+            "question_fit": 3.333,
+            "evidence_use": 2,
+            "depth": 2.667,
+            "accuracy_guardedness": 5,
+            "naturalness": 4.667,
+            "actionability": 3
+          },
+          "mechanism_why": {
+            "question_fit": 3.5,
+            "evidence_use": 2,
+            "depth": 3.5,
+            "accuracy_guardedness": 5,
+            "naturalness": 4,
+            "actionability": 3
+          },
+          "next_experiment": {
+            "question_fit": 5,
+            "evidence_use": 3,
+            "depth": 3,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 5
+          },
+          "turn_on_cause": {
+            "question_fit": 5,
+            "evidence_use": 3,
+            "depth": 5,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3
+          },
+          "turn_on_reduction": {
+            "question_fit": 5,
+            "evidence_use": 3,
+            "depth": 4,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 5
+          }
+        },
+        "ontology_leak_rate": 0.0,
+        "repeated_opening_rate": 0.4
+      },
+      "cases": [
+        {
+          "case_id": "fn_why_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "mechanism_why",
+          "question": "왜 이 run을 Fowler–Nordheim 터널링으로 보는 거야?",
+          "answer": "현재 run 기준 최상위 해석은 Fowler–Nordheim 터널링이고 score는 2.0 입니다.\n이 해석이 올라온 직접 근거는 전계 강화 전류, 비선형 I–V 구간 입니다.\n다만 이 해석은 상온 동작 가정, 유효 퍼텐셜 장벽 존재 가정, 고전계 장벽 박화(얇아짐) 적용 가정 같은 가정이 성립할 때 더 설득력이 생깁니다.\n확인 또는 배제가 필요한 대표 가정은 상온 동작 가정, 유효 퍼텐셜 장벽 존재 가정 입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 4,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 1.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 5,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 4,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "turn_on_cause_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "turn_on_cause",
+          "question": "턴온 전압이 왜 높게 보일 수 있는지 설명해줘.",
+          "answer": "턴온 전압이 왜 그렇게 보이는지를 묻는 질문이라면, 지금은 메커니즘 이름보다 초기 전류 주입이 왜 늦게 시작되는지를 봐야 합니다.\n현재 run에서는 비선형 I-V와 전계 강화 전류가 보여서, 낮은 전압에서는 전류가 잘 안 흐르다가 특정 전압 이상에서 급격히 커지는 장벽 지배 거동 가능성을 먼저 의심하게 됩니다.\n이 판단의 직접 근거는 전계 강화 전류, 비선형 I–V 구간 입니다.\n즉 턴온이 높게 보인다면 유효 장벽의 높이 또는 두께, 계면 상태, 전극과의 일함수 차이 같은 요소가 원인일 가능성이 큽니다.\n현재 최상위 해석이 Fowler–Nordheim 터널링인 것도, 이런 고전계 이후 급격한 전류 증가 패턴과 잘 맞기 때문입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 1.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 5,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "turn_on_reduce_01",
+          "run_id": "20260415T081334Z__b49215b5c3",
+          "category": "turn_on_reduction",
+          "question": "턴온 전압을 낮추려면 어떤 실험 변수를 먼저 바꾸는 게 좋을까?",
+          "answer": "턴온 전압을 낮추려면 초기 전류 주입을 막는 요인을 줄이는 방향으로 접근하는 것이 맞습니다.\n우선적으로 볼 변수는 장벽 높이, 유효 절연층 두께, 계면 trap/defect 상태, 전극 물질 조합입니다.\n실험적으로는 전극 변경, 절연층 두께 split, 계면 처리 전후 비교를 먼저 하는 것이 효율적입니다.\n현재 상위 해석과 연결된 핵심 관측 feature는 전계 강화 전류, 비선형 I–V 구간 이므로, 위 변수들을 바꿨을 때 그 패턴이 어떻게 이동하는지 같이 봐야 합니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 5
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 0.75,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 4,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 5
+            }
+          }
+        },
+        {
+          "case_id": "meaning_feature_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "meaning_explanation",
+          "question": "전계 강화 전류라는 말이 정확히 무슨 뜻이야?",
+          "answer": "지금 중요하게 본 관측은 전계 강화 전류, 비선형 I–V 구간 입니다.\n쉽게 풀면, 현재 데이터에서는 High-|V| region shows strong field dependence: large decade change and steep log-log slope. I-V behavior is considered nonlinear when log-log slope differs significantly from ~1.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 3,
+              "evidence_use": 2,
+              "depth": 2,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 0.333,
+              "should_ratio": 0.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 3,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 3,
+              "evidence_use": 2,
+              "depth": 2,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "meaning_slope_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "meaning_explanation",
+          "question": "log-log 기울기가 크다는 건 무슨 의미야?",
+          "answer": "지금 중요하게 본 관측은 전계 강화 전류, 비선형 I–V 구간 입니다.\n쉽게 풀면, 현재 데이터에서는 High-|V| region shows strong field dependence: large decade change and steep log-log slope. I-V behavior is considered nonlinear when log-log slope differs significantly from ~1.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 3,
+              "evidence_use": 2,
+              "depth": 2,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 0.333,
+              "should_ratio": 0.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 3,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 3,
+              "evidence_use": 2,
+              "depth": 2,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "assumption_barrier_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "assumption_check",
+          "question": "유효 퍼텐셜 장벽 존재 가정이 왜 필요한데?",
+          "answer": "현재 해석이 유지되려면 다음 가정들이 중요합니다.\n- 상온 동작 가정: 소자가 상온 근처에서 동작하여 열적 평형 조건이 성립하며 극저온 또는 고온 효과가 수송 거동을 지배하지 않는다고 가정하는 전제.\n- 유효 퍼텐셜 장벽 존재 가정: 계면 또는 접촉부에 유효한 퍼텐셜 장벽이 존재하여 쇼트키 방출, 열전자 방출, 터널링과 같은 장벽 지배 수송 메커니즘을 고려할 수 있다고 가정하는 전제.\n확인 또는 배제가 필요한 대표 가정은 상온 동작 가정, 유효 퍼텐셜 장벽 존재 가정 입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 1.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 4,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "next_experiment_01",
+          "run_id": "20260415T081334Z__b49215b5c3",
+          "category": "next_experiment",
+          "question": "이 해석을 검증하려면 다음 실험을 무엇부터 해야 할까?",
+          "answer": "다음 실험은 현재 상위 가설을 가장 잘 흔들거나 지지할 수 있는 변수부터 바꾸는 것이 좋습니다.\n우선순위는 온도 의존성 확인, sweep mode(DC/pulse) 비교, 전극 또는 절연층 두께 split입니다.\n특히 전계 강화 전류, 비선형 I–V 구간 같은 핵심 feature가 조건 변화에 따라 유지되는지 확인하는 것이 중요합니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 3,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 5
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 0.75,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 3,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 3,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 5
+            }
+          }
+        },
+        {
+          "case_id": "artifact_check_01",
+          "run_id": "20260415T060959Z__5e8eb4bca1",
+          "category": "artifact_check",
+          "question": "이 데이터에서 measurement artifact 가능성도 있는지 봐줘.",
+          "answer": "현재 run 기준 최상위 해석은 해석 후보 없음이고 score는 None 입니다.\n다만 현재 근거는 확정 결론이라기보다 탐색형 해석으로 보는 편이 안전합니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 2,
+              "evidence_use": 1,
+              "depth": 2,
+              "accuracy_guardedness": 5,
+              "naturalness": 4,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 0.0,
+              "should_ratio": 0.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 2,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 2,
+              "evidence_use": 1,
+              "depth": 2,
+              "accuracy_guardedness": 5,
+              "naturalness": 4,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "alt_hypothesis_01",
+          "run_id": "20260414T080621Z__b49215b5c3",
+          "category": "mechanism_why",
+          "question": "현재 상위 해석 말고 다른 가능성도 남아 있어?",
+          "answer": "현재 run 기준 최상위 해석은 Fowler–Nordheim 터널링이고 score는 2.0 입니다.\n현재 답변은 상위 해석과 일치하는 관측 feature인 전계 강화 전류, 비선형 I–V 구간을 기준으로 구성했습니다.\n확인 또는 배제가 필요한 대표 가정은 상온 동작 가정, 유효 퍼텐셜 장벽 존재 가정 입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 2,
+              "evidence_use": 1,
+              "depth": 3,
+              "accuracy_guardedness": 5,
+              "naturalness": 4,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 0.0,
+              "should_ratio": 0.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 4,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 2,
+              "evidence_use": 1,
+              "depth": 3,
+              "accuracy_guardedness": 5,
+              "naturalness": 4,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "condition_effect_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "meaning_explanation",
+          "question": "상온이라는 조건이 왜 이 해석에 영향을 주는 거야?",
+          "answer": "현재 run 기준 최상위 해석은 Fowler–Nordheim 터널링이고 score는 2.0 입니다.\n이 해석이 올라온 직접 근거는 전계 강화 전류, 비선형 I–V 구간 입니다.\n다만 이 해석은 상온 동작 가정, 유효 퍼텐셜 장벽 존재 가정, 고전계 장벽 박화(얇아짐) 적용 가정 같은 가정이 성립할 때 더 설득력이 생깁니다.\n확인 또는 배제가 필요한 대표 가정은 상온 동작 가정, 유효 퍼텐셜 장벽 존재 가정 입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 4,
+              "evidence_use": 2,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 4,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 0.667,
+              "should_ratio": 0.5,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 5,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 4,
+              "evidence_use": 2,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 4,
+              "actionability": 3
+            }
+          }
+        }
+      ]
+    },
+    "llm_context": {
+      "summary": {
+        "case_count": 10,
+        "average_scores": {
+          "merged": {
+            "question_fit": 4.5,
+            "evidence_use": 2.7,
+            "depth": 4.3,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3.3
+          },
+          "heuristic": {
+            "question_fit": 4.5,
+            "evidence_use": 2.7,
+            "depth": 4.3,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3.3
+          },
+          "llm": null
+        },
+        "by_category": {
+          "artifact_check": {
+            "question_fit": 5,
+            "evidence_use": 3,
+            "depth": 4,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3
+          },
+          "assumption_check": {
+            "question_fit": 5,
+            "evidence_use": 3,
+            "depth": 4,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3
+          },
+          "meaning_explanation": {
+            "question_fit": 5,
+            "evidence_use": 3,
+            "depth": 5,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3
+          },
+          "mechanism_why": {
+            "question_fit": 4,
+            "evidence_use": 2.5,
+            "depth": 4.5,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3
+          },
+          "next_experiment": {
+            "question_fit": 4,
+            "evidence_use": 2,
+            "depth": 2,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 5
+          },
+          "turn_on_cause": {
+            "question_fit": 4,
+            "evidence_use": 3,
+            "depth": 5,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 3
+          },
+          "turn_on_reduction": {
+            "question_fit": 4,
+            "evidence_use": 2,
+            "depth": 4,
+            "accuracy_guardedness": 5,
+            "naturalness": 5,
+            "actionability": 4
+          }
+        },
+        "ontology_leak_rate": 0.0,
+        "repeated_opening_rate": 0.0
+      },
+      "cases": [
+        {
+          "case_id": "fn_why_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "mechanism_why",
+          "question": "왜 이 run을 Fowler–Nordheim 터널링으로 보는 거야?",
+          "answer": "이 run을 Fowler–Nordheim 터널링으로 보는 이유는 다음과 같습니다.  \n상온에서 정상 상태 DC sweep 측정 조건 하에서, I–V 곡선이 저전압 구간에서는 직접 터널링, 고전압 구간에서는 전계 강화 전류가 나타나는 비선형 구간을 보입니다.  \n특히, 고전압 영역에서 전류가 전계에 강하게 의존하며(log-log slope 약 8.6), FN 플롯에서 근사 선형성을 보여 FN 터널링 지배를 시사합니다.  \n또한, 유효 퍼텐셜 장벽과 고전계 장벽 얇아짐 가정을 적용해 이 메커니즘이 타당하다고 판단했습니다.  \n즉, 전류의 비선형성 및 전계 강화 특성, 그리고 FN 플롯 선형성 근거로 Fowler–Nordheim 터널링으로 해석하는 것입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 1.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 6,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "turn_on_cause_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "turn_on_cause",
+          "question": "턴온 전압이 왜 높게 보일 수 있는지 설명해줘.",
+          "answer": "턴온 전압이 높게 보일 수 있는 이유는, 소자 내에 유효한 퍼텐셜 장벽이 존재하고(유효 퍼텐셜 장벽 존재 가정), 이 장벽을 전계가 충분히 높아야 얇게 만들어서 포울러-노르드하임(Fowler–Nordheim) 터널링이 가능하기 때문입니다. 즉, 낮은 전압 구간에서는 직접 터널링이나 누설 전류가 지배적이지만, 고전계가 형성되어 장벽이 얇아지는 고전압 구간에서야 전류가 급격히 증가하는 전계 강화 전류가 나타나면서 턴온이 이루어집니다. 따라서 장벽 높이와 두께, 그리고 전계 강도가 턴온 전압을 결정짓는 주요 원인입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 4,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 0.25,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 3,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 4,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "turn_on_reduce_01",
+          "run_id": "20260415T081334Z__b49215b5c3",
+          "category": "turn_on_reduction",
+          "question": "턴온 전압을 낮추려면 어떤 실험 변수를 먼저 바꾸는 게 좋을까?",
+          "answer": "턴온 전압을 낮추려면 우선 절연층 두께를 줄이거나 전극의 일함수(work function)를 낮추는 방향으로 실험 변수를 조절하는 것이 효과적입니다.  \n- 절연층 두께 감소: 전계가 같은 전압에서 더 강해져 터널링이 더 낮은 전압에서 시작됩니다.  \n- 전극 일함수 조절: 장벽 높이를 낮추어 터널링 장벽을 얇고 낮게 만들어 턴온 전압을 낮출 수 있습니다.  \n\n이 두 변수를 2단계 이상으로 나누어 비교 실험하면 터널링 특성 변화와 턴온 전압 이동을 명확히 확인할 수 있습니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 4,
+              "evidence_use": 2,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 4
+            },
+            "heuristic_notes": {
+              "must_ratio": 0.667,
+              "should_ratio": 0.5,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 4,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 4,
+              "evidence_use": 2,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 4
+            }
+          }
+        },
+        {
+          "case_id": "meaning_feature_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "meaning_explanation",
+          "question": "전계 강화 전류라는 말이 정확히 무슨 뜻이야?",
+          "answer": "전계 강화 전류란, 전압이 커질수록 전계(전기장)에 의해 전류가 급격히 증가하는 현상을 말합니다. 구체적으로는 높은 전압 구간에서 전류가 전계에 매우 민감하게 반응해 로그-로그 그래프에서 기울기가 매우 가파르게 나타나는 비선형 전류 증가를 뜻합니다. 이는 전자가 퍼텐셜 장벽을 터널링해 흐르는 Fowler–Nordheim 터널링과 같은 메커니즘에서 주로 관찰됩니다. 쉽게 말해, 전계가 강해지면 전자가 장벽을 더 쉽게 통과해 전류가 크게 늘어나는 현상입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 0.75,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 4,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "meaning_slope_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "meaning_explanation",
+          "question": "log-log 기울기가 크다는 건 무슨 의미야?",
+          "answer": "log-log 기울기가 크다는 것은 전류가 전압에 대해 매우 빠르고 강하게 증가한다는 뜻입니다. 즉, 전류가 전압의 거듭제곱 이상의 비선형적이고 급격한 증가를 보이며, 이는 전계 강화 전류 현상과 연결됩니다. 이번 데이터에서는 log-log 기울기가 38.55로 매우 커서, 전계가 커질수록 전류가 폭발적으로 증가하는 포울러–노르드하임 터널링 같은 터널링 메커니즘이 지배적임을 시사합니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 0.5,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 4,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "assumption_barrier_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "assumption_check",
+          "question": "유효 퍼텐셜 장벽 존재 가정이 왜 필요한데?",
+          "answer": "유효 퍼텐셜 장벽 존재 가정은 계면이나 접촉부에 실제로 전자 이동을 막는 장벽이 있어서, 쇼트키 방출, 열전자 방출, 터널링 같은 장벽 지배 수송 메커니즘을 고려할 수 있게 하기 위해 필요합니다. 이 가정이 없으면 전류가 단순히 저항성 수송이나 다른 비장벽 메커니즘으로 해석될 수 있어, Fowler–Nordheim 터널링 같은 장벽 터널링 해석이 성립하지 않습니다. 즉, 비선형 I–V 특성과 전계 강화 전류가 관찰된 현상을 유효한 장벽이 존재한다는 전제로 설명하기 위해 꼭 필요한 전제입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 1.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 3,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "next_experiment_01",
+          "run_id": "20260415T081334Z__b49215b5c3",
+          "category": "next_experiment",
+          "question": "이 해석을 검증하려면 다음 실험을 무엇부터 해야 할까?",
+          "answer": "터널링이 낮은 전압에서 발생하는지 검증하려면, 절연층 두께를 2단계 이상 다르게 한 샘플들을 비교 측정하고, 전극의 일함수(work function)가 다른 조합도 함께 비교하는 실험을 먼저 수행하세요.  \n이렇게 하면 두께나 전극 재료 변화에 따라 터널링 전압 문턱(턴온 전압)이나 고전계 구간의 기울기가 체계적으로 변하는지 확인할 수 있어, Fowler–Nordheim 터널링 가설을 직접 검증하는 데 효과적입니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 4,
+              "evidence_use": 2,
+              "depth": 2,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 5
+            },
+            "heuristic_notes": {
+              "must_ratio": 0.667,
+              "should_ratio": 0.5,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 2,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 4,
+              "evidence_use": 2,
+              "depth": 2,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 5
+            }
+          }
+        },
+        {
+          "case_id": "artifact_check_01",
+          "run_id": "20260415T060959Z__5e8eb4bca1",
+          "category": "artifact_check",
+          "question": "이 데이터에서 measurement artifact 가능성도 있는지 봐줘.",
+          "answer": "해당 데이터에서는 측정 아티팩트 가능성을 완전히 배제할 수는 없으나, 현재까지 데이터 무결성 검증(기본 무결성, 동적 범위, sweep 유무, monotonic sweep 등)에서 오류나 경고가 없고, 전류 값도 넓은 동적 범위(약 9.9 데케이드)를 보여 정상적인 측정으로 판단됩니다. 다만, 아주 작은 전류 구간에서는 계측기 노이즈 플로어 또는 분해능 한계 영향으로 왜곡 가능성이 있다는 가정이 있습니다. 따라서 저전류 영역에서의 미세한 거동은 아티팩트일 가능성을 염두에 두고 추가 검증(예: 온도 의존성 측정, 반복 측정, 계면 처리 전후 비교 등)을 권장합니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 0.5,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 4,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "alt_hypothesis_01",
+          "run_id": "20260414T080621Z__b49215b5c3",
+          "category": "mechanism_why",
+          "question": "현재 상위 해석 말고 다른 가능성도 남아 있어?",
+          "answer": "현재 최상위 해석은 Fowler–Nordheim 터널링이지만, 저전압 영역에서는 누설 전류 지배 수송(leakage dominated transport)도 함께 고려되고 있습니다. 즉, FN 터널링 외에 저전계 영역에서 다른 메커니즘(누설 전류)이 존재할 가능성이 남아 있습니다. 추가로 온도 의존성 측정이나 두께/전극 스플릿 실험을 통해 다른 후보 메커니즘 가능성을 더 명확히 검증할 수 있습니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 3,
+              "evidence_use": 2,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 0.5,
+              "should_ratio": 0.0,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 3,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 3,
+              "evidence_use": 2,
+              "depth": 4,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        },
+        {
+          "case_id": "condition_effect_01",
+          "run_id": "20260415T085909Z__f25194eb83",
+          "category": "meaning_explanation",
+          "question": "상온이라는 조건이 왜 이 해석에 영향을 주는 거야?",
+          "answer": "상온 조건 가정은 소자가 열적 평형 상태에 있다는 전제를 의미합니다. 즉, 극저온이나 고온에서 나타날 수 있는 온도 의존적 수송 현상(예: 열에 의한 전자 에너지 분포 변화, 열 활성화 수송 등)이 지배적이지 않다는 뜻입니다. 따라서 상온 가정을 통해 Fowler–Nordheim 터널링 해석에서 전류 증가가 주로 전계 강화 효과에 의한 터널링 메커니즘임을 신뢰할 수 있습니다. 만약 온도가 크게 달라지면 터널링 외에 열전자 방출이나 트랩 보조 수송 등이 달라질 수 있어 해석 결과가 달라질 수 있으므로, 상온 가정은 해석의 타당성을 유지하는 데 중요합니다.",
+          "scores": {
+            "heuristic": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            },
+            "heuristic_notes": {
+              "must_ratio": 1.0,
+              "should_ratio": 0.5,
+              "avoid_hits": 0,
+              "ontology_leak": false,
+              "sentence_count": 4,
+              "grounding_hits": 0
+            },
+            "llm": null,
+            "llm_rationale": null,
+            "merged": {
+              "question_fit": 5,
+              "evidence_use": 3,
+              "depth": 5,
+              "accuracy_guardedness": 5,
+              "naturalness": 5,
+              "actionability": 3
+            }
+          }
+        }
+      ]
+    }
+  },
+  "comparison": {
+    "delta": {
+      "question_fit": 0.6,
+      "evidence_use": 0.4,
+      "depth": 1.0,
+      "accuracy_guardedness": 0,
+      "naturalness": 0.4,
+      "actionability": -0.1
+    },
+    "improvement_percent": {
+      "question_fit": 15.38,
+      "evidence_use": 17.39,
+      "depth": 30.3,
+      "accuracy_guardedness": 0.0,
+      "naturalness": 8.7,
+      "actionability": -2.94
+    }
+  }
+}

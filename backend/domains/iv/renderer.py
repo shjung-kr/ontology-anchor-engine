@@ -4,6 +4,13 @@ I-V 도메인 출력 서술 렌더러.
 
 from typing import Any, Dict, List, Optional
 
+from backend.domains.iv.common import (
+    format_confirmed_conditions_ko,
+    join_term_labels,
+    summarize_observation_pattern_ko,
+    term_label,
+)
+
 
 def render_system_narrative_ko(
     measurement_validation: Dict[str, Any],
@@ -23,19 +30,19 @@ def render_system_narrative_ko(
     regimes = l1_state.get("iv_regimes", [])
     features = l1_state.get("iv_features", [])
 
-    l1_summary = "【L1 관측 좌표 요약】\n"
-    l1_summary += f"- iv_regimes: {', '.join(regimes) if regimes else '(none)'}\n"
-    l1_summary += f"- iv_features: {', '.join(features) if features else '(none)'}\n"
+    l1_summary = "【구간별 관찰】\n"
+    l1_summary += f"- 관측된 전압 구간: {join_term_labels(regimes) if regimes else '(none)'}\n"
+    l1_summary += f"- 관측된 핵심 패턴: {join_term_labels(features) if features else '(none)'}\n"
 
     if sj_proposals:
         top = sj_proposals[0]
-        scientific_text = f"최상위 제안: {top.get('ontology_file')} (score={top.get('score')})"
+        scientific_text = f"최상위 제안: {term_label(str(top.get('claim_concept') or ''))} (score={top.get('score')})"
     else:
         scientific_text = "제안 가능한 과학적 정당화가 발견되지 않았습니다."
 
     assumptions = derived.get("assumptions", []) or []
     assumption_ids = [item.get("assumption_id", "") for item in assumptions if isinstance(item, dict)]
-    assumption_text = f"- assumptions: {', '.join(assumption_ids) if assumption_ids else '(none)'}"
+    assumption_text = f"- 주요 가정: {join_term_labels(assumption_ids, max_items=4) if assumption_ids else '(none)'}"
 
     intent_profile = dict(intent_profile or {})
     proposal_adjustments = list(proposal_adjustments or [])
@@ -44,11 +51,11 @@ def render_system_narrative_ko(
     if intent_profile.get("analysis_priority"):
         intent_lines.append(f"- analysis_priority: {intent_profile.get('analysis_priority')}")
     if intent_profile.get("focus_claims"):
-        intent_lines.append(f"- focus_claims: {', '.join(intent_profile.get('focus_claims', []))}")
+        intent_lines.append(f"- focus_claims: {join_term_labels(intent_profile.get('focus_claims', []))}")
     if intent_profile.get("exclude_claims"):
-        intent_lines.append(f"- exclude_claims: {', '.join(intent_profile.get('exclude_claims', []))}")
+        intent_lines.append(f"- exclude_claims: {join_term_labels(intent_profile.get('exclude_claims', []))}")
     if intent_profile.get("confirmed_conditions"):
-        intent_lines.append(f"- confirmed_conditions: {intent_profile.get('confirmed_conditions')}")
+        intent_lines.append(f"- 확인된 조건: {format_confirmed_conditions_ko(intent_profile.get('confirmed_conditions') or {})}")
 
     analysis_priority = intent_profile.get("analysis_priority")
     priority_block = ""
@@ -65,12 +72,12 @@ def render_system_narrative_ko(
         required = top.get("required_features", []) if sj_proposals else []
         priority_block = (
             "사용자는 다음 실험 설계를 우선하고 있으므로, 현재 상위 가설을 구분할 수 있는 추가 feature 확보와 조건 통제를 중심으로 해석해야 합니다. "
-            f"상위 가설의 구분 feature는 {', '.join(required) if required else '(none)'} 입니다."
+            f"상위 가설의 구분 feature는 {join_term_labels(required) if required else '(none)'} 입니다."
         )
 
     adjustment_lines: List[str] = []
     for item in proposal_adjustments[:3]:
-        claim = item.get("claim_concept") or "(unknown)"
+        claim = term_label(str(item.get("claim_concept") or ""))
         parts = []
         for adjustment in item.get("adjustments", []):
             delta = adjustment.get("delta", 0)
@@ -88,9 +95,9 @@ def render_system_narrative_ko(
 
     narrative = (
         f"{l1_summary}\n"
-        f"【LLM 관측 패턴】\n{llm_pattern or '(none)'}\n\n"
-        f"【과학적 정당화 제안】\n{scientific_text}\n\n"
-        f"【가정(assumptions)】\n{assumption_text}\n"
+        f"- 관측 패턴 요약: {summarize_observation_pattern_ko(llm_pattern) or '(none)'}\n\n"
+        f"【메커니즘 제안】\n{scientific_text}\n\n"
+        f"【가정】\n{assumption_text}\n"
     )
 
     if priority_block:

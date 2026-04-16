@@ -4,6 +4,7 @@ I-V 도메인 전용 실행 파이프라인.
 
 import hashlib
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
@@ -60,6 +61,7 @@ def run_iv_domain(raw_data: str, metadata: Dict[str, Any] | None = None) -> Dict
         llm_keywords=llm_keywords,
         llm_trace=llm_trace,
         prompt_bundle=prompt_bundle,
+        metadata=metadata,
         assumptions=derived,
         l1_state=l1_state,
         sj_proposals=sj_proposals,
@@ -135,6 +137,25 @@ def write_json(path: Path, payload: Dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def normalize_requested_run_id(value: Any) -> str | None:
+    """
+    사용자가 입력한 run 식별자를 디렉터리명으로 안전하게 정규화한다.
+    """
+
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    normalized = re.sub(r"[^A-Za-z0-9._-]+", "_", text)
+    normalized = normalized.strip("._-")
+    if not normalized:
+        raise ValueError("requested_run_id must contain at least one letter or digit")
+    if normalized in {".", ".."}:
+        raise ValueError("requested_run_id is not allowed")
+    return normalized
+
+
 def load_prompt_text(name: str, fallback: str) -> str:
     """
     프롬프트 파일을 읽고 없으면 fallback을 반환한다.
@@ -153,6 +174,7 @@ def write_run_artifacts(
     llm_keywords: List[Dict[str, Any]],
     llm_trace: Dict[str, Any],
     prompt_bundle: Dict[str, Any],
+    metadata: Dict[str, Any] | None,
     assumptions: Dict[str, Any],
     l1_state: Dict[str, Any],
     sj_proposals: List[Dict[str, Any]],
@@ -165,9 +187,12 @@ def write_run_artifacts(
 
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
     created_at = datetime.now(timezone.utc)
-    run_id = f"{created_at.strftime('%Y%m%dT%H%M%SZ')}__{hashlib.sha256(raw_data.encode('utf-8')).hexdigest()[:10]}"
+    requested_run_id = normalize_requested_run_id((metadata or {}).get("requested_run_id"))
+    run_id = requested_run_id or f"{created_at.strftime('%Y%m%dT%H%M%SZ')}__{hashlib.sha256(raw_data.encode('utf-8')).hexdigest()[:10]}"
     run_dir = RUNS_DIR / run_id
-    run_dir.mkdir(parents=True, exist_ok=True)
+    if run_dir.exists():
+        raise FileExistsError(f"run_id already exists: {run_id}")
+    run_dir.mkdir(parents=True, exist_ok=False)
 
     system_prompt = prompt_bundle.get("system_prompt") or load_prompt_text("system_prompt_v1.md", "")
     user_prompt = prompt_bundle.get("user_prompt") or load_prompt_text("user_template_v1.md", "")
@@ -207,6 +232,7 @@ def write_run_artifacts(
     (run_dir / "raw_input.txt").write_text(raw_data, encoding="utf-8")
     manifest = {
         "run_id": run_id,
+        "requested_run_id": requested_run_id,
         "dataset_id": sha256_text(raw_data),
         "created_at_utc": created_at.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "code_commit": git_commit_or_unknown(),

@@ -16,6 +16,7 @@ import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
+from backend.domains.iv.common import format_confirmed_conditions_ko, join_term_labels, term_description, term_label
 from backend.measurement_validations.parser import parse_vi
 
 try:
@@ -143,6 +144,145 @@ def llm_analyze_numeric(raw_data: str) -> Dict[str, Any]:
             "top_p": 1.0,
         },
     }
+
+
+def answer_with_analysis_context(
+    user_text: str,
+    snapshot: Dict[str, Any],
+    intent_profile: Dict[str, Any],
+    reranked_proposals: List[Dict[str, Any]],
+    chat_history: Optional[List[Dict[str, Any]]] = None,
+    run_dir: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """
+    완성된 분석 결과를 컨텍스트로 사용해 자유 질의응답을 수행한다.
+    OpenAI 사용이 불가하면 used_llm=False 상태로 반환한다.
+    """
+
+    client = _get_openai_client()
+    if client is None:
+        return {"used_llm": False, "status": "llm_unavailable", "answer": ""}
+
+    system_prompt = (
+        "You are a scientific analysis assistant for experimental I-V data.\n"
+        "Answer the user's question directly using the provided analysis context.\n"
+        "Do not simply restate the whole summary unless necessary.\n"
+        "Prioritize the user's intent and focus only on relevant evidence.\n"
+        "Use natural Korean.\n"
+        "Avoid ontology IDs unless the user explicitly asks for them.\n"
+        "Explain what values/features mean in plain language when helpful.\n"
+        "Be honest about uncertainty and assumptions.\n"
+        "Keep answers concise but specific.\n"
+    )
+
+    messages = [{"role": "system", "content": system_prompt}]
+    for item in (chat_history or [])[-6:]:
+        role = item.get("role")
+        text = str(item.get("text") or "").strip()
+        if role in {"user", "assistant"} and text:
+            messages.append({"role": role, "content": text})
+
+    messages.append(
+        {
+            "role": "user",
+            "content": _build_analysis_context_prompt(
+                user_text,
+                snapshot,
+                intent_profile,
+                reranked_proposals,
+                run_dir=run_dir,
+            ),
+        }
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=messages,
+            temperature=0.4,
+        )
+        content = response.choices[0].message.content or ""
+        return {
+            "used_llm": True,
+            "status": "ok",
+            "answer": content.strip(),
+            "model": DEFAULT_MODEL,
+        }
+    except Exception as exc:
+        return {
+            "used_llm": False,
+            "status": "llm_error",
+            "answer": "",
+            "error": str(exc),
+            "model": DEFAULT_MODEL,
+        }
+
+
+def _build_analysis_context_prompt(
+    user_text: str,
+    snapshot: Dict[str, Any],
+    intent_profile: Dict[str, Any],
+    reranked_proposals: List[Dict[str, Any]],
+    run_dir: Optional[Path] = None,
+) -> str:
+    top = reranked_proposals[0] if reranked_proposals else {}
+    claim = term_label(str(top.get("claim_concept") or "")) or "해석 후보 없음"
+    matched = top.get("matched_features", []) or []
+    assumptions = top.get("sj_assumptions", []) or []
+    required_features = top.get("required_features", []) or []
+    warnings = (snapshot.get("measurement_validation", {}) or {}).get("warnings", []) or []
+    conditions = intent_profile.get("confirmed_conditions", {}) or {}
+
+    feature_notes: List[str] = []
+    for feature_id in matched[:3]:
+        label = term_label(str(feature_id))
+        desc = term_description(str(feature_id))
+        feature_notes.append(f"- {label}: {desc or '설명 정보 없음'}")
+
+    assumption_notes: List[str] = []
+    for assumption_id in assumptions[:3]:
+        label = term_label(str(assumption_id))
+        desc = term_description(str(assumption_id))
+        assumption_notes.append(f"- {label}: {desc or '설명 정보 없음'}")
+
+    context_lines = [
+        f"[user_question]\n{user_text}",
+        f"[top_mechanism]\n- 최상위 해석: {claim}\n- score: {top.get('final_score', top.get('score'))}",
+        f"[observed_features]\n- 매칭 feature: {join_term_labels(matched) if matched else '(none)'}",
+        f"[feature_meanings]\n" + ("\n".join(feature_notes) if feature_notes else "- (none)"),
+        f"[assumptions]\n- 주요 가정: {join_term_labels(assumptions) if assumptions else '(none)'}",
+        f"[assumption_meanings]\n" + ("\n".join(assumption_notes) if assumption_notes else "- (none)"),
+        f"[required_features]\n- {join_term_labels(required_features) if required_features else '(none)'}",
+        f"[conditions]\n- {format_confirmed_conditions_ko(conditions)}",
+        f"[llm_observation]\n- {snapshot.get('llm_pattern') or '(none)'}",
+        f"[warnings]\n- 경고 수: {len(warnings)}",
+    ]
+    context_lines.append(
+        "[answer_style]\n- 질문에 바로 답하기\n- 관련 있는 근거만 사용하기\n- 필요할 때만 가정과 불확실성 언급하기\n- 사용자가 묻지 않은 run 요약 반복하지 않기"
+    )
+    if run_dir is not None:
+        artifact_context = _build_run_artifacts_context(run_dir)
+        if artifact_context:
+            context_lines.append("[run_json_artifacts]\n" + artifact_context)
+    return "\n\n".join(context_lines)
+
+
+def _build_run_artifacts_context(run_dir: Path) -> str:
+    if not run_dir.is_dir():
+        return ""
+
+    sections: List[str] = []
+    for path in sorted(run_dir.glob("*.json")):
+        try:
+            raw = path.read_text(encoding="utf-8")
+            parsed = json.loads(raw)
+            content = json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+        except Exception:
+            content = raw.strip() if "raw" in locals() else ""
+        if not content:
+            continue
+        sections.append(f"## {path.name}\n{content}")
+    return "\n\n".join(sections)
 
 
 def _build_numeric_observation(

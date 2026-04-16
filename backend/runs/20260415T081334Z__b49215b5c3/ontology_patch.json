@@ -1,7 +1,7 @@
 {
   "run_id": "20260415T081334Z__b49215b5c3",
   "status": "candidate_overlay",
-  "generated_at_utc": "2026-04-15T08:41:19Z",
+  "generated_at_utc": "2026-04-16T08:16:11Z",
   "claims": [],
   "assumptions": [
     {
@@ -10,7 +10,7 @@
       "promotion_reason": "repeated_validation",
       "validation_count": 10,
       "source_run_id": "20260415T081334Z__b49215b5c3",
-      "approved_at_utc": "2026-04-15T08:41:19Z",
+      "approved_at_utc": "2026-04-16T08:16:11Z",
       "evidence": {
         "validation_count": 10,
         "notes": [
@@ -26,7 +26,7 @@
       "promotion_reason": "repeated_validation",
       "validation_count": 8,
       "source_run_id": "20260415T081334Z__b49215b5c3",
-      "approved_at_utc": "2026-04-15T08:41:19Z",
+      "approved_at_utc": "2026-04-16T08:16:11Z",
       "evidence": {
         "validation_count": 8,
         "notes": [

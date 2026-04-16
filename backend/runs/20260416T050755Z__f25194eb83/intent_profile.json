@@ -1,0 +1,77 @@
+{
+  "run_id": "20260416T050755Z__f25194eb83",
+  "analysis_priority": null,
+  "focus_claims": [],
+  "exclude_claims": [],
+  "keep_open_claims": [],
+  "confirmed_conditions": {},
+  "uncertain_conditions": [],
+  "assumption_states": {},
+  "approved_patch_items": {
+    "claims": [],
+    "assumptions": [],
+    "measurement_conditions": []
+  },
+  "notes": [
+    "그럼 turn-on 전압이 1.85 이니?",
+    "현재 전류가 급격하게 변화하는 1.85 에서를 터럴닝이 발생하는 턴온 전압으로 정의할께",
+    "1.85V 부근에 대해서 설명해줘"
+  ],
+  "history": [
+    {
+      "timestamp_utc": "2026-04-16T05:08:58Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "그럼 turn-on 전압이 1.85 이니?",
+      "structured_answers": []
+    },
+    {
+      "timestamp_utc": "2026-04-16T05:12:41Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "현재 전류가 급격하게 변화하는 1.85 에서를 터럴닝이 발생하는 턴온 전압으로 정의할께",
+      "structured_answers": []
+    },
+    {
+      "timestamp_utc": "2026-04-16T05:13:18Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "1.85V 부근에 대해서 설명해줘",
+      "structured_answers": []
+    }
+  ],
+  "updated_at_utc": "2026-04-16T05:13:18Z"
+}

@@ -16,6 +16,7 @@ from backend.conversation.memory import (
     build_direct_answer,
     build_chat_response,
     classify_user_message,
+    load_chat_history,
     load_analysis_snapshot,
     get_run_dir,
     list_run_summaries,
@@ -89,7 +90,12 @@ def list_domains():
 
 @app.post("/run")
 def run_domain(data: DomainExecutionRequest):
-    return run_domain_engine(data)
+    try:
+        return run_domain_engine(data)
+    except FileExistsError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/chat")
@@ -126,6 +132,8 @@ def run_chat(data: ChatTurnRequest):
             snapshot=load_analysis_snapshot(run_dir),
             intent_profile=profile,
             reranked_proposals=response.get("reranked_sj_proposals", []),
+            chat_history=load_chat_history(run_dir),
+            run_dir=run_dir,
         )
         response["assistant_reply"] = assistant_reply
         if assistant_reply:

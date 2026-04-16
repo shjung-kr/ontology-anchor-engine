@@ -428,6 +428,11 @@
           </div>
         </div>
         <div style="height:12px;"></div>
+        <div>
+          <div class="hint">Run Number / ID</div>
+          <input id="requestedRunIdInput" type="text" placeholder="예: exp-042 또는 sample_A7" />
+        </div>
+        <div style="height:12px;"></div>
         <textarea id="rawInput" placeholder="CSV/TXT 데이터를 붙여 넣거나 파일을 업로드하세요.&#10;&#10;예시&#10;Voltage,Current&#10;0.0,1.0e-10&#10;0.5,1.4e-10"></textarea>
         <div class="action-row" style="margin-top:12px;">
           <button id="runBtn" onclick="runAnalysis()">Run Analysis</button>
@@ -546,6 +551,7 @@
     const domainSelect = document.getElementById("domainSelect");
     const fileInput = document.getElementById("fileInput");
     const rawInput = document.getElementById("rawInput");
+    const requestedRunIdInput = document.getElementById("requestedRunIdInput");
     const runBtn = document.getElementById("runBtn");
     const runIdValue = document.getElementById("runIdValue");
     const domainValue = document.getElementById("domainValue");
@@ -938,6 +944,7 @@
           body: JSON.stringify({
             domain: domainSelect.value || "iv",
             raw_data: rawData,
+            requested_run_id: requestedRunIdInput.value.trim() || null,
             metadata: {}
           })
         });

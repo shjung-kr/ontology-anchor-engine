@@ -1,0 +1,50 @@
+{
+  "metrics": {
+    "absI_decades_span": 28.142538760645678,
+    "v_knee": 1.8500000000000008,
+    "v_knee_criterion": "percentile_split_30"
+  },
+  "regimes": [
+    {
+      "name": "low_|V|",
+      "v_range": [
+        0.1,
+        1.8500000000000008
+      ],
+      "delta_decades_robust": 92.9062821392738,
+      "mean_slope_log_absI_per_logV": 38.55057893875147
+    },
+    {
+      "name": "high_|V|",
+      "v_range": [
+        1.9,
+        6.000000000000002
+      ],
+      "delta_decades_robust": 4.323175800154074,
+      "mean_slope_log_absI_per_logV": 8.589021829625462
+    }
+  ],
+  "llm_pattern": "The absolute current magnitude |I| decreases exponentially as voltage V approaches zero from negative values, spanning many orders of magnitude, and then increases symmetrically for positive voltages. The inverse of the absolute voltage 1/|V| decreases monotonically as |V| increases. The natural logarithm of |I|/V^2 decreases approximately linearly with increasing 1/|V|. The current magnitude |I| spans approximately 88 decades across the voltage range from -6 V to 6 V.",
+  "llm_keywords": [
+    {
+      "keyword": "exponential decrease of |I| near zero voltage",
+      "evidence": "At V = -0.1, |I| = 8.897350992969297e-103 A; at V = -6, |I| = 2.3994540300343092e-05 A"
+    },
+    {
+      "keyword": "symmetry of |I| about zero voltage",
+      "evidence": "At V = -0.1, |I| = 8.897350992969297e-103 A; at V = 0.1, |I| = 6.899103373692976e-103 A"
+    },
+    {
+      "keyword": "monotonic decrease of 1/|V| with increasing |V|",
+      "evidence": "1/|V| decreases from 0.1667 at |V|=6 to 10 at |V|=0.1"
+    },
+    {
+      "keyword": "linear decrease of ln(|I|/V^2) with increasing 1/|V|",
+      "evidence": "ln(|I|/V^2) decreases from about -14.22 at 1/|V|=0.1667 to about -230.38 at 1/|V|=10"
+    },
+    {
+      "keyword": "current magnitude |I| spans approximately 88 decades",
+      "evidence": "Maximum |I| ~ 2.4e-5 A at V=-6; minimum |I| ~ 8.9e-103 A near V=-0.1"
+    }
+  ]
+}
