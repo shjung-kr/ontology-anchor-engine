@@ -24,13 +24,13 @@ from backend.llm_adapter import llm_analyze_numeric
 from backend.measurement_validations.infer import infer_measurement_conditions
 from backend.measurement_validations.parser import parse_vi, build_stats
 from backend.measurement_validations.runner import run_rules
+from backend.user_storage import get_user_runs_dir
 
 # -----------------------------
 # Paths (프로젝트 폴더 구조에 맞게 필요시만 수정)
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # backend/
 ONTO_BASE = os.path.join(BASE_DIR, "ontology")         # backend/ontology
-RUNS_DIR = Path(BASE_DIR) / "runs"
 PROMPTS_DIR = Path(BASE_DIR).parent / "prompts"
 
 IV_REGIMES_DIR = os.path.join(ONTO_BASE, "01_iv_regimes")
@@ -355,10 +355,11 @@ def _write_run_artifacts(
     metrics: Dict[str, Any],
     regimes: List[Dict[str, Any]],
 ) -> str:
-    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    runs_dir = get_user_runs_dir()
+    runs_dir.mkdir(parents=True, exist_ok=True)
     created_at = datetime.now(timezone.utc)
     run_id = f"{created_at.strftime('%Y%m%dT%H%M%SZ')}__{hashlib.sha256(raw_data.encode('utf-8')).hexdigest()[:10]}"
-    run_dir = RUNS_DIR / run_id
+    run_dir = runs_dir / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
 
     system_prompt = prompt_bundle.get("system_prompt") or _load_prompt_text("system_prompt_v1.md", "")

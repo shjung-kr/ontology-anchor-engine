@@ -13,9 +13,7 @@ from backend.domains.trend.features import extract_signal_features, validate_inp
 from backend.domains.trend.parser import parse_xy
 from backend.domains.trend.registry import list_interpretations, load_registry
 from backend.domains.trend.renderer import render_narrative
-
-
-RUNS_DIR = Path(__file__).resolve().parents[2] / "runs"
+from backend.user_storage import get_user_runs_dir
 
 
 def evaluate_proposals(feature_ids: List[str]) -> List[Dict[str, Any]]:
@@ -52,10 +50,11 @@ def write_artifacts(payload: Dict[str, Any], raw_data: str) -> str:
     trend 도메인 실행 결과를 runs 디렉터리에 저장한다.
     """
 
-    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    runs_dir = get_user_runs_dir()
+    runs_dir.mkdir(parents=True, exist_ok=True)
     created_at = datetime.now(timezone.utc)
     run_id = f"{created_at.strftime('%Y%m%dT%H%M%SZ')}__trend__{hashlib.sha256(raw_data.encode('utf-8')).hexdigest()[:8]}"
-    run_dir = RUNS_DIR / run_id
+    run_dir = runs_dir / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
 
     (run_dir / "raw_input.txt").write_text(raw_data, encoding="utf-8")

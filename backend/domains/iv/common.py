@@ -8,13 +8,17 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from backend.user_storage import get_user_runs_dir
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 DOMAIN_DIR = Path(__file__).resolve().parent
 ONTOLOGY_ROOT = BASE_DIR / "ontology" / "iv"
 LEGACY_ONTOLOGY_ROOT = BASE_DIR / "ontology"
 PROMPTS_DIR = BASE_DIR.parent / "prompts"
-RUNS_DIR = BASE_DIR / "runs"
+
+
+def get_runs_dir() -> Path:
+    return get_user_runs_dir()
 
 TERM_LABEL_OVERRIDES = {
     "iv_regimes.low_field_regime": "저전압 구간",

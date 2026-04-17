@@ -17,14 +17,30 @@ from backend.domains.iv.common import (
     term_label,
 )
 from backend.llm_adapter import answer_with_analysis_context
+from backend.user_storage import get_user_overlay_dir, get_user_runs_dir
 
 
-RUNS_DIR = Path(__file__).resolve().parents[1] / "runs"
-OVERLAY_DIR = Path(__file__).resolve().parents[1] / "ontology_overlays"
-CURATED_OVERLAY_PATH = OVERLAY_DIR / "iv_user_overlay.json"
-REVIEW_QUEUE_PATH = OVERLAY_DIR / "iv_review_queue.json"
-REVIEW_STATE_PATH = OVERLAY_DIR / "iv_review_state.json"
 CANDIDATE_HYPOTHESES_FILE = "candidate_hypotheses.json"
+
+
+def _runs_dir() -> Path:
+    return get_user_runs_dir()
+
+
+def _overlay_dir() -> Path:
+    return get_user_overlay_dir()
+
+
+def _curated_overlay_path() -> Path:
+    return _overlay_dir() / "iv_user_overlay.json"
+
+
+def _review_queue_path() -> Path:
+    return _overlay_dir() / "iv_review_queue.json"
+
+
+def _review_state_path() -> Path:
+    return _overlay_dir() / "iv_review_state.json"
 
 
 def utc_now_iso() -> str:
@@ -32,7 +48,7 @@ def utc_now_iso() -> str:
 
 
 def get_run_dir(run_id: str) -> Path:
-    run_dir = RUNS_DIR / run_id
+    run_dir = _runs_dir() / run_id
     if not run_dir.is_dir():
         raise FileNotFoundError(f"unknown run_id: {run_id}")
     return run_dir
@@ -188,7 +204,7 @@ def build_run_summary(run_dir: Path) -> Dict[str, Any]:
 
 
 def list_run_summaries(limit: int = 50) -> List[Dict[str, Any]]:
-    run_dirs = [path for path in RUNS_DIR.iterdir() if path.is_dir()]
+    run_dirs = [path for path in _runs_dir().iterdir() if path.is_dir()]
     run_dirs.sort(key=lambda path: path.name, reverse=True)
     summaries: List[Dict[str, Any]] = []
     for run_dir in run_dirs[: max(1, limit)]:
@@ -324,15 +340,15 @@ def load_candidate_hypotheses(run_dir: Path) -> Dict[str, Any]:
 
 
 def load_curated_overlay() -> Dict[str, Any]:
-    return load_json(CURATED_OVERLAY_PATH, fallback=default_curated_overlay())
+    return load_json(_curated_overlay_path(), fallback=default_curated_overlay())
 
 
 def load_review_queue() -> Dict[str, Any]:
-    return load_json(REVIEW_QUEUE_PATH, fallback=default_review_queue())
+    return load_json(_review_queue_path(), fallback=default_review_queue())
 
 
 def load_review_state() -> Dict[str, Any]:
-    return load_json(REVIEW_STATE_PATH, fallback=default_review_state())
+    return load_json(_review_state_path(), fallback=default_review_state())
 
 
 def _merge_unique(existing: Iterable[str], new_items: Iterable[str]) -> List[str]:
@@ -1397,7 +1413,7 @@ def update_intent_profile(run_dir: Path, chat_request: ChatTurnRequest) -> Dict[
 
 def _collect_validation_counts(field: str) -> Dict[str, int]:
     counts: Dict[str, int] = {}
-    for intent_path in RUNS_DIR.glob("*/intent_profile.json"):
+    for intent_path in _runs_dir().glob("*/intent_profile.json"):
         payload = load_json(intent_path)
         approved = payload.get("approved_patch_items", {})
         for item in approved.get(field, []):
@@ -1483,7 +1499,7 @@ def rebuild_review_queue(repeat_threshold: int = 2) -> Dict[str, Any]:
     }
     aggregated: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
-    for patch_path in RUNS_DIR.glob("*/ontology_patch.json"):
+    for patch_path in _runs_dir().glob("*/ontology_patch.json"):
         patch = load_json(patch_path)
         run_id = patch.get("run_id")
         for overlay_type, field_name, id_key in (
@@ -1524,7 +1540,7 @@ def rebuild_review_queue(repeat_threshold: int = 2) -> Dict[str, Any]:
 
     queue["generated_at_utc"] = utc_now_iso()
     queue["items"] = sorted(queue_items, key=lambda item: (item["status"], -item["support_count"], item["target_id"]))
-    write_json(REVIEW_QUEUE_PATH, queue)
+    write_json(_review_queue_path(), queue)
     return queue
 
 
@@ -1550,7 +1566,7 @@ def apply_review_decision(overlay_type: str, target_id: str, decision: str, note
     )
     state["items"] = items
     state["updated_at_utc"] = utc_now_iso()
-    write_json(REVIEW_STATE_PATH, state)
+    write_json(_review_state_path(), state)
     rebuild_review_queue()
     return state
 
@@ -1600,7 +1616,7 @@ def rebuild_curated_overlay(repeat_threshold: int = 2) -> Dict[str, Any]:
                     "review_note": reviewed.get("review_note", ""),
                 }
             )
-    write_json(CURATED_OVERLAY_PATH, overlay)
+    write_json(_curated_overlay_path(), overlay)
     return overlay
 
 

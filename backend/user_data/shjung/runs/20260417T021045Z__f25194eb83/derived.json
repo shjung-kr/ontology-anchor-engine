@@ -1,0 +1,46 @@
+{
+  "metrics": {
+    "absI_decades_span": 28.142538760645678,
+    "v_knee": 1.8500000000000008,
+    "v_knee_criterion": "percentile_split_30"
+  },
+  "regimes": [
+    {
+      "name": "low_|V|",
+      "v_range": [
+        0.1,
+        1.8500000000000008
+      ],
+      "delta_decades_robust": 92.9062821392738,
+      "mean_slope_log_absI_per_logV": 38.55057893875147
+    },
+    {
+      "name": "high_|V|",
+      "v_range": [
+        1.9,
+        6.000000000000002
+      ],
+      "delta_decades_robust": 4.323175800154074,
+      "mean_slope_log_absI_per_logV": 8.589021829625462
+    }
+  ],
+  "llm_pattern": "|I| increases strongly with increasing |V| across the full sweep, spanning from about 10^-103 A near |V|=0.1 V to about 10^-5 A near |V|=6 V. The trend is broadly monotonic with small local fluctuations at many adjacent voltage steps. Positive and negative branches show similar magnitudes at matched |V|, especially at low and mid |V|, with modest branch-to-branch differences at higher |V|.",
+  "llm_keywords": [
+    {
+      "keyword": "wide_dynamic_range",
+      "evidence": "|I| ranges from 8.897350992969297e-103 A at V=-0.1 V to 2.3994540300343092e-05 A at V=-6 V, covering about 97.53 decades."
+    },
+    {
+      "keyword": "near_symmetric_branches",
+      "evidence": "At matched |V| values, magnitudes are close on both branches, for example |I| is 1.7440846641591838e-54 A at -0.2 V and 1.7312649183077767e-54 A at +0.2 V, and 6.92102803659538e-12 A at -1.4 V and 6.928625241384999e-12 A at +1.4 V."
+    },
+    {
+      "keyword": "monotonic_increase_with_fluctuations",
+      "evidence": "On the positive branch, |I| generally rises from 7.82976992891886e-15 A at 1.0 V to 2.2494143112878067e-05 A at 6.0 V, but adjacent points fluctuate, such as 9.62893587930369e-09 A at 2.25 V followed by 8.279256709853086e-09 A at 2.3 V."
+    },
+    {
+      "keyword": "high_voltage_scatter",
+      "evidence": "At larger |V|, neighboring values vary non-smoothly; for example on the negative branch |I| changes from 1.2996178367893984e-05 A at -5.55 V to 1.5640525423545973e-05 A at -5.5 V to 1.4597725391442102e-05 A at -5.45 V."
+    }
+  ]
+}

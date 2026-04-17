@@ -216,13 +216,22 @@ def answer_with_analysis_context(
 
     system_prompt = (
         "You are a scientific analysis assistant for experimental I-V data.\n"
-        "Answer the user's question directly using the provided analysis context.\n"
+        "Answer in natural Korean.\n"
+        "Your first job is to ground every answer in the provided numeric evidence.\n"
+        "Do not give generic mechanism talk without citing concrete observations from the run.\n"
+        "Every answer must include at least two concrete evidence items when available, such as:\n"
+        "- numeric ranges\n"
+        "- slope values\n"
+        "- knee voltage\n"
+        "- current span in decades\n"
+        "- validation warnings\n"
+        "- observed low-field/high-field regime behavior\n"
+        "Prefer this order: observed data -> interpretation -> remaining uncertainty.\n"
         "Do not simply restate the whole summary unless necessary.\n"
         "Prioritize the user's intent and focus only on relevant evidence.\n"
-        "Use natural Korean.\n"
         "Avoid ontology IDs unless the user explicitly asks for them.\n"
         "Explain what values/features mean in plain language when helpful.\n"
-        "Be honest about uncertainty and assumptions.\n"
+        "If evidence is insufficient, say exactly what is missing.\n"
         "Keep answers concise but specific.\n"
     )
 
@@ -250,7 +259,7 @@ def answer_with_analysis_context(
         response = client.chat.completions.create(
             model=DEFAULT_MODEL,
             messages=messages,
-            temperature=0.4,
+            temperature=0.15,
         )
         content = response.choices[0].message.content or ""
         return {
@@ -281,9 +290,18 @@ def _build_analysis_context_prompt(
     matched = top.get("matched_features", []) or []
     assumptions = top.get("sj_assumptions", []) or []
     required_features = top.get("required_features", []) or []
-    warnings = (snapshot.get("measurement_validation", {}) or {}).get("warnings", []) or []
+    measurement_validation = snapshot.get("measurement_validation", {}) or {}
+    warnings = measurement_validation.get("warnings", []) or []
     conditions = intent_profile.get("confirmed_conditions", {}) or {}
     research_goal = _resolve_research_goal(intent_profile)
+    metrics = snapshot.get("metrics", {}) or {}
+    regimes = snapshot.get("regimes", []) or []
+
+    prioritized_evidence = _select_prioritized_evidence(user_text, snapshot, top)
+    regime_summary = _format_regime_summary(regimes)
+    metric_summary = _format_metric_summary(metrics)
+    warning_lines = [f"- {warning}" for warning in warnings[:4]]
+    proposal_evidence = _format_proposal_evidence(top)
 
     feature_notes: List[str] = []
     for feature_id in matched[:3]:
@@ -300,7 +318,17 @@ def _build_analysis_context_prompt(
     context_lines = [
         f"[user_question]\n{user_text}",
         f"[user_goal]\n{research_goal or '(none)'}",
+        "[response_contract]\n"
+        "- 답변은 질문에 바로 답하기\n"
+        "- 먼저 데이터 관측 근거를 말한 뒤 해석을 붙이기\n"
+        "- 가능하면 최소 2개의 수치 또는 구간 근거를 포함하기\n"
+        "- 데이터에서 직접 읽히지 않는 일반론만 길게 말하지 않기\n"
+        "- 마지막에는 남는 불확실성 또는 추가 확인 포인트를 짧게 덧붙이기",
+        "[prioritized_evidence]\n" + ("\n".join(prioritized_evidence) if prioritized_evidence else "- 직접 인용할 강한 evidence가 아직 부족함"),
+        "[measurement_metrics]\n" + ("\n".join(metric_summary) if metric_summary else "- (none)"),
+        "[regime_summary]\n" + ("\n".join(regime_summary) if regime_summary else "- (none)"),
         f"[top_mechanism]\n- 최상위 해석: {claim}\n- score: {top.get('final_score', top.get('score'))}",
+        "[proposal_evidence]\n" + ("\n".join(proposal_evidence) if proposal_evidence else "- (none)"),
         f"[observed_features]\n- 매칭 feature: {join_term_labels(matched) if matched else '(none)'}",
         f"[feature_meanings]\n" + ("\n".join(feature_notes) if feature_notes else "- (none)"),
         f"[assumptions]\n- 주요 가정: {join_term_labels(assumptions) if assumptions else '(none)'}",
@@ -308,34 +336,184 @@ def _build_analysis_context_prompt(
         f"[required_features]\n- {join_term_labels(required_features) if required_features else '(none)'}",
         f"[conditions]\n- {format_confirmed_conditions_ko(conditions)}",
         f"[llm_observation]\n- {snapshot.get('llm_pattern') or '(none)'}",
-        f"[warnings]\n- 경고 수: {len(warnings)}",
+        "[warnings]\n" + ("\n".join(warning_lines) if warning_lines else "- 경고 없음"),
     ]
     context_lines.append(
-        "[answer_style]\n- [user_goal]이 있으면 그 목표를 답변의 최우선 제약으로 사용하기\n- 질문에 바로 답하기\n- 관련 있는 근거만 사용하기\n- 필요할 때만 가정과 불확실성 언급하기\n- 사용자가 묻지 않은 run 요약 반복하지 않기\n- 저전압 누설 억제, 캐리어 손실 최소화, 터널링 전류 증가 같은 목표가 있으면 그 관점에서 원인, 해석, 실험 제안을 정리하기\n- 목표와 무관한 일반론보다 사용자의 실험 목적에 직접 연결되는 설명을 우선하기"
+        "[answer_style]\n- [user_goal]이 있으면 그 목표를 답변의 최우선 제약으로 사용하기\n- 질문에 직접 관련된 evidence만 먼저 선택해서 설명하기\n- 저전압 누설 억제, 캐리어 손실 최소화, 터널링 전류 증가 같은 목표가 있으면 그 관점에서 관측값의 의미를 해석하기\n- 사용자가 묻지 않은 run 요약 반복하지 않기\n- 기계적으로 ontology label을 나열하지 말고, 관측값이 왜 그 해석을 지지하는지 설명하기"
     )
     if run_dir is not None:
-        artifact_context = _build_run_artifacts_context(run_dir)
+        artifact_context = _build_run_artifacts_context(run_dir, include_all_json=False)
         if artifact_context:
-            context_lines.append("[run_json_artifacts]\n" + artifact_context)
+            context_lines.append("[compact_run_artifacts]\n" + artifact_context)
     return "\n\n".join(context_lines)
 
 
-def _build_run_artifacts_context(run_dir: Path) -> str:
+def _build_run_artifacts_context(run_dir: Path, include_all_json: bool = False) -> str:
     if not run_dir.is_dir():
         return ""
 
     sections: List[str] = []
-    for path in sorted(run_dir.glob("*.json")):
+    candidate_paths = (
+        sorted(run_dir.glob("*.json"))
+        if include_all_json
+        else [run_dir / name for name in ("manifest.json", "derived.json", "inference.json", "ontology_patch.json")]
+    )
+    for path in candidate_paths:
+        if not path.is_file():
+            continue
         try:
             raw = path.read_text(encoding="utf-8")
             parsed = json.loads(raw)
-            content = json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+            content = _compact_json_for_prompt(path.name, parsed)
         except Exception:
             content = raw.strip() if "raw" in locals() else ""
         if not content:
             continue
         sections.append(f"## {path.name}\n{content}")
     return "\n\n".join(sections)
+
+
+def _compact_json_for_prompt(name: str, parsed: Dict[str, Any]) -> str:
+    if name == "manifest.json":
+        return json.dumps(
+            {
+                "run_id": parsed.get("run_id"),
+                "created_at_utc": parsed.get("created_at_utc"),
+                "requested_run_id": parsed.get("requested_run_id"),
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+    if name == "derived.json":
+        return json.dumps(
+            {
+                "metrics": parsed.get("metrics", {}),
+                "regimes": parsed.get("regimes", []),
+                "llm_pattern": parsed.get("llm_pattern", ""),
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+    if name == "inference.json":
+        return json.dumps(
+            {
+                "measurement_validation": parsed.get("measurement_validation", {}),
+                "l1_state": parsed.get("l1_state", {}),
+                "top_sj_proposal": ((parsed.get("sj_proposals") or [{}])[0] if parsed.get("sj_proposals") else {}),
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+    if name == "ontology_patch.json":
+        return json.dumps(
+            {
+                "claims": parsed.get("claims", []),
+                "assumptions": parsed.get("assumptions", []),
+                "measurement_conditions": parsed.get("measurement_conditions", []),
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+    return json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+
+
+def _format_metric_summary(metrics: Dict[str, Any]) -> List[str]:
+    lines: List[str] = []
+    span = metrics.get("absI_decades_span")
+    if isinstance(span, (int, float)):
+        lines.append(f"- |I| dynamic range: 약 {float(span):.2f} decades")
+    v_knee = metrics.get("v_knee")
+    if isinstance(v_knee, (int, float)):
+        lines.append(f"- knee voltage estimate: |V|≈{float(v_knee):.4g}")
+    criterion = metrics.get("v_knee_criterion")
+    if criterion:
+        lines.append(f"- knee criterion: {criterion}")
+    for key in ("current_ratio", "rectification_ratio", "threshold_voltage", "turn_on_voltage"):
+        value = metrics.get(key)
+        if isinstance(value, (int, float)):
+            lines.append(f"- {key}: {float(value):.4g}")
+    return lines
+
+
+def _format_regime_summary(regimes: List[Dict[str, Any]]) -> List[str]:
+    lines: List[str] = []
+    for regime in regimes[:2]:
+        name = regime.get("name") or "regime"
+        v_range = regime.get("v_range") or []
+        delta = regime.get("delta_decades_robust")
+        slope = regime.get("mean_slope_log_absI_per_logV")
+        parts = [f"- {name}"]
+        if isinstance(v_range, list) and len(v_range) == 2:
+            parts.append(f"|V| range {float(v_range[0]):.4g}→{float(v_range[1]):.4g}")
+        if isinstance(delta, (int, float)):
+            parts.append(f"Δ|I|≈{float(delta):.2f} decades")
+        if isinstance(slope, (int, float)):
+            parts.append(f"log-log slope≈{float(slope):.2f}")
+        lines.append(", ".join(parts))
+    return lines
+
+
+def _format_proposal_evidence(top: Dict[str, Any]) -> List[str]:
+    if not top:
+        return []
+    lines: List[str] = []
+    matched = top.get("matched_features", []) or []
+    missing = [item for item in (top.get("required_features", []) or []) if item not in set(matched)]
+    if matched:
+        lines.append(f"- matched features: {join_term_labels(matched)}")
+    if missing:
+        lines.append(f"- still missing features: {join_term_labels(missing[:3])}")
+    rerank_reasons = [str(item).strip() for item in (top.get("rerank_reasons", []) or []) if str(item).strip()]
+    if rerank_reasons:
+        lines.extend([f"- rerank reason: {item}" for item in rerank_reasons[:2]])
+    return lines
+
+
+def _select_prioritized_evidence(
+    user_text: str,
+    snapshot: Dict[str, Any],
+    top: Dict[str, Any],
+) -> List[str]:
+    text = (user_text or "").lower()
+    metrics = snapshot.get("metrics", {}) or {}
+    regimes = snapshot.get("regimes", []) or []
+    measurement_validation = snapshot.get("measurement_validation", {}) or {}
+    warnings = measurement_validation.get("warnings", []) or []
+    selected: List[str] = []
+
+    span = metrics.get("absI_decades_span")
+    if isinstance(span, (int, float)):
+        selected.append(f"- 데이터 전체에서 |I| 변화폭은 약 {float(span):.2f} decades 입니다.")
+
+    v_knee = metrics.get("v_knee")
+    if isinstance(v_knee, (int, float)):
+        selected.append(f"- 전류 거동이 바뀌는 knee는 |V|≈{float(v_knee):.4g} 부근으로 추정됩니다.")
+
+    low = next((r for r in regimes if r.get("name") == "low_|V|"), None)
+    high = next((r for r in regimes if r.get("name") == "high_|V|"), None)
+    if low and isinstance(low.get("mean_slope_log_absI_per_logV"), (int, float)):
+        selected.append(f"- 저전계 구간 log-log slope는 약 {float(low['mean_slope_log_absI_per_logV']):.2f} 입니다.")
+    if high and isinstance(high.get("mean_slope_log_absI_per_logV"), (int, float)):
+        selected.append(f"- 고전계 구간 log-log slope는 약 {float(high['mean_slope_log_absI_per_logV']):.2f} 입니다.")
+    if high and isinstance(high.get("delta_decades_robust"), (int, float)):
+        selected.append(f"- 고전계 구간에서 |I|는 약 {float(high['delta_decades_robust']):.2f} decades 변합니다.")
+
+    if warnings:
+        selected.append(f"- validation warning은 {len(warnings)}건이며 대표적으로 '{warnings[0]}' 가 있습니다.")
+
+    matched = top.get("matched_features", []) or []
+    if matched:
+        selected.append(f"- 현재 상위 해석과 직접 맞물린 관측 feature는 {join_term_labels(matched[:3])} 입니다.")
+
+    if any(token in text for token in ("왜", "이유", "cause", "reason", "메커니즘")):
+        return selected[:5]
+    if any(token in text for token in ("다음 실험", "실험", "next experiment", "plan")):
+        prioritized = [item for item in selected if "warning" in item or "knee" in item or "slope" in item]
+        return (prioritized + selected)[:5]
+    if any(token in text for token in ("누설", "leakage", "turn-on", "턴온")):
+        prioritized = [item for item in selected if "decades" in item or "knee" in item or "slope" in item]
+        return (prioritized + selected)[:5]
+    return selected[:5]
 
 
 def _build_numeric_observation(
@@ -460,10 +638,13 @@ def parse_vi_from_raw(raw_data: str) -> List[Tuple[float, float]]:
     ]
 
     try:
-        RUNS_DIR.mkdir(parents=True, exist_ok=True)
+        from backend.user_storage import get_user_runs_dir
+
+        runs_dir = get_user_runs_dir()
+        runs_dir.mkdir(parents=True, exist_ok=True)
         raw_hash = hashlib.sha256(raw_data.encode("utf-8", errors="ignore")).hexdigest()[:10]
         ts = time.strftime("%Y%m%d_%H%M%S")
-        out_path = RUNS_DIR / f"parsed_vi_{ts}_{raw_hash}.csv"
+        out_path = runs_dir / f"parsed_vi_{ts}_{raw_hash}.csv"
         with out_path.open("w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(["V", "I"])

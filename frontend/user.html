@@ -355,6 +355,65 @@
       color: var(--danger);
     }
 
+    .auth-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .auth-card {
+      width: min(460px, 100%);
+      background: rgba(255, 251, 244, 0.96);
+      border: 1px solid rgba(214, 203, 183, 0.94);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .auth-card h1 {
+      font-size: 28px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .user-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .run-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .run-item {
+      border: 1px solid rgba(214, 203, 183, 0.9);
+      border-radius: 16px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.68);
+    }
+
     @media (max-width: 1080px) {
       .hero-grid,
       .top-workspace,
@@ -370,7 +429,32 @@
   </style>
 </head>
 <body>
-  <main class="page">
+  <section id="authShell" class="auth-shell">
+    <div class="auth-card">
+      <div class="kicker">Secure Access</div>
+      <h1>사용자 로그인</h1>
+      <p class="muted">계정으로 로그인한 사용자만 자신의 분석 기록과 대화 기록에 접근할 수 있습니다.</p>
+      <div>
+        <div class="hint">User ID</div>
+        <input id="authUserId" type="text" placeholder="예: shjung" />
+      </div>
+      <div>
+        <div class="hint">Password</div>
+        <input id="authPassword" type="password" placeholder="비밀번호" />
+      </div>
+      <div>
+        <div class="hint">Display Name (회원가입 시 선택)</div>
+        <input id="authDisplayName" type="text" placeholder="예: SH Jung" />
+      </div>
+      <div class="action-row">
+        <button type="button" onclick="login()">Login</button>
+        <button class="secondary" type="button" onclick="register()">Register</button>
+      </div>
+      <div id="authStatus" class="status"></div>
+    </div>
+  </section>
+
+  <main id="appPage" class="page hidden">
     <section class="hero">
       <div class="hero-grid">
         <div>
@@ -388,6 +472,10 @@
           <div class="toolbar">
             <div class="toolbar-label">Navigate</div>
             <a href="/index.html" style="text-decoration:none;"><button class="mini secondary" type="button">Workbench</button></a>
+          </div>
+          <div class="user-strip">
+            <div id="activeUserChip" class="user-chip">사용자 없음</div>
+            <button class="mini secondary" type="button" onclick="logout()">Logout</button>
           </div>
         </div>
         <div class="metric-grid">
@@ -488,6 +576,13 @@
           <button class="secondary" onclick="useNextExperimentPrompt()" type="button">Ask Next Experiment</button>
         </div>
         <div id="chatStatus" class="status"></div>
+        <div style="height:10px;"></div>
+        <div>
+          <div class="brief-title">My Recent Runs</div>
+          <div id="recentRuns" class="run-list">
+            <div class="empty-state">로그인 후 불러옵니다.</div>
+          </div>
+        </div>
       </div>
       </div>
 
@@ -518,6 +613,12 @@
     const RUN_URL = "/run";
     const CHAT_URL = "/chat";
     const DOMAIN_URL = "/domains";
+    const RUNS_URL = "/runs";
+    const AUTH_REGISTER_URL = "/auth/register";
+    const AUTH_LOGIN_URL = "/auth/login";
+    const AUTH_LOGOUT_URL = "/auth/logout";
+    const AUTH_ME_URL = "/auth/me";
+    const SESSION_STORAGE_KEY = "ontologyAnchorSession";
 
     const SAMPLE_DATA = {
       fn: `Voltage,Current
@@ -549,6 +650,13 @@
     };
 
     const domainSelect = document.getElementById("domainSelect");
+    const authShell = document.getElementById("authShell");
+    const appPage = document.getElementById("appPage");
+    const authUserId = document.getElementById("authUserId");
+    const authPassword = document.getElementById("authPassword");
+    const authDisplayName = document.getElementById("authDisplayName");
+    const authStatus = document.getElementById("authStatus");
+    const activeUserChip = document.getElementById("activeUserChip");
     const fileInput = document.getElementById("fileInput");
     const rawInput = document.getElementById("rawInput");
     const requestedRunIdInput = document.getElementById("requestedRunIdInput");
@@ -568,10 +676,50 @@
     const chatInput = document.getElementById("chatInput");
     const sendBtn = document.getElementById("sendBtn");
     const chatStatus = document.getElementById("chatStatus");
+    const recentRuns = document.getElementById("recentRuns");
 
     let currentRunId = "";
     let currentRawData = "";
     let currentConversationState = null;
+    let currentSession = null;
+
+    function getSessionToken() {
+      return currentSession?.token || "";
+    }
+
+    function saveSession(session) {
+      currentSession = session || null;
+      if (session) {
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+      } else {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+      }
+    }
+
+    function loadSession() {
+      try {
+        const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    async function apiFetch(url, options = {}) {
+      const headers = new Headers(options.headers || {});
+      if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
+        headers.set("Content-Type", "application/json");
+      }
+      const token = getSessionToken();
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+      const response = await fetch(url, { ...options, headers });
+      if (response.status === 401) {
+        saveSession(null);
+        showAuthOnly();
+      }
+      return response;
+    }
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -587,6 +735,113 @@
       target.classList.toggle("danger", Boolean(isError));
     }
 
+    function showAuthOnly() {
+      authShell.classList.remove("hidden");
+      appPage.classList.add("hidden");
+      activeUserChip.textContent = "사용자 없음";
+      recentRuns.innerHTML = `<div class="empty-state">로그인 후 불러옵니다.</div>`;
+    }
+
+    function showWorkspace(user) {
+      authShell.classList.add("hidden");
+      appPage.classList.remove("hidden");
+      activeUserChip.textContent = `${user.display_name || user.user_id} · ${user.user_id}`;
+    }
+
+    async function register() {
+      const user_id = authUserId.value.trim();
+      const password = authPassword.value;
+      const display_name = authDisplayName.value.trim();
+      if (!user_id || !password) {
+        setStatus(authStatus, "user id와 password를 입력해야 합니다.", true);
+        return;
+      }
+      setStatus(authStatus, "registering...");
+      try {
+        const res = await fetch(AUTH_REGISTER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id, password, display_name: display_name || null })
+        });
+        const payload = await res.json();
+        if (!res.ok) throw new Error(payload.detail || "register failed");
+        saveSession(payload.session);
+        setStatus(authStatus, "registered");
+        await bootstrapAuthenticatedApp();
+      } catch (err) {
+        setStatus(authStatus, err.message || "register failed", true);
+      }
+    }
+
+    async function login() {
+      const user_id = authUserId.value.trim();
+      const password = authPassword.value;
+      if (!user_id || !password) {
+        setStatus(authStatus, "user id와 password를 입력해야 합니다.", true);
+        return;
+      }
+      setStatus(authStatus, "logging in...");
+      try {
+        const res = await fetch(AUTH_LOGIN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id, password })
+        });
+        const payload = await res.json();
+        if (!res.ok) throw new Error(payload.detail || "login failed");
+        saveSession(payload.session);
+        setStatus(authStatus, "login complete");
+        await bootstrapAuthenticatedApp();
+      } catch (err) {
+        setStatus(authStatus, err.message || "login failed", true);
+      }
+    }
+
+    async function logout() {
+      try {
+        await apiFetch(AUTH_LOGOUT_URL, { method: "POST" });
+      } catch {}
+      saveSession(null);
+      clearAllState();
+      showAuthOnly();
+    }
+
+    function renderRecentRuns(runs) {
+      if (!Array.isArray(runs) || !runs.length) {
+        recentRuns.innerHTML = `<div class="empty-state">아직 저장된 run이 없습니다.</div>`;
+        return;
+      }
+      recentRuns.innerHTML = runs.slice(0, 6).map(item => `
+        <div class="run-item">
+          <div><strong>${escapeHtml(item.run_id || "(unknown)")}</strong></div>
+          <div class="hint">coverage: ${escapeHtml(item.coverage_status || "(unknown)")}</div>
+          <div class="hint">top claim: ${escapeHtml(item.top_claim || "(none)")}</div>
+        </div>
+      `).join("");
+    }
+
+    async function loadRecentRuns() {
+      try {
+        const res = await apiFetch(`${RUNS_URL}?limit=12`);
+        const payload = await res.json();
+        if (!res.ok) throw new Error(payload.detail || "failed to load runs");
+        renderRecentRuns(payload.runs || []);
+      } catch (err) {
+        recentRuns.innerHTML = `<div class="empty-state">${escapeHtml(err.message || "run 목록 로드 실패")}</div>`;
+      }
+    }
+
+    async function bootstrapAuthenticatedApp() {
+      const res = await apiFetch(AUTH_ME_URL);
+      const payload = await res.json();
+      if (!res.ok) {
+        throw new Error(payload.detail || "session check failed");
+      }
+      showWorkspace(payload.user);
+      renderRecentRuns(payload.workspace?.recent_runs || []);
+      await loadDomains();
+    }
+
     function loadSample(kind) {
       rawInput.value = SAMPLE_DATA[kind] || "";
       currentRawData = rawInput.value;
@@ -596,7 +851,7 @@
 
     async function loadDomains() {
       try {
-        const res = await fetch(DOMAIN_URL);
+        const res = await apiFetch(DOMAIN_URL);
         const payload = await res.json();
         const domains = Array.isArray(payload.domains) ? payload.domains : [];
         if (!domains.length) return;
@@ -938,9 +1193,8 @@
       setStatus(analysisStatus, "running analysis...");
 
       try {
-        const res = await fetch(RUN_URL, {
+        const res = await apiFetch(RUN_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             domain: domainSelect.value || "iv",
             raw_data: rawData,
@@ -968,6 +1222,7 @@
           "분석이 완료되었습니다. 질문을 이어가세요.";
         resetChat([{ role: "assistant", text: firstAssistantText }]);
         renderQuickPrompts(payload.conversation_state || {});
+        await loadRecentRuns();
         sendBtn.disabled = !currentRunId;
         setStatus(analysisStatus, "analysis complete");
       } catch (err) {
@@ -991,9 +1246,8 @@
       setStatus(chatStatus, "thinking...");
 
       try {
-        const res = await fetch(CHAT_URL, {
+        const res = await apiFetch(CHAT_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             run_id: currentRunId,
             user_text: text,
@@ -1057,8 +1311,22 @@
       }
     });
 
-    loadDomains();
-    redrawChart();
+    async function initApp() {
+      redrawChart();
+      saveSession(loadSession());
+      if (!getSessionToken()) {
+        showAuthOnly();
+        return;
+      }
+      try {
+        await bootstrapAuthenticatedApp();
+      } catch {
+        saveSession(null);
+        showAuthOnly();
+      }
+    }
+
+    initApp();
   </script>
 </body>
 </html>

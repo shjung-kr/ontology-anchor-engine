@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from backend.conversation.memory import build_chat_response, ensure_memory_files
-from backend.domains.iv.common import PROMPTS_DIR, RUNS_DIR
+from backend.domains.iv.common import PROMPTS_DIR, get_runs_dir
 from backend.domains.iv.features import build_l1_state
 from backend.domains.iv.proposals import build_derived_assumptions, evaluate_scientific_justification
 from backend.domains.iv.registry import load_registry_from_folders
@@ -185,11 +185,12 @@ def write_run_artifacts(
     재현성 확보를 위해 실행 산출물을 runs 디렉터리에 저장한다.
     """
 
-    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    runs_dir = get_runs_dir()
+    runs_dir.mkdir(parents=True, exist_ok=True)
     created_at = datetime.now(timezone.utc)
     requested_run_id = normalize_requested_run_id((metadata or {}).get("requested_run_id"))
     run_id = requested_run_id or f"{created_at.strftime('%Y%m%dT%H%M%SZ')}__{hashlib.sha256(raw_data.encode('utf-8')).hexdigest()[:10]}"
-    run_dir = RUNS_DIR / run_id
+    run_dir = runs_dir / run_id
     if run_dir.exists():
         raise FileExistsError(f"run_id already exists: {run_id}")
     run_dir.mkdir(parents=True, exist_ok=False)

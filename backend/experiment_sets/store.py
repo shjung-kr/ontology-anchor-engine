@@ -13,29 +13,34 @@ from backend.experiment_sets.models import (
     ExperimentSetCreateRequest,
     ExperimentSetUpdateRequest,
 )
+from backend.user_storage import get_user_experiment_sets_path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-STORE_PATH = BASE_DIR / "sets.json"
+
+
+def _store_path() -> Path:
+    return get_user_experiment_sets_path()
 
 
 def _ensure_store() -> None:
-    STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if not STORE_PATH.exists():
-        STORE_PATH.write_text(json.dumps({"sets": []}, ensure_ascii=False, indent=2), encoding="utf-8")
+    store_path = _store_path()
+    store_path.parent.mkdir(parents=True, exist_ok=True)
+    if not store_path.exists():
+        store_path.write_text(json.dumps({"sets": []}, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _load_store() -> dict:
     _ensure_store()
     try:
-        return json.loads(STORE_PATH.read_text(encoding="utf-8"))
+        return json.loads(_store_path().read_text(encoding="utf-8"))
     except Exception:
         return {"sets": []}
 
 
 def _write_store(payload: dict) -> None:
     _ensure_store()
-    STORE_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    _store_path().write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def list_experiment_sets() -> List[ExperimentSet]:
