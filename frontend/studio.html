@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ontology Anchor Engine Studio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg:
+        radial-gradient(circle at top left, rgba(32, 109, 92, 0.18), transparent 34%),
+        radial-gradient(circle at right 10%, rgba(200, 139, 60, 0.16), transparent 28%),
+        linear-gradient(180deg, #f3efe7 0%, #f8f7f2 45%, #eef4f0 100%);
+      --panel: rgba(255, 253, 248, 0.86);
+      --panel-strong: #fffdf8;
+      --panel-dark: #1f3a32;
+      --line: rgba(131, 142, 128, 0.26);
+      --ink: #18211c;
+      --muted: #5d695f;
+      --accent: #1d6b57;
+      --accent-strong: #0e4d3d;
+      --accent-soft: #dcefe7;
+      --warn: #936128;
+      --danger: #b65346;
+      --shadow: 0 18px 50px rgba(31, 48, 38, 0.1);
+      --shadow-soft: 0 10px 28px rgba(31, 48, 38, 0.08);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    }
+
+    body {
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.18), transparent 82%);
+      pointer-events: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app {
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .auth-shell {
+      min-height: calc(100vh - 48px);
+      display: grid;
+      grid-template-columns: minmax(320px, 0.92fr) minmax(420px, 1.08fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .hero-panel,
+    .auth-panel,
+    .shell-panel,
+    .card,
+    .metric-card,
+    .history-item,
+    .message,
+    .empty-state {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .hero-panel {
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.16), transparent 32%),
+        linear-gradient(145deg, #17352d, #22463c 52%, #102821 100%);
+      color: #f4f6f2;
+      border-radius: var(--radius-xl);
+      padding: 34px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hero-panel::after {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      right: -90px;
+      top: -70px;
+      background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 62%);
+      pointer-events: none;
+    }
+
+    .hero-kicker,
+    .eyebrow {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-weight: 700;
+    }
+
+    .hero-kicker {
+      color: #9ed1ba;
+      margin-bottom: 14px;
+    }
+
+    .hero-panel h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 62px);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      max-width: 8ch;
+    }
+
+    .hero-copy {
+      margin-top: 18px;
+      max-width: 54ch;
+      color: rgba(244, 246, 242, 0.8);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .hero-stat {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .hero-stat-label {
+      color: rgba(244, 246, 242, 0.62);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .hero-stat-value {
+      margin-top: 8px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-footer {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      color: rgba(244, 246, 242, 0.72);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .auth-panel,
+    .shell-panel,
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.55);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-panel {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .auth-panel h2 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.04em;
+    }
+
+    .auth-copy {
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .tab-row {
+      display: inline-flex;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(230, 233, 225, 0.72);
+      margin: 24px 0 20px;
+      width: fit-content;
+    }
+
+    .tab-btn,
+    button {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .tab-btn {
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .tab-btn.active {
+      background: var(--panel-strong);
+      color: var(--ink);
+      box-shadow: 0 6px 16px rgba(21, 29, 25, 0.08);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.76);
+      padding: 13px 14px;
+      font-size: 14px;
+      color: var(--ink);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    textarea,
+    pre,
+    code,
+    .mono {
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 136px;
+      line-height: 1.55;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(29, 107, 87, 0.56);
+      box-shadow: 0 0 0 4px rgba(29, 107, 87, 0.1);
+      background: rgba(255,255,255,0.95);
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-ghost {
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 18px;
+    }
+
+    .btn-primary {
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      box-shadow: 0 10px 22px rgba(18, 86, 69, 0.22);
+    }
+
+    .btn-secondary {
+      color: var(--ink);
+      background: rgba(255,255,255,0.9);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .btn-ghost {
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid rgba(131, 142, 128, 0.2);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.66;
+      transform: none;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .auth-status,
+    .status-banner {
+      margin-top: 16px;
+      border-radius: var(--radius-md);
+      padding: 13px 15px;
+      font-size: 13px;
+      line-height: 1.55;
+      border: 1px solid transparent;
+    }
+
+    .status-ok {
+      background: rgba(220, 239, 231, 0.9);
+      border-color: rgba(29, 107, 87, 0.18);
+      color: var(--accent-strong);
+    }
+
+    .status-warn {
+      background: rgba(249, 239, 222, 0.95);
+      border-color: rgba(147, 97, 40, 0.18);
+      color: var(--warn);
+    }
+
+    .status-error {
+      background: rgba(249, 228, 224, 0.95);
+      border-color: rgba(182, 83, 70, 0.18);
+      color: var(--danger);
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 22px;
+      min-height: calc(100vh - 48px);
+    }
+
+    .sidebar {
+      padding: 24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.78), rgba(252, 249, 243, 0.9)),
+        var(--panel);
+      position: sticky;
+      top: 24px;
+      height: calc(100vh - 48px);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .brand {
+      display: grid;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, #1d6b57, #254c7d);
+      box-shadow: 0 14px 24px rgba(29, 107, 87, 0.22);
+    }
+
+    .brand-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-copy,
+    .section-copy,
+    .muted {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .nav-card {
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.52);
+      padding: 16px;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .nav-item {
+      border-radius: 14px;
+      background: rgba(244, 247, 242, 0.86);
+      border: 1px solid rgba(131, 142, 128, 0.18);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .nav-item strong {
+      font-size: 14px;
+      display: block;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      display: grid;
+      gap: 10px;
+    }
+
+    .shell-main {
+      display: grid;
+      gap: 18px;
+    }
+
+    .topbar {
+      padding: 22px 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: -0.05em;
+    }
+
+    .topbar-copy {
+      margin-top: 8px;
+      max-width: 62ch;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .topbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(255,255,255,0.55);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .metric-value {
+      margin-top: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      overflow-wrap: anywhere;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+    }
+
+    .card-subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .dropzone {
+      border-radius: 20px;
+      border: 1.5px dashed rgba(29, 107, 87, 0.32);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.72), rgba(243, 248, 244, 0.9));
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .dropzone strong {
+      font-size: 17px;
+      letter-spacing: -0.02em;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border: 1px solid rgba(29, 107, 87, 0.14);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .result-surface,
+    .empty-state,
+    .history-list,
+    .message-list {
+      border-radius: 20px;
+      background: rgba(255,255,255,0.56);
+      border: 1px solid rgba(255,255,255,0.58);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.36);
+    }
+
+    .result-surface {
+      padding: 16px;
+    }
+
+    .empty-state {
+      padding: 22px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .summary-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .summary-block {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(131, 142, 128, 0.14);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .summary-block h4 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+    }
+
+    .summary-block pre {
+      margin: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #294034;
+      background: transparent;
+    }
+
+    .history-list,
+    .message-list {
+      padding: 12px;
+      max-height: 380px;
+      overflow: auto;
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-item {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(131, 142, 128, 0.16);
+      cursor: pointer;
+      transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .history-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(29, 107, 87, 0.32);
+      box-shadow: 0 12px 24px rgba(31, 48, 38, 0.08);
+    }
+
+    .history-item.active {
+      border-color: rgba(29, 107, 87, 0.5);
+      background: rgba(220, 239, 231, 0.72);
+    }
+
+    .history-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .history-meta {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .message {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(131, 142, 128, 0.16);
+      font-size: 13px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .message.user {
+      background: rgba(220, 239, 231, 0.9);
+      color: var(--accent-strong);
+      justify-self: end;
+      max-width: 92%;
+    }
+
+    .message.assistant {
+      background: rgba(255,255,255,0.86);
+      color: var(--ink);
+      max-width: 92%;
+    }
+
+    .message-meta {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .chat-compose {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .chat-compose textarea {
+      min-height: 120px;
+    }
+
+    .status-line {
+      font-size: 12px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+
+    a.inline-link {
+      color: var(--accent-strong);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    @media (max-width: 1280px) {
+      .metric-grid,
+      .three-col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1080px) {
+      .dashboard,
+      .workspace-grid,
+      .auth-shell,
+      .two-col,
+      .three-col,
+      .metric-grid,
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .topbar-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app {
+        padding: 14px;
+      }
+
+      .auth-panel,
+      .hero-panel,
+      .card,
+      .sidebar,
+      .topbar,
+      .metric-card {
+        border-radius: 22px;
+      }
+
+      .hero-panel,
+      .auth-panel,
+      .card,
+      .sidebar,
+      .topbar {
+        padding: 18px;
+      }
+
+      .tab-row,
+      .action-row,
+      .pill-row {
+        width: 100%;
+      }
+
+      .tab-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .tab-btn {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section id="authView" class="auth-shell">
+      <article class="hero-panel">
+        <div>
+          <div class="hero-kicker">Research Interface</div>
+          <h1>Cleaner login. Better dashboard.</h1>
+          <p class="hero-copy">
+            Ontology Anchor Engine의 기존 분석 흐름은 유지하면서, 인증부터 분석 실행, 결과 요약, 대화형 보정까지 한 화면에서 더 정리된 워크스페이스로 재구성한 프런트엔드입니다.
+          </p>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="hero-stat-label">Auth Ready</div>
+              <div class="hero-stat-value">Bearer Session</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-label">Workspace</div>
+              <div class="hero-stat-value">Analysis + Chat</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-label">Output</div>
+              <div class="hero-stat-value">Summary + History</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-footer">
+          엔드포인트 기반 구조:
+          <span class="mono">/auth/login</span>,
+          <span class="mono">/auth/register</span>,
+          <span class="mono">/auth/me</span>,
+          <span class="mono">/run</span>,
+          <span class="mono">/chat</span>,
+          <span class="mono">/runs</span>
+        </div>
+      </article>
+
+      <section class="auth-panel">
+        <div class="eyebrow">Studio Access</div>
+        <h2>로그인 후 분석을 시작합니다.</h2>
+        <p class="auth-copy">
+          현재 백엔드는 사용자 인증을 요구합니다. 기존 `index.html`은 이를 반영하지 않아서 401 문제가 생길 수 있으므로, 이 페이지는 세션 저장과 자동 복구를 포함합니다.
+        </p>
+
+        <div class="tab-row">
+          <button type="button" class="tab-btn active" id="loginTabBtn">로그인</button>
+          <button type="button" class="tab-btn" id="registerTabBtn">회원가입</button>
+        </div>
+
+        <form id="loginForm" class="form-grid">
+          <div class="field">
+            <label for="loginUserId">User ID</label>
+            <input id="loginUserId" name="user_id" placeholder="researcher-a" autocomplete="username" required />
+          </div>
+          <div class="field">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" name="password" type="password" placeholder="4자 이상" autocomplete="current-password" required />
+          </div>
+          <div class="action-row">
+            <button type="submit" class="btn-primary" id="loginSubmitBtn">로그인</button>
+          </div>
+        </form>
+
+        <form id="registerForm" class="form-grid hidden">
+          <div class="field">
+            <label for="registerDisplayName">Display Name</label>
+            <input id="registerDisplayName" name="display_name" placeholder="Dr. Kim" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="registerUserId">User ID</label>
+            <input id="registerUserId" name="user_id" placeholder="researcher-a" autocomplete="username" required />
+          </div>
+          <div class="field">
+            <label for="registerPassword">Password</label>
+            <input id="registerPassword" name="password" type="password" placeholder="4자 이상" autocomplete="new-password" required />
+          </div>
+          <div class="action-row">
+            <button type="submit" class="btn-primary" id="registerSubmitBtn">계정 만들기</button>
+          </div>
+        </form>
+
+        <div id="authStatus" class="auth-status hidden"></div>
+      </section>
+    </section>
+
+    <section id="dashboardView" class="dashboard hidden">
+      <aside class="shell-panel sidebar">
+        <div class="brand">
+          <div class="brand-mark">OA</div>
+          <div class="brand-title">Engine Studio</div>
+          <div class="brand-copy">
+            로그인, 데이터 업로드, 분석 결과, 이력 조회를 한 흐름으로 정리한 새 워크스페이스입니다.
+          </div>
+        </div>
+
+        <div class="nav-card">
+          <div class="eyebrow">Current User</div>
+          <div id="sidebarUserName" style="font-size:20px; font-weight:700; letter-spacing:-0.04em; margin-top:6px;">-</div>
+          <div id="sidebarUserId" class="brand-copy mono" style="margin-top:6px;">-</div>
+        </div>
+
+        <div class="nav-card">
+          <div class="eyebrow">Workspace Focus</div>
+          <div class="nav-list">
+            <div class="nav-item">
+              <div>
+                <strong>Analysis</strong>
+                <span class="muted">도메인별 추론 실행</span>
+              </div>
+              <span class="pill" id="domainBadge">iv</span>
+            </div>
+            <div class="nav-item">
+              <div>
+                <strong>Conversation</strong>
+                <span class="muted">실행 결과 보정 및 질의</span>
+              </div>
+              <span class="pill" id="chatModeBadge">idle</span>
+            </div>
+            <div class="nav-item">
+              <div>
+                <strong>Recent Runs</strong>
+                <span class="muted">내 작업 이력 확인</span>
+              </div>
+              <span class="pill" id="runCountBadge">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <button type="button" class="btn-secondary" id="refreshWorkspaceBtn">새로 고침</button>
+          <button type="button" class="btn-ghost" id="logoutBtn">로그아웃</button>
+          <div class="brand-copy">
+            기존 화면이 필요하면 <a class="inline-link" href="/index.html">index.html</a> 또는 <a class="inline-link" href="/user.html">user.html</a>로 이동할 수 있습니다.
+          </div>
+        </div>
+      </aside>
+
+      <main class="shell-main">
+        <section class="shell-panel topbar">
+          <div>
+            <div class="eyebrow">Scientific Reasoning Workspace</div>
+            <h2>Ontology Anchor Dashboard</h2>
+            <div class="topbar-copy">
+              데이터 입력부터 해석 후보, 시스템 서사, 그리고 후속 채팅까지 현재 백엔드 API에 맞춰 다시 정리한 운영용 화면입니다.
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <button type="button" class="btn-secondary" id="loadMeBtn">세션 확인</button>
+            <button type="button" class="btn-primary" id="runAnalysisBtn">분석 실행</button>
+          </div>
+        </section>
+
+        <section class="metric-grid">
+          <article class="metric-card">
+            <div class="metric-label">Display Name</div>
+            <div class="metric-value" id="metricDisplayName">-</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Run Count</div>
+            <div class="metric-value" id="metricRunCount">0</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Current Run ID</div>
+            <div class="metric-value mono" id="metricRunId">(none)</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Current Domain</div>
+            <div class="metric-value" id="metricDomain">iv</div>
+          </article>
+        </section>
+
+        <div id="workspaceStatus" class="status-banner status-ok hidden"></div>
+
+        <section class="workspace-grid">
+          <div class="stack">
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Run Analysis</h3>
+                  <div class="card-subtitle">도메인, 런 ID, 파일 업로드 또는 직접 붙여넣기로 분석을 시작합니다.</div>
+                </div>
+                <div class="pill-row">
+                  <span class="pill" id="workspaceModePill">Ready</span>
+                </div>
+              </div>
+
+              <div class="stack">
+                <div class="two-col">
+                  <div class="field">
+                    <label for="domainSelect">Domain</label>
+                    <select id="domainSelect"></select>
+                  </div>
+                  <div class="field">
+                    <label for="requestedRunIdInput">Requested Run ID</label>
+                    <input id="requestedRunIdInput" placeholder="exp-042" />
+                  </div>
+                </div>
+
+                <div class="dropzone">
+                  <strong>Raw Data Input</strong>
+                  <div class="section-copy">CSV, TXT 데이터를 올리거나 아래에 바로 붙여넣을 수 있습니다.</div>
+                  <div class="action-row" style="margin-top:0;">
+                    <input id="fileInput" type="file" />
+                    <button type="button" class="btn-secondary" id="clearRawDataBtn">입력 초기화</button>
+                  </div>
+                  <div id="fileMeta" class="status-line">업로드된 파일이 없습니다.</div>
+                </div>
+
+                <div class="field">
+                  <label for="rawDataInput">Raw Data</label>
+                  <textarea id="rawDataInput" placeholder="예: voltage,current&#10;-5,1.2e-9&#10;-4.5,1.5e-9"></textarea>
+                </div>
+
+                <div class="action-row">
+                  <button type="button" class="btn-primary" id="submitRunBtn">분석 실행</button>
+                  <button type="button" class="btn-ghost" id="loadHistoryBtn">최근 실행 불러오기</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Analysis Summary</h3>
+                  <div class="card-subtitle">요약, 패턴, validation, proposal 정보를 카드형으로 정리합니다.</div>
+                </div>
+              </div>
+              <div id="analysisSummary" class="result-surface">
+                <div class="empty-state">아직 분석 결과가 없습니다. 로그인 후 데이터를 올리고 분석을 실행하세요.</div>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Recent Runs</h3>
+                  <div class="card-subtitle">내 계정 기준 최근 실행 목록입니다. 클릭하면 상세를 다시 불러옵니다.</div>
+                </div>
+              </div>
+              <div id="historyList" class="history-list">
+                <div class="empty-state">최근 실행 이력이 없습니다.</div>
+              </div>
+            </article>
+          </div>
+
+          <div class="stack">
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Conversational Reasoning</h3>
+                  <div class="card-subtitle">현재 실행된 run에 대해 질문을 보내고 assistant reply를 확인합니다.</div>
+                </div>
+              </div>
+
+              <div class="three-col">
+                <div class="field">
+                  <label for="prioritySelect">Analysis Priority</label>
+                  <select id="prioritySelect">
+                    <option value="">(미설정)</option>
+                    <option value="mechanism_identification">메커니즘 식별</option>
+                    <option value="measurement_anomaly_diagnosis">측정 이상 진단</option>
+                    <option value="next_experiment_planning">다음 실험 설계</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="focusClaimsInput">Focus Claims</label>
+                  <input id="focusClaimsInput" placeholder="claim.id.a, claim.id.b" />
+                </div>
+                <div class="field">
+                  <label for="excludeClaimsInput">Exclude Claims</label>
+                  <input id="excludeClaimsInput" placeholder="claim.id.x" />
+                </div>
+              </div>
+
+              <div class="chat-compose">
+                <textarea id="chatInput" placeholder="예: 이번 결과에서 FN tunneling 가설을 우선 검토하고, 다음 실험 설계 관점에서 봐 주세요."></textarea>
+                <div class="action-row" style="margin-top:0;">
+                  <button type="button" class="btn-primary" id="sendChatBtn">질문 보내기</button>
+                  <button type="button" class="btn-secondary" id="loadCurrentRunBtn">현재 run 다시 불러오기</button>
+                </div>
+                <div id="chatStatus" class="status-line">분석 후 채팅을 보낼 수 있습니다.</div>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Assistant Timeline</h3>
+                  <div class="card-subtitle">보낸 메시지와 assistant 응답을 시간 순서대로 표시합니다.</div>
+                </div>
+              </div>
+              <div id="messageList" class="message-list">
+                <div class="empty-state">대화 이력이 없습니다.</div>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Run Detail Surface</h3>
+                  <div class="card-subtitle">coverage, system narrative, fallback, hypotheses를 함께 봅니다.</div>
+                </div>
+              </div>
+              <div id="detailSurface" class="result-surface">
+                <div class="empty-state">상세 정보가 아직 로드되지 않았습니다.</div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <script>
+    const API = {
+      login: "/auth/login",
+      register: "/auth/register",
+      me: "/auth/me",
+      logout: "/auth/logout",
+      domains: "/domains",
+      run: "/run",
+      chat: "/chat",
+      runs: "/runs"
+    };
+
+    const storageKey = "ontology-anchor-engine-studio-session";
+    const state = {
+      session: loadStoredSession(),
+      currentRunId: null,
+      currentDomain: "iv",
+      runs: [],
+      domains: [],
+      chatMessages: [],
+      selectedHistoryRunId: null
+    };
+
+    const authView = document.getElementById("authView");
+    const dashboardView = document.getElementById("dashboardView");
+    const authStatus = document.getElementById("authStatus");
+    const workspaceStatus = document.getElementById("workspaceStatus");
+    const loginTabBtn = document.getElementById("loginTabBtn");
+    const registerTabBtn = document.getElementById("registerTabBtn");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const loginSubmitBtn = document.getElementById("loginSubmitBtn");
+    const registerSubmitBtn = document.getElementById("registerSubmitBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const refreshWorkspaceBtn = document.getElementById("refreshWorkspaceBtn");
+    const loadMeBtn = document.getElementById("loadMeBtn");
+    const runAnalysisBtn = document.getElementById("runAnalysisBtn");
+    const submitRunBtn = document.getElementById("submitRunBtn");
+    const loadHistoryBtn = document.getElementById("loadHistoryBtn");
+    const loadCurrentRunBtn = document.getElementById("loadCurrentRunBtn");
+    const sendChatBtn = document.getElementById("sendChatBtn");
+    const clearRawDataBtn = document.getElementById("clearRawDataBtn");
+    const fileInput = document.getElementById("fileInput");
+    const rawDataInput = document.getElementById("rawDataInput");
+    const fileMeta = document.getElementById("fileMeta");
+    const domainSelect = document.getElementById("domainSelect");
+    const requestedRunIdInput = document.getElementById("requestedRunIdInput");
+    const prioritySelect = document.getElementById("prioritySelect");
+    const focusClaimsInput = document.getElementById("focusClaimsInput");
+    const excludeClaimsInput = document.getElementById("excludeClaimsInput");
+    const chatInput = document.getElementById("chatInput");
+    const chatStatus = document.getElementById("chatStatus");
+    const analysisSummary = document.getElementById("analysisSummary");
+    const detailSurface = document.getElementById("detailSurface");
+    const historyList = document.getElementById("historyList");
+    const messageList = document.getElementById("messageList");
+
+    const sidebarUserName = document.getElementById("sidebarUserName");
+    const sidebarUserId = document.getElementById("sidebarUserId");
+    const domainBadge = document.getElementById("domainBadge");
+    const chatModeBadge = document.getElementById("chatModeBadge");
+    const runCountBadge = document.getElementById("runCountBadge");
+    const metricDisplayName = document.getElementById("metricDisplayName");
+    const metricRunCount = document.getElementById("metricRunCount");
+    const metricRunId = document.getElementById("metricRunId");
+    const metricDomain = document.getElementById("metricDomain");
+    const workspaceModePill = document.getElementById("workspaceModePill");
+
+    loginTabBtn.addEventListener("click", () => switchAuthTab("login"));
+    registerTabBtn.addEventListener("click", () => switchAuthTab("register"));
+    loginForm.addEventListener("submit", onLoginSubmit);
+    registerForm.addEventListener("submit", onRegisterSubmit);
+    logoutBtn.addEventListener("click", onLogout);
+    refreshWorkspaceBtn.addEventListener("click", () => bootstrapWorkspace(true));
+    loadMeBtn.addEventListener("click", () => bootstrapWorkspace(true));
+    runAnalysisBtn.addEventListener("click", runAnalysis);
+    submitRunBtn.addEventListener("click", runAnalysis);
+    loadHistoryBtn.addEventListener("click", loadRuns);
+    loadCurrentRunBtn.addEventListener("click", () => {
+      if (state.currentRunId) {
+        loadRunSummary(state.currentRunId);
+      } else {
+        setWorkspaceStatus("불러올 현재 run이 없습니다.", "warn");
+      }
+    });
+    sendChatBtn.addEventListener("click", sendChatMessage);
+    clearRawDataBtn.addEventListener("click", () => {
+      rawDataInput.value = "";
+      fileInput.value = "";
+      fileMeta.textContent = "입력이 초기화되었습니다.";
+    });
+    fileInput.addEventListener("change", onFileSelected);
+    domainSelect.addEventListener("change", () => {
+      state.currentDomain = domainSelect.value || "iv";
+      syncMetricCards();
+    });
+
+    bootstrap();
+
+    async function bootstrap() {
+      switchAuthTab("login");
+      if (!state.session || !state.session.token) {
+        renderMode();
+        return;
+      }
+      try {
+        await bootstrapWorkspace(false);
+      } catch (error) {
+        clearStoredSession();
+        state.session = null;
+        renderMode();
+        showAuthStatus(getErrorMessage(error), "error");
+      }
+    }
+
+    function renderMode() {
+      const loggedIn = Boolean(state.session && state.session.token);
+      authView.classList.toggle("hidden", loggedIn);
+      dashboardView.classList.toggle("hidden", !loggedIn);
+    }
+
+    function switchAuthTab(tab) {
+      const loginActive = tab === "login";
+      loginTabBtn.classList.toggle("active", loginActive);
+      registerTabBtn.classList.toggle("active", !loginActive);
+      loginForm.classList.toggle("hidden", !loginActive);
+      registerForm.classList.toggle("hidden", loginActive);
+      showAuthStatus("", "ok", true);
+    }
+
+    async function onLoginSubmit(event) {
+      event.preventDefault();
+      const formData = new FormData(loginForm);
+      const payload = {
+        user_id: String(formData.get("user_id") || "").trim(),
+        password: String(formData.get("password") || "")
+      };
+      if (!payload.user_id || !payload.password) {
+        showAuthStatus("아이디와 비밀번호를 입력하세요.", "warn");
+        return;
+      }
+      await authenticate(API.login, payload, "로그인되었습니다.");
+    }
+
+    async function onRegisterSubmit(event) {
+      event.preventDefault();
+      const formData = new FormData(registerForm);
+      const payload = {
+        display_name: String(formData.get("display_name") || "").trim() || null,
+        user_id: String(formData.get("user_id") || "").trim(),
+        password: String(formData.get("password") || "")
+      };
+      if (!payload.user_id || !payload.password) {
+        showAuthStatus("회원가입 정보를 입력하세요.", "warn");
+        return;
+      }
+      await authenticate(API.register, payload, "계정이 생성되고 자동 로그인되었습니다.");
+    }
+
+    async function authenticate(url, payload, successMessage) {
+      const submitButtons = url === API.login ? [loginSubmitBtn] : [registerSubmitBtn];
+      setButtonBusy(submitButtons, true);
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await parseJson(response);
+        if (!response.ok) {
+          throw new Error(extractDetail(data) || "인증에 실패했습니다.");
+        }
+        state.session = data.session;
+        storeSession(state.session);
+        renderMode();
+        await bootstrapWorkspace(false);
+        showWorkspaceStatus(successMessage, "ok");
+      } catch (error) {
+        showAuthStatus(getErrorMessage(error), "error");
+      } finally {
+        setButtonBusy(submitButtons, false);
+      }
+    }
+
+    async function bootstrapWorkspace(forceMessage) {
+      renderMode();
+      const [meData, domainsData] = await Promise.all([
+        authFetchJson(API.me),
+        authFetchJson(API.domains)
+      ]);
+      state.domains = Array.isArray(domainsData.domains) ? domainsData.domains : [];
+      populateDomainOptions();
+      hydrateUserMetrics(meData);
+      await loadRuns(false);
+      renderMode();
+      if (forceMessage) {
+        showWorkspaceStatus("세션과 워크스페이스를 다시 불러왔습니다.", "ok");
+      }
+    }
+
+    async function loadRuns(showMessage = true) {
+      const data = await authFetchJson(`${API.runs}?limit=20`);
+      state.runs = Array.isArray(data.runs) ? data.runs : [];
+      renderRunList();
+      syncMetricCards();
+      if (showMessage) {
+        showWorkspaceStatus("최근 실행 목록을 불러왔습니다.", "ok");
+      }
+    }
+
+    async function loadRunSummary(runId) {
+      const data = await authFetchJson(`${API.runs}/${encodeURIComponent(runId)}/summary`);
+      state.currentRunId = runId;
+      state.selectedHistoryRunId = runId;
+      renderRunSummary(data);
+      renderRunDetail(data);
+      renderMessagesFromSummary(data);
+      syncMetricCards();
+      renderRunList();
+      showWorkspaceStatus(`run ${runId} 상세를 불러왔습니다.`, "ok");
+    }
+
+    async function runAnalysis() {
+      const rawData = rawDataInput.value.trim();
+      if (!rawData) {
+        showWorkspaceStatus("분석할 raw data를 먼저 입력하세요.", "warn");
+        return;
+      }
+
+      const payload = {
+        domain: domainSelect.value || "iv",
+        raw_data: rawData,
+        requested_run_id: requestedRunIdInput.value.trim() || null,
+        metadata: {}
+      };
+
+      setButtonBusy([runAnalysisBtn, submitRunBtn], true, "분석 중...");
+      workspaceModePill.textContent = "Running";
+      try {
+        const data = await authFetchJson(API.run, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        state.currentRunId = data.run_id || null;
+        state.currentDomain = payload.domain;
+        renderRunSummary(data);
+        renderRunDetail(data);
+        state.chatMessages = [];
+        renderMessageList();
+        await loadRuns(false);
+        syncMetricCards();
+        showWorkspaceStatus(`분석이 완료되었습니다. 현재 run: ${state.currentRunId || "(unknown)"}`, "ok");
+      } catch (error) {
+        showWorkspaceStatus(getErrorMessage(error), "error");
+      } finally {
+        workspaceModePill.textContent = "Ready";
+        setButtonBusy([runAnalysisBtn, submitRunBtn], false);
+      }
+    }
+
+    async function sendChatMessage() {
+      if (!state.currentRunId) {
+        showWorkspaceStatus("먼저 분석을 실행해 current run을 만들어야 합니다.", "warn");
+        return;
+      }
+      const userText = chatInput.value.trim();
+      if (!userText) {
+        chatStatus.textContent = "보낼 질문을 입력하세요.";
+        return;
+      }
+
+      const payload = {
+        run_id: state.currentRunId,
+        user_text: userText,
+        intent_update: {
+          analysis_priority: prioritySelect.value || null,
+          focus_claims: parseCsvInput(focusClaimsInput.value),
+          exclude_claims: parseCsvInput(excludeClaimsInput.value)
+        },
+        structured_answers: []
+      };
+
+      appendMessage("user", userText);
+      chatInput.value = "";
+      chatStatus.textContent = "assistant 응답을 기다리는 중입니다.";
+      setButtonBusy([sendChatBtn], true, "전송 중...");
+
+      try {
+        const data = await authFetchJson(API.chat, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const reply = String(data.assistant_reply || data.message || data.system_narrative || "응답이 생성되었습니다.");
+        appendMessage("assistant", reply);
+        renderRunDetail(data);
+        chatModeBadge.textContent = String(data.chat_mode || "updated");
+        chatStatus.textContent = "assistant 응답이 반영되었습니다.";
+        await loadRunSummary(state.currentRunId);
+      } catch (error) {
+        chatStatus.textContent = getErrorMessage(error);
+        showWorkspaceStatus(getErrorMessage(error), "error");
+      } finally {
+        setButtonBusy([sendChatBtn], false);
+      }
+    }
+
+    async function onLogout() {
+      try {
+        await authFetchJson(API.logout, { method: "POST" });
+      } catch (_) {
+      }
+      clearStoredSession();
+      state.session = null;
+      state.currentRunId = null;
+      state.runs = [];
+      state.chatMessages = [];
+      renderMode();
+      showAuthStatus("로그아웃되었습니다.", "ok");
+    }
+
+    async function onFileSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        return;
+      }
+      const text = await file.text();
+      rawDataInput.value = text;
+      fileMeta.textContent = `${file.name} · ${file.size.toLocaleString()} bytes`;
+      showWorkspaceStatus("파일 내용을 raw data에 반영했습니다.", "ok");
+    }
+
+    async function authFetchJson(url, options = {}) {
+      if (!state.session || !state.session.token) {
+        throw new Error("세션이 없습니다. 다시 로그인하세요.");
+      }
+      const headers = new Headers(options.headers || {});
+      headers.set("Authorization", `Bearer ${state.session.token}`);
+      const response = await fetch(url, { ...options, headers });
+      const data = await parseJson(response);
+      if (!response.ok) {
+        if (response.status === 401) {
+          clearStoredSession();
+          state.session = null;
+          renderMode();
+          showAuthStatus("세션이 만료되었습니다. 다시 로그인하세요.", "warn");
+        }
+        throw new Error(extractDetail(data) || `요청 실패 (${response.status})`);
+      }
+      return data;
+    }
+
+    async function parseJson(response) {
+      try {
+        return await response.json();
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function populateDomainOptions() {
+      const fallback = [{ domain: "iv", title: "IV Analysis" }];
+      const domains = state.domains.length ? state.domains : fallback;
+      domainSelect.innerHTML = domains.map((item) => {
+        const selected = (item.domain || "iv") === state.currentDomain ? "selected" : "";
+        return `<option value="${escapeHtml(item.domain || "iv")}" ${selected}>${escapeHtml(item.title || item.domain || "iv")}</option>`;
+      }).join("");
+      state.currentDomain = domainSelect.value || "iv";
+      syncMetricCards();
+    }
+
+    function hydrateUserMetrics(meData) {
+      const user = meData.user || {};
+      const workspace = meData.workspace || {};
+      sidebarUserName.textContent = user.display_name || user.user_id || "-";
+      sidebarUserId.textContent = user.user_id || "-";
+      metricDisplayName.textContent = user.display_name || user.user_id || "-";
+      metricRunCount.textContent = String(workspace.run_count || 0);
+      runCountBadge.textContent = String(workspace.run_count || 0);
+      syncMetricCards();
+    }
+
+    function renderRunSummary(data) {
+      const proposals = data.sj_proposals || data.reranked_sj_proposals || [];
+      const summary = data.summary || data.system_narrative || "(summary unavailable)";
+      const validation = prettyPrint(data.measurement_validation || data.measurementLog || {});
+      const pattern = data.llm_pattern || data.pattern_summary || data.system_narrative || "(pattern unavailable)";
+
+      analysisSummary.innerHTML = `
+        <div class="summary-grid">
+          <div class="summary-block">
+            <h4>Summary</h4>
+            <pre>${escapeHtml(asText(summary))}</pre>
+          </div>
+          <div class="two-col">
+            <div class="summary-block">
+              <h4>Measurement Validation</h4>
+              <pre>${escapeHtml(validation)}</pre>
+            </div>
+            <div class="summary-block">
+              <h4>Pattern / Narrative</h4>
+              <pre>${escapeHtml(asText(pattern))}</pre>
+            </div>
+          </div>
+          <div class="summary-block">
+            <h4>Interpretation Paths</h4>
+            <pre>${escapeHtml(summarizeProposals(proposals))}</pre>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRunDetail(data) {
+      const blocks = [
+        { title: "Run ID", value: data.run_id || state.currentRunId || "(none)" },
+        { title: "Coverage", value: prettyPrint(data.coverage_assessment || data.coverage || "(no coverage data)") },
+        { title: "System Narrative", value: asText(data.system_narrative || data.summary || "(no narrative)") },
+        { title: "Exploratory Fallback", value: prettyPrint(data.exploratory_fallback || data.fallback || "(none)") },
+        { title: "Candidate Hypotheses", value: prettyPrint(data.candidate_hypotheses || data.candidates || []) }
+      ];
+
+      detailSurface.innerHTML = `
+        <div class="summary-grid">
+          ${blocks.map((block) => `
+            <div class="summary-block">
+              <h4>${escapeHtml(block.title)}</h4>
+              <pre>${escapeHtml(asText(block.value))}</pre>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderMessagesFromSummary(data) {
+      const history = data.conversation_state && Array.isArray(data.conversation_state.chat_history)
+        ? data.conversation_state.chat_history
+        : [];
+      state.chatMessages = history.map((item) => ({
+        role: item.role === "assistant" ? "assistant" : "user",
+        text: item.text || item.message || "(empty)"
+      }));
+      renderMessageList();
+      chatModeBadge.textContent = String((data.conversation_state && data.conversation_state.chat_mode) || "loaded");
+    }
+
+    function appendMessage(role, text) {
+      state.chatMessages.push({ role, text });
+      renderMessageList();
+    }
+
+    function renderMessageList() {
+      if (!state.chatMessages.length) {
+        messageList.innerHTML = `<div class="empty-state">대화 이력이 없습니다.</div>`;
+        return;
+      }
+      messageList.innerHTML = state.chatMessages.map((item) => `
+        <div class="message ${item.role}">
+          <span class="message-meta">${item.role === "assistant" ? "Assistant" : "User"}</span>
+          ${escapeHtml(asText(item.text))}
+        </div>
+      `).join("");
+      messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    function renderRunList() {
+      if (!state.runs.length) {
+        historyList.innerHTML = `<div class="empty-state">최근 실행 이력이 없습니다.</div>`;
+        return;
+      }
+      historyList.innerHTML = state.runs.map((run) => {
+        const runId = run.run_id || run.id || "(unknown)";
+        const active = state.selectedHistoryRunId === runId ? "active" : "";
+        const title = run.requested_run_id || runId;
+        const meta = [
+          run.domain ? `domain: ${run.domain}` : null,
+          run.created_at_utc ? `created: ${run.created_at_utc}` : null
+        ].filter(Boolean).join(" · ");
+        return `
+          <div class="history-item ${active}" data-run-id="${escapeHtml(runId)}">
+            <div class="history-title mono">${escapeHtml(title)}</div>
+            <div class="history-meta">${escapeHtml(meta || "summary unavailable")}</div>
+          </div>
+        `;
+      }).join("");
+
+      historyList.querySelectorAll(".history-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          const runId = item.getAttribute("data-run-id");
+          if (runId) {
+            loadRunSummary(runId).catch((error) => showWorkspaceStatus(getErrorMessage(error), "error"));
+          }
+        });
+      });
+    }
+
+    function syncMetricCards() {
+      metricRunId.textContent = state.currentRunId || "(none)";
+      metricDomain.textContent = state.currentDomain || "iv";
+      domainBadge.textContent = state.currentDomain || "iv";
+    }
+
+    function showAuthStatus(message, type = "ok", hidden = false) {
+      authStatus.className = `auth-status ${type === "error" ? "status-error" : type === "warn" ? "status-warn" : "status-ok"}${hidden || !message ? " hidden" : ""}`;
+      authStatus.textContent = message || "";
+    }
+
+    function showWorkspaceStatus(message, type = "ok", hidden = false) {
+      workspaceStatus.className = `status-banner ${type === "error" ? "status-error" : type === "warn" ? "status-warn" : "status-ok"}${hidden || !message ? " hidden" : ""}`;
+      workspaceStatus.textContent = message || "";
+    }
+
+    function setWorkspaceStatus(message, type) {
+      showWorkspaceStatus(message, type);
+    }
+
+    function setButtonBusy(buttons, busy, busyText = "처리 중...") {
+      buttons.forEach((button) => {
+        if (!button) {
+          return;
+        }
+        if (busy) {
+          button.dataset.originalText = button.textContent;
+          button.textContent = busyText;
+        } else if (button.dataset.originalText) {
+          button.textContent = button.dataset.originalText;
+        }
+        button.disabled = busy;
+      });
+    }
+
+    function parseCsvInput(value) {
+      return String(value || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function summarizeProposals(proposals) {
+      if (!Array.isArray(proposals) || !proposals.length) {
+        return "(no proposals)";
+      }
+      return proposals.slice(0, 8).map((item, index) => {
+        if (typeof item === "string") {
+          return `${index + 1}. ${item}`;
+        }
+        const title = item.claim_id || item.id || item.title || `proposal_${index + 1}`;
+        const score = item.score != null ? `score=${item.score}` : null;
+        const reason = item.reason || item.justification || item.summary || "";
+        return `${index + 1}. ${title}${score ? ` (${score})` : ""}\n${reason}`;
+      }).join("\n\n");
+    }
+
+    function prettyPrint(value) {
+      if (typeof value === "string") {
+        return value;
+      }
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch (_) {
+        return String(value);
+      }
+    }
+
+    function asText(value) {
+      if (value == null) {
+        return "";
+      }
+      return typeof value === "string" ? value : prettyPrint(value);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function extractDetail(data) {
+      if (!data) {
+        return "";
+      }
+      if (typeof data.detail === "string") {
+        return data.detail;
+      }
+      if (data.detail && typeof data.detail.message === "string") {
+        return data.detail.message;
+      }
+      if (typeof data.message === "string") {
+        return data.message;
+      }
+      return "";
+    }
+
+    function getErrorMessage(error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+
+    function loadStoredSession() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) || "null");
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function storeSession(session) {
+      localStorage.setItem(storageKey, JSON.stringify(session));
+    }
+
+    function clearStoredSession() {
+      localStorage.removeItem(storageKey);
+    }
+  </script>
+</body>
+</html>

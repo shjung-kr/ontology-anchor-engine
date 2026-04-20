@@ -1,0 +1,50 @@
+{
+  "metrics": {
+    "absI_decades_span": 28.142538760645678,
+    "v_knee": 1.8500000000000008,
+    "v_knee_criterion": "percentile_split_30"
+  },
+  "regimes": [
+    {
+      "name": "low_|V|",
+      "v_range": [
+        0.1,
+        1.8500000000000008
+      ],
+      "delta_decades_robust": 92.9062821392738,
+      "mean_slope_log_absI_per_logV": 38.55057893875147
+    },
+    {
+      "name": "high_|V|",
+      "v_range": [
+        1.9,
+        6.000000000000002
+      ],
+      "delta_decades_robust": 4.323175800154074,
+      "mean_slope_log_absI_per_logV": 8.589021829625462
+    }
+  ],
+  "llm_pattern": "|I| spans a very wide range and generally increases with increasing |V| on both negative and positive sides. The smallest |I| values occur near |V| = 0.1 V, and |I| rises from about 10^-103 A near 0.1 V to about 10^-5 A near 6 V. The positive and negative branches are broadly similar in magnitude, with local point-to-point fluctuations at many adjacent voltage steps.",
+  "llm_keywords": [
+    {
+      "keyword": "wide_dynamic_range",
+      "evidence": "|I| ranges from 6.899103373692976e-103 A at 0.1 V to 2.3994540300343092e-05 A at -6 V, spanning about 97.43 decades."
+    },
+    {
+      "keyword": "minimum_near_zero_bias",
+      "evidence": "The smallest listed |I| values are near the lowest |V| values: 8.897350992969297e-103 A at -0.1 V and 6.899103373692976e-103 A at 0.1 V."
+    },
+    {
+      "keyword": "monotonic_envelope_with_fluctuations",
+      "evidence": "On the positive side, |I| increases overall from 6.899103373692976e-103 A at 0.1 V to 2.2494143112878067e-05 A at 6.0 V, but adjacent points fluctuate, for example 9.62893587930369e-09 A at 2.25 V then 8.279256709853086e-09 A at 2.3 V."
+    },
+    {
+      "keyword": "branch_similarity",
+      "evidence": "At matched |V| values, the two sides are close in magnitude, for example at |V| = 6 V: 2.3994540300343092e-05 A (-6 V) versus 2.2494143112878067e-05 A (+6 V), and at |V| = 1 V: 6.6186841031785665e-15 A (-1 V) versus 7.82976992891886e-15 A (+1 V)."
+    },
+    {
+      "keyword": "negative_ln_trend",
+      "evidence": "ln(|I|/V^2) remains negative throughout the table, from about -14.22 near |V| = 6 V to about -230.63 at 0.1 V."
+    }
+  ]
+}
