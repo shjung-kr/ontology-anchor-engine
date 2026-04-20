@@ -182,20 +182,18 @@ def run_chat(data: ChatTurnRequest, user: AuthenticatedUser = Depends(require_au
                 },
             )
 
-        profile = update_intent_profile(run_dir, data)
-        response = build_chat_response(run_dir)
         chat_mode = classify_user_message(data.user_text, data.structured_answers)
-        response["chat_mode"] = chat_mode
+        profile = update_intent_profile(run_dir, data)
+        assistant_reply = ""
         if chat_mode == "direct_question" and data.user_text.strip():
             assistant_reply = build_direct_answer(
                 data.user_text,
                 snapshot=load_analysis_snapshot(run_dir),
                 intent_profile=profile,
-                reranked_proposals=response.get("reranked_sj_proposals", []),
+                reranked_proposals=build_chat_response(run_dir).get("reranked_sj_proposals", []),
                 chat_history=load_chat_history(run_dir),
                 run_dir=run_dir,
             )
-            response["assistant_reply"] = assistant_reply
             if assistant_reply:
                 append_chat_event(
                     run_dir,
@@ -208,6 +206,9 @@ def run_chat(data: ChatTurnRequest, user: AuthenticatedUser = Depends(require_au
                     },
                 )
 
+        response = build_chat_response(run_dir, latest_assistant_text=assistant_reply)
+        response["chat_mode"] = chat_mode
+        response["assistant_reply"] = assistant_reply
         response["intent_profile"] = profile
         return response
 
@@ -246,6 +247,7 @@ def get_run_summary(run_id: str, user: AuthenticatedUser = Depends(require_authe
             "l1_state": snapshot.get("l1_state", {}),
             "sj_proposals": chat_state.get("reranked_sj_proposals", []),
             "system_narrative": chat_state.get("system_narrative", ""),
+            "evaluation": chat_state.get("evaluation", {}),
             "conversation_state": chat_state,
         }
 

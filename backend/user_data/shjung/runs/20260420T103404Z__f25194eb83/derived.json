@@ -1,0 +1,50 @@
+{
+  "metrics": {
+    "absI_decades_span": 28.142538760645678,
+    "v_knee": 1.8500000000000008,
+    "v_knee_criterion": "percentile_split_30"
+  },
+  "regimes": [
+    {
+      "name": "low_|V|",
+      "v_range": [
+        0.1,
+        1.8500000000000008
+      ],
+      "delta_decades_robust": 92.9062821392738,
+      "mean_slope_log_absI_per_logV": 38.55057893875147
+    },
+    {
+      "name": "high_|V|",
+      "v_range": [
+        1.9,
+        6.000000000000002
+      ],
+      "delta_decades_robust": 4.323175800154074,
+      "mean_slope_log_absI_per_logV": 8.589021829625462
+    }
+  ],
+  "llm_pattern": "|I| increases strongly with increasing |V| across the full sweep, spanning from about 10^-103 A near |V|=0.1 V to about 2.40e-5 A at -6 V and 2.25e-5 A at +6 V. The magnitude trend is broadly similar for negative and positive bias, with small point-to-point fluctuations at higher |V|. The listed ln(|I|/V^2) values increase monotonically with |V|, from about -230 near 0.1 V to about -14.2 near 6 V.",
+  "llm_keywords": [
+    {
+      "keyword": "wide_dynamic_range",
+      "evidence": "|I| ranges from 4.666e-16 A at -0.9 V down to 8.897e-103 A at -0.1 V and up to 2.399e-5 A at -6 V, indicating a span of about 97.43 decades between the minimum and maximum |I| values."
+    },
+    {
+      "keyword": "bias_polarity_similarity",
+      "evidence": "At matched |V| values, |I| is close on both sides: 6 V gives 2.399e-5 A (-6 V) versus 2.249e-5 A (+6 V), and 0.2 V gives 1.744e-54 A (-0.2 V) versus 1.731e-54 A (+0.2 V)."
+    },
+    {
+      "keyword": "monotonic_absV_dependence",
+      "evidence": "As |V| decreases from 6 V to 0.1 V on the negative branch, |I| drops from 2.399e-5 A to 8.897e-103 A; on the positive branch, |I| rises from 6.899e-103 A at 0.1 V to 2.249e-5 A at 6 V."
+    },
+    {
+      "keyword": "high_voltage_fluctuations",
+      "evidence": "At higher positive bias, adjacent points are not strictly monotonic, for example 5.45 V: 1.856e-5 A, 5.50 V: 1.795e-5 A, 5.55 V: 1.300e-5 A, then 5.80 V: 2.238e-5 A."
+    },
+    {
+      "keyword": "monotonic_ln_ratio_trend",
+      "evidence": "ln(|I|/V^2) changes from about -230.38 at -0.1 V and -230.63 at +0.1 V to about -14.22 at -6 V and -14.29 at +6 V, showing a steady increase with |V|."
+    }
+  ]
+}

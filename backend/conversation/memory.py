@@ -16,6 +16,7 @@ from backend.domains.iv.common import (
     term_description,
     term_label,
 )
+from backend.evaluation import evaluate_run, load_evaluation, save_evaluation
 from backend.llm_adapter import answer_with_analysis_context
 from backend.user_storage import get_user_overlay_dir, get_user_runs_dir
 
@@ -183,6 +184,7 @@ def build_run_summary(run_dir: Path) -> Dict[str, Any]:
     manifest = load_json(run_dir / "manifest.json")
     chat_state = build_chat_response(run_dir)
     snapshot = load_analysis_snapshot(run_dir)
+    evaluation = load_evaluation(run_dir)
     reranked = chat_state.get("reranked_sj_proposals", []) or []
     top = reranked[0] if reranked else {}
     validation = snapshot.get("measurement_validation", {}) or {}
@@ -195,6 +197,8 @@ def build_run_summary(run_dir: Path) -> Dict[str, Any]:
         "fallback_status": (chat_state.get("exploratory_fallback", {}) or {}).get("status", "unknown"),
         "warning_count": len(validation.get("warnings", []) or []),
         "candidate_count": len((chat_state.get("candidate_hypotheses", {}) or {}).get("items", []) or []),
+        "overall_confidence": evaluation.get("overall_confidence"),
+        "evaluation_summary": evaluation.get("summary", {}),
         "patch_counts": {
             "claims": len((chat_state.get("ontology_patch", {}) or {}).get("claims", []) or []),
             "assumptions": len((chat_state.get("ontology_patch", {}) or {}).get("assumptions", []) or []),
@@ -1884,7 +1888,7 @@ def generate_follow_up_questions(snapshot: Dict[str, Any], intent_profile: Dict[
     return [question.model_dump() for question in questions[:4]]
 
 
-def build_chat_response(run_dir: Path) -> Dict[str, Any]:
+def build_chat_response(run_dir: Path, latest_assistant_text: str = "") -> Dict[str, Any]:
     from backend.domains.iv.renderer import render_system_narrative_ko
 
     snapshot = load_analysis_snapshot(run_dir)
@@ -1915,6 +1919,21 @@ def build_chat_response(run_dir: Path) -> Dict[str, Any]:
     questions = generate_follow_up_questions({**snapshot, "sj_proposals": reranked_proposals}, intent_profile)
     sync_suggested_questions(run_dir, questions)
     patch = load_json(run_dir / "ontology_patch.json", fallback=default_patch_payload(run_dir.name))
+    evaluation = save_evaluation(
+        run_dir,
+        evaluate_run(
+            run_dir,
+            snapshot=snapshot,
+            intent_profile=intent_profile,
+            reranked_proposals=reranked_proposals,
+            system_narrative=narrative["system_narrative"],
+            llm_trace=load_json(run_dir / "llm_trace.json"),
+            derived=load_json(run_dir / "derived.json"),
+            domain=str((load_json(run_dir / "manifest.json").get("domain") or "iv")),
+            chat_history=load_chat_history(run_dir),
+            latest_assistant_text=latest_assistant_text,
+        ),
+    )
     return {
         "run_id": run_dir.name,
         "intent_profile": intent_profile,
@@ -1930,6 +1949,7 @@ def build_chat_response(run_dir: Path) -> Dict[str, Any]:
         "system_narrative": narrative["system_narrative"],
         "L1 좌표 요약": narrative["L1 좌표 요약"],
         "과학적 정당화 제안": narrative["과학적 정당화 제안"],
+        "evaluation": evaluation,
         "suggested_questions": questions,
         "chat_history": load_chat_history(run_dir),
         "chat_mode": "intent_update",

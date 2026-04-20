@@ -94,6 +94,7 @@ def run_iv_domain(raw_data: str, metadata: Dict[str, Any] | None = None) -> Dict
         "regimes": regimes,
         "run_id": run_id,
         "artifact_dir": artifact_dir,
+        "evaluation": chat_state.get("evaluation", {}),
         "conversation_state": chat_state,
         "domain_config": {
             "parser": "backend.measurement_validations.parser:parse_vi",
@@ -233,6 +234,7 @@ def write_run_artifacts(
     (run_dir / "raw_input.txt").write_text(raw_data, encoding="utf-8")
     manifest = {
         "run_id": run_id,
+        "domain": "iv",
         "requested_run_id": requested_run_id,
         "dataset_id": sha256_text(raw_data),
         "created_at_utc": created_at.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
@@ -256,6 +258,7 @@ def write_run_artifacts(
             "inference": "inference.json",
             "sj_proposal": "sj_proposal.json",
             "llm_trace": "llm_trace.json",
+            "evaluation": "evaluation.json",
         },
     }
     write_json(run_dir / "manifest.json", manifest)

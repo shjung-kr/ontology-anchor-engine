@@ -1,0 +1,74 @@
+{
+  "run_id": "20260420T064623Z__f25194eb83",
+  "generated_at_utc": "2026-04-20T11:11:26Z",
+  "domain": "iv",
+  "overall_confidence": 0.81,
+  "score_order": [
+    "ontology_reasoning_confidence",
+    "llm_interpretation_confidence",
+    "intent_alignment_score",
+    "explanation_quality_score",
+    "cross_run_stability_score"
+  ],
+  "categories": {
+    "ontology_reasoning_confidence": {
+      "score": 0.965,
+      "status": "available",
+      "components": {
+        "evidence_coverage": 1.0,
+        "ranking_margin": 1.0,
+        "validation_cleanliness": 1.0,
+        "assumption_compatibility": 0.65
+      },
+      "reason": "Top ontology proposal support, competition margin, validation quality, and assumption fit."
+    },
+    "llm_interpretation_confidence": {
+      "score": 0.93,
+      "status": "available",
+      "components": {
+        "structured_output": 1.0,
+        "observation_density": 0.8,
+        "proposal_support": 1.0
+      },
+      "reason": "LLM confidence based on whether the LLM path ran and how complete the observation payload is."
+    },
+    "intent_alignment_score": {
+      "score": 0.747,
+      "status": "available",
+      "components": {
+        "claim_alignment": 0.78,
+        "goal_alignment": 0.75,
+        "priority_alignment": 0.72,
+        "condition_alignment": 0.7
+      },
+      "reason": "Measures whether the answer follows user goals, preferred claims, and current analysis priority."
+    },
+    "explanation_quality_score": {
+      "score": 0.415,
+      "status": "available",
+      "components": {
+        "specificity": 0.217,
+        "evidence_reference": 0.0,
+        "structure": 0.75,
+        "readability": 1.0
+      },
+      "reason": "Checks whether the explanation is specific, evidence-grounded, structured, and readable."
+    },
+    "cross_run_stability_score": {
+      "score": 1.0,
+      "status": "available",
+      "components": {
+        "claim_consistency": 1.0,
+        "sample_size_factor": 1.0
+      },
+      "reason": "Measures how stable the top claim is across recent sibling runs."
+    }
+  },
+  "summary": {
+    "ontology_reasoning_confidence": 0.965,
+    "llm_interpretation_confidence": 0.93,
+    "intent_alignment_score": 0.747,
+    "explanation_quality_score": 0.415,
+    "cross_run_stability_score": 1.0
+  }
+}

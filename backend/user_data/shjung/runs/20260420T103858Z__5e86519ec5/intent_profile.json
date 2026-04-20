@@ -1,0 +1,80 @@
+{
+  "run_id": "20260420T103858Z__5e86519ec5",
+  "analysis_priority": "mechanism_identification",
+  "research_goal": null,
+  "focus_claims": [],
+  "exclude_claims": [],
+  "keep_open_claims": [],
+  "confirmed_conditions": {
+    "temperature": "room_temperature"
+  },
+  "uncertain_conditions": [],
+  "assumption_states": {},
+  "approved_patch_items": {
+    "claims": [],
+    "assumptions": [],
+    "measurement_conditions": []
+  },
+  "notes": [
+    "이 분석 결과의 주된 메커니즘에 대해서 설명해줘",
+    "이번 결과는 상온에서 측정한 결과인데, 저온에서 측정하면 특성이 어떨까?",
+    "그럼 터널링 전압도 온도에 따라서 달라지니?"
+  ],
+  "history": [
+    {
+      "timestamp_utc": "2026-04-20T10:39:25Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "이 분석 결과의 주된 메커니즘에 대해서 설명해줘",
+      "structured_answers": []
+    },
+    {
+      "timestamp_utc": "2026-04-20T10:41:03Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "이번 결과는 상온에서 측정한 결과인데, 저온에서 측정하면 특성이 어떨까?",
+      "structured_answers": []
+    },
+    {
+      "timestamp_utc": "2026-04-20T10:42:16Z",
+      "intent_update": {
+        "analysis_priority": null,
+        "focus_claims": [],
+        "exclude_claims": [],
+        "keep_open_claims": [],
+        "confirmed_conditions": {},
+        "uncertain_conditions": [],
+        "confirmed_assumptions": [],
+        "rejected_assumptions": [],
+        "approved_claims": [],
+        "approved_assumptions": [],
+        "note": null
+      },
+      "user_text": "그럼 터널링 전압도 온도에 따라서 달라지니?",
+      "structured_answers": []
+    }
+  ],
+  "updated_at_utc": "2026-04-20T10:42:16Z"
+}

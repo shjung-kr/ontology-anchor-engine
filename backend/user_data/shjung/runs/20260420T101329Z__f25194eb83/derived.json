@@ -1,0 +1,50 @@
+{
+  "metrics": {
+    "absI_decades_span": 28.142538760645678,
+    "v_knee": 1.8500000000000008,
+    "v_knee_criterion": "percentile_split_30"
+  },
+  "regimes": [
+    {
+      "name": "low_|V|",
+      "v_range": [
+        0.1,
+        1.8500000000000008
+      ],
+      "delta_decades_robust": 92.9062821392738,
+      "mean_slope_log_absI_per_logV": 38.55057893875147
+    },
+    {
+      "name": "high_|V|",
+      "v_range": [
+        1.9,
+        6.000000000000002
+      ],
+      "delta_decades_robust": 4.323175800154074,
+      "mean_slope_log_absI_per_logV": 8.589021829625462
+    }
+  ],
+  "llm_pattern": "|I| spans a very wide range and increases strongly with increasing |V| on both negative and positive sides. The smallest |I| values occur near low |V|, and the largest |I| values occur near |V|≈6 V. The positive and negative branches are broadly similar in magnitude, with small branch-to-branch differences and local non-monotonic fluctuations at higher |V|.",
+  "llm_keywords": [
+    {
+      "keyword": "wide-dynamic-range",
+      "evidence": "|I| ranges from 8.90e-103 A at V=-0.1 V to 2.399e-05 A at V=-6 V, a span of about 97.43 decades."
+    },
+    {
+      "keyword": "low-bias-minimum",
+      "evidence": "The smallest listed |I| values occur near low |V|: 8.90e-103 A at -0.1 V and 6.90e-103 A at +0.1 V."
+    },
+    {
+      "keyword": "magnitude-increases-with-|V|",
+      "evidence": "On the positive side, |I| rises from 7.83e-15 A at 1.0 V to 1.91e-09 A at 2.0 V and to 2.25e-05 A at 6.0 V; on the negative side, |I| rises from 6.62e-15 A at -1.0 V to 1.78e-09 A at -2.0 V and to 2.40e-05 A at -6.0 V."
+    },
+    {
+      "keyword": "branch-similarity",
+      "evidence": "Matched-voltage magnitudes are close on both sides, for example |I| is 1.78e-09 A at -2.0 V versus 1.91e-09 A at +2.0 V, and 7.48e-06 A at -5.0 V versus 9.23e-06 A at +5.0 V."
+    },
+    {
+      "keyword": "high-bias-fluctuations",
+      "evidence": "At higher |V| there are local reversals instead of strict stepwise monotonic change, such as +5.45 V: 1.86e-05 A, +5.50 V: 1.80e-05 A, +5.55 V: 1.30e-05 A, then +5.80 V: 2.24e-05 A."
+    }
+  ]
+}
