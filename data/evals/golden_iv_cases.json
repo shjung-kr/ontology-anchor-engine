@@ -1,0 +1,25 @@
+[
+  {
+    "case_id": "fn_tunneling_room_temperature",
+    "domain": "iv",
+    "input_path": "data/fn_tunneling_iv_300K.txt",
+    "expected_top_claim": "iv_interpretation.fn_tunneling_asserted",
+    "expected_features": [
+      "iv_features.field_enhanced_current",
+      "iv_features.nonlinear_iv_regime"
+    ],
+    "max_warning_count": 0,
+    "notes": "Representative high-field field-enhanced current sample."
+  },
+  {
+    "case_id": "thermionic_reference",
+    "domain": "iv",
+    "input_path": "data/thermionic_emission_iv_300K.txt",
+    "expected_top_claim": "iv_interpretation.ohmic_transport",
+    "expected_features": [
+      "iv_features.linear_iv_regime"
+    ],
+    "max_warning_count": 0,
+    "notes": "Current benchmark expectation maps this sample to the linear/ohmic ontology path."
+  }
+]

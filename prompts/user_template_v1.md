@@ -8,6 +8,7 @@ TASK:
 STRICT RULES:
 - Do not mention physical mechanisms or ontology IDs.
 - Use neutral observational language.
+- Write all natural-language output in Korean.
 - Output JSON only.
 
 OUTPUT FORMAT:

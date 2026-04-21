@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from backend.conversation.memory import build_chat_response, ensure_memory_files
-from backend.domains.iv.common import PROMPTS_DIR, get_runs_dir
+from backend.domains.iv.common import PROMPTS_DIR, get_runs_dir, summarize_observation_pattern_ko
 from backend.domains.iv.features import build_l1_state
 from backend.domains.iv.proposals import build_derived_assumptions, evaluate_scientific_justification
 from backend.domains.iv.registry import load_registry_from_folders
@@ -28,7 +28,7 @@ def run_iv_domain(raw_data: str, metadata: Dict[str, Any] | None = None) -> Dict
     measurement_validation = validate_measurement(raw_data, metadata=metadata)
 
     llm_result = llm_analyze_numeric(raw_data)
-    llm_pattern = str(llm_result.get("pattern") or "")
+    llm_pattern = summarize_observation_pattern_ko(str(llm_result.get("pattern") or "")) or str(llm_result.get("pattern") or "")
     llm_keywords = llm_result.get("keywords", []) or []
     metrics = llm_result.get("metrics", {}) or {}
     regimes = llm_result.get("regimes", []) or []
