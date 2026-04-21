@@ -72,3 +72,7 @@ def get_accounts_path() -> Path:
 
 def get_sessions_path() -> Path:
     return ensure_dir(SYSTEM_ROOT) / "sessions.json"
+
+
+def get_login_attempts_path() -> Path:
+    return ensure_dir(SYSTEM_ROOT) / "login_attempts.json"

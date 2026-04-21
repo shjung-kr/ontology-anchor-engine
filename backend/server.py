@@ -1,7 +1,10 @@
+import math
+import os
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -55,20 +58,54 @@ from backend.user_storage import get_user_runs_dir, user_scope
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
+APP_ENV = os.getenv("APP_ENV", "development").strip().lower()
 
-app = FastAPI(title="V14.0 SJ Ontology Engine")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+def _parse_cors_origins() -> list[str]:
+    configured = [item.strip() for item in os.getenv("APP_CORS_ALLOW_ORIGINS", "").split(",") if item.strip()]
+    if configured:
+        return configured
+    if APP_ENV in {"prod", "production"}:
+        return []
+    return [
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://ontology-anchor-engine.pages.dev",
-    ],
+    ]
+
+
+def _registration_enabled() -> bool:
+    configured = os.getenv("AUTH_ENABLE_REGISTRATION")
+    if configured is not None:
+        return configured.strip().lower() in {"1", "true", "yes", "on"}
+    return APP_ENV not in {"prod", "production"}
+
+
+def _sanitize_for_json(value):
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {key: _sanitize_for_json(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_for_json(item) for item in value]
+    if isinstance(value, tuple):
+        return [_sanitize_for_json(item) for item in value]
+    return value
+
+
+class SanitizedJSONResponse(JSONResponse):
+    def render(self, content) -> bytes:
+        return super().render(_sanitize_for_json(content))
+
+
+app = FastAPI(title="V14.0 SJ Ontology Engine", default_response_class=SanitizedJSONResponse)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_parse_cors_origins(),
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -94,20 +131,29 @@ class AuthLoginRequest(BaseModel):
     password: str
 
 
+@app.get("/health")
+def health():
+    return {"ok": True, "environment": APP_ENV}
+
+
 @app.post("/auth/register")
-def auth_register(data: AuthRegisterRequest):
+def auth_register(data: AuthRegisterRequest, request: Request):
+    if not _registration_enabled():
+        raise HTTPException(status_code=403, detail="registration is disabled")
     try:
         user = register_user(data.user_id, data.password, display_name=data.display_name)
-        session = authenticate_user(data.user_id, data.password)
+        client_host = request.client.host if request.client else "unknown"
+        session = authenticate_user(data.user_id, data.password, rate_limit_key=f"{client_host}:{data.user_id}")
         return {"user": user, "session": session}
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/auth/login")
-def auth_login(data: AuthLoginRequest):
+def auth_login(data: AuthLoginRequest, request: Request):
     try:
-        session = authenticate_user(data.user_id, data.password)
+        client_host = request.client.host if request.client else "unknown"
+        session = authenticate_user(data.user_id, data.password, rate_limit_key=f"{client_host}:{data.user_id}")
         return {"session": session}
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc

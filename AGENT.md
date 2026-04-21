@@ -36,3 +36,4 @@
 - Avoid unnecessary changes
 - Minimize the impact scope when modifying code
 - When changing files or directories, document the data flow
+- Do not commit `.venv`, runtime artifacts, or `backend/user_data`

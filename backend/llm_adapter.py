@@ -16,7 +16,13 @@ import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
-from backend.domains.iv.common import format_confirmed_conditions_ko, join_term_labels, term_description, term_label
+from backend.domains.iv.common import (
+    format_confirmed_conditions_ko,
+    join_term_labels,
+    summarize_observation_pattern_ko,
+    term_description,
+    term_label,
+)
 from backend.measurement_validations.parser import parse_vi
 
 try:
@@ -40,6 +46,11 @@ def _get_openai_client():
         return OpenAI(api_key=api_key)
     except Exception:
         return None
+
+
+def _normalize_pattern_to_korean(pattern: str) -> str:
+    normalized = summarize_observation_pattern_ko(pattern)
+    return normalized or str(pattern or "").strip()
 
 
 def _extract_goal_like_note(text: str) -> str:
@@ -181,7 +192,7 @@ def llm_analyze_numeric(raw_data: str) -> Dict[str, Any]:
 
     assumptions = _extract_observation_assumptions_from_json(parsed)
     return {
-        "pattern": parsed.get("pattern", ""),
+        "pattern": _normalize_pattern_to_korean(str(parsed.get("pattern", ""))),
         "keywords": parsed.get("keywords", []),
         "metrics": parsed.get("metrics", {}),
         "regimes": parsed.get("regimes", []),
@@ -526,16 +537,16 @@ def _build_numeric_observation(
     keywords: List[Dict[str, str]] = []
 
     if span_raw >= 2.0:
-        pattern_parts.append(f"|I| spans about {span_raw:.2f} decades across the dataset")
+        pattern_parts.append(f"데이터 전체에서 |I| 변화폭은 약 {span_raw:.2f} decades 입니다")
         keywords.append({
             "keyword": "broad current dynamic range",
             "evidence": f"|I| spans approximately {span_raw:.2f} decades.",
         })
     else:
-        pattern_parts.append(f"|I| spans about {span_raw:.2f} decades")
+        pattern_parts.append(f"|I| 변화폭은 약 {span_raw:.2f} decades 입니다")
 
     if threshold.get("v_knee") is not None:
-        pattern_parts.append(f"a regime split is detected near |V|={float(threshold['v_knee']):.4g}")
+        pattern_parts.append(f"|V|≈{float(threshold['v_knee']):.4g} 부근에서 전류 거동이 바뀌는 구간 분리가 관측됩니다")
 
     high = next((r for r in regimes if r.get("name") == "high_|V|"), None)
     low = next((r for r in regimes if r.get("name") == "low_|V|"), None)
@@ -546,8 +557,8 @@ def _build_numeric_observation(
     elif high and high.get("mean_slope_log_absI_per_logV") is not None:
         slope_ref = float(high["mean_slope_log_absI_per_logV"])
     if slope_ref is not None:
-        desc = "approximately linear" if 0.85 <= slope_ref <= 1.15 else "super-linear"
-        pattern_parts.append(f"the low-field log-log slope is {slope_ref:.2f}, indicating {desc} scaling")
+        desc = "거의 선형에 가까운" if 0.85 <= slope_ref <= 1.15 else "선형보다 더 가파른 초선형"
+        pattern_parts.append(f"저전압 구간의 log-log 기울기는 {slope_ref:.2f}로, {desc} 스케일링을 보입니다")
         keywords.append({
             "keyword": desc,
             "evidence": f"Representative log-log slope is {slope_ref:.2f}.",
@@ -563,7 +574,7 @@ def _build_numeric_observation(
             })
 
     return {
-        "pattern": "; ".join(pattern_parts) if pattern_parts else "Numeric fallback observation",
+        "pattern": ". ".join(pattern_parts) if pattern_parts else "수치 기반 관측 요약을 생성하지 못했습니다.",
         "keywords": keywords,
         "metrics": {
             "absI_decades_span": float(span_raw),
@@ -799,9 +810,9 @@ def _extract_observation_assumptions_from_json(parsed: Dict[str, Any], raw_text:
 def _parse_llm_output(text: str) -> Dict[str, Any]:
     data = _safe_json_loads(text)
     if data is None:
-        return {"pattern": "Unparseable LLM output", "keywords": [], "metrics": {}}
+        return {"pattern": "LLM 응답을 해석하지 못했습니다.", "keywords": [], "metrics": {}}
 
-    pattern = str(data.get("pattern", "no pattern described")).strip()
+    pattern = _normalize_pattern_to_korean(str(data.get("pattern", "관측 패턴 요약이 제공되지 않았습니다.")).strip())
     keywords = data.get("keywords", [])
     metrics = data.get("metrics", {}) if isinstance(data.get("metrics", {}), dict) else {}
 

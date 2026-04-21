@@ -45,7 +45,9 @@ def parse_vi(raw_data: str) -> Tuple[List[float], List[float]]:
     V: List[float] = []
     I: List[float] = []
 
-    start_idx = 1 if header else 0
+    header_detected = any(token in header for token in ("v", "voltage", "bias", "vbias", "v_app", "vapp", "volts", "i", "current", "id", "is", "i_meas", "imeas", "amps", "a"))
+
+    start_idx = 1 if header_detected else 0
     for idx, ln in enumerate(lines):
         if idx < start_idx:
             continue

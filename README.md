@@ -1,109 +1,123 @@
-Scientific Reasoning & Semantic Generation Research Assistant
+# Ontology Anchor Engine
 
-This application is designed to support scientific research by reading experimental data, inferring possible mechanisms, facilitating scientific thinking through dialogue with users, and enabling full reproducibility through structured storage and retrieval of the entire research process.
+Ontology-backed experimental analysis service focused on I-V pattern interpretation, proposal generation, and reproducible run artifacts.
 
-Project Overview
+## Status
 
-This project aims to go beyond simple data inspection by supporting a complete research workflow:
+This repository is an actively evolving research prototype. It is suitable for local development and controlled demos, not an internet-exposed production deployment without additional hardening.
 
-Data Interpretation → Hypothesis Generation → Mechanism Proposal → Next Experiment Design → Record Preservation & Retrieval
+## Quick Start
 
-The system is built around three core engines:
+### Requirements
 
-Inference Engine
-Reads and interprets data to propose scientific mechanisms and hypotheses for researcher evaluation.
-Semantic Generation Engine
-Uses LLM-based dialogue to explain inference results, analyze scientific reasoning processes, and help generate new perspectives.
-Research Record & Retrieval System
-Structures and stores experimental ideas, reasoning paths, conversations, conclusions, and follow-up suggestions, enabling reproducibility and efficient search.
-Core Objectives
-Propose plausible scientific mechanisms based on research data
-Analyze and expand scientific thinking processes through interactive dialogue
-Develop ideas for next experiments through collaborative interaction
-Store the entire reasoning and decision-making process in a reproducible format
-Improve research continuity through structured classification and retrieval of past work
-Key Features
-1. Data-Driven Inference Engine
-Reads and interprets diverse research data
-Generates hypothesis candidates from patterns, relationships, and anomalies
-Proposes possible scientific mechanisms
-Organizes reasoning paths and supporting evidence
-2. LLM-Based Semantic Generation Engine
-Provides a conversational interface for exploring inference results
-Answers questions such as:
-“Why was this conclusion reached?”
-“Are alternative interpretations possible?”
-Structures and explains scientific reasoning processes
-Highlights meaning, limitations, and alternative perspectives
-3. Next Experiment Design Support
-Suggests follow-up experiments to validate current hypotheses
-Recommends variables to measure, control conditions, and comparison groups
-Proposes possible outcomes and interpretation paths
-Enables interactive discussion between user and system
-4. Reproducible Research Record Management
-Stores data interpretations, reasoning processes, conversations, and experiment plans
-Organizes records by session or topic
-Supports search by keyword, topic, experiment name, or hypothesis
-Allows revisiting past reasoning within its original context
-User Workflow
-Data Input
-  ↓
-Inference Engine analyzes data and proposes mechanisms
-  ↓
-User interacts with Semantic Generation Engine
-  ↓
-Hypothesis refinement and experiment discussion
-  ↓
-All processes stored and categorized
-  ↓
-Search and reproduce past research records
-Expected Benefits
-Complements potential gaps in human data interpretation
-Supports explainable reasoning rather than simple result output
-Expands scientific insight through dialogue-driven thinking
-Reduces loss of research context and preserves reasoning history
-Builds a long-term knowledge base for improved research productivity
-Use Cases
-Exploring biological, chemical, or physical mechanisms from experimental data
-Evaluating alternative hypotheses beyond initial interpretations
-Preparing follow-up experiment ideas before research meetings
-Searching past reasoning and discussion records
-Reconstructing how a hypothesis was derived from data and dialogue
-Design Principles
-Reproducibility
+- Python 3.10 or newer
+- `pip`
 
-All reasoning and conversations should be recorded to allow future verification.
+### Install
 
-Explainability
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-The system should provide not only results but also the reasoning behind them.
+### Run
 
-Interactivity
+```bash
+uvicorn backend.server:app --reload
+```
 
-Users are not passive recipients but active collaborators in hypothesis development.
+Open:
 
-Knowledge Accumulation
+- `http://127.0.0.1:8000/health`
+- `http://127.0.0.1:8000/docs`
+- `http://127.0.0.1:8000/frontend/studio.html`
 
-Each session contributes to a growing, searchable research knowledge base.
+## API Example
 
-Future Directions
-Support for more diverse research data formats
-Enhanced representation of uncertainty and confidence in inference results
-Integration with scientific literature for hypothesis validation
-Automatic generation of knowledge graphs or research notes
-Collaboration features such as shared records and version control
-Limitations & Considerations
+Register a local user:
 
-This system is not intended to replace researchers, but to assist scientific reasoning and experimental design.
-All inferred results and experimental suggestions must be critically reviewed and validated by the researcher.
+```bash
+curl -X POST http://127.0.0.1:8000/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"user_id":"demo-user","password":"strongpass123","display_name":"Demo"}'
+```
 
-Summary
+Run an I-V analysis:
 
-This application integrates the following into a unified workflow:
+```bash
+curl -X POST http://127.0.0.1:8000/run \
+  -H "Authorization: Bearer <token>" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "domain": "iv",
+    "raw_data": "V,I\n0,1e-9\n1,2e-9\n2,8e-9\n3,4e-8\n4,2e-7"
+  }'
+```
 
-Data-driven inference
-LLM-based scientific reasoning analysis
-Interactive experiment design support
-Reproducible storage, classification, and retrieval
+## Sample Input
 
-In essence, it aims to function as a scientific reasoning-based research assistant platform supporting the entire research lifecycle.
+Bundled sample files live under [`data/`](/home/shjung/projects/ontology-anchor-engine/data:1), including:
+
+- `data/fn_tunneling_iv_300K.txt`
+- `data/led_iv_curve_-10V_to_5V_step_0.02V.csv`
+- `data/thermionic_emission_iv_300K.txt`
+
+## Outputs and Artifacts
+
+Run artifacts and local user state are generated at runtime under:
+
+- `backend/runs/`
+- `backend/user_data/`
+
+These directories are intentionally ignored by Git and must not be committed.
+
+Typical run artifacts include:
+
+- `manifest.json`
+- `derived.json`
+- `inference.json`
+- `sj_proposal.json`
+- `llm_trace.json`
+
+## Tests
+
+Run the baseline test suite with:
+
+```bash
+pytest
+```
+
+The current automated baseline covers:
+
+- parser behavior
+- I-V feature extraction
+- ontology proposal matching
+- run artifact generation
+- auth and API smoke flow
+
+## Repository Layout
+
+- [`backend/`](/home/shjung/projects/ontology-anchor-engine/backend:1): FastAPI app, domain engines, auth, storage
+- [`frontend/`](/home/shjung/projects/ontology-anchor-engine/frontend:1): static HTML pages
+- [`data/`](/home/shjung/projects/ontology-anchor-engine/data:1): sample datasets and evaluation inputs
+- [`docs/`](/home/shjung/projects/ontology-anchor-engine/docs:1): architecture, evaluation, roadmap
+- [`prompts/`](/home/shjung/projects/ontology-anchor-engine/prompts:1): prompt templates
+- [`scripts/`](/home/shjung/projects/ontology-anchor-engine/scripts:1): utility and validation scripts
+
+## Security Notes
+
+- Open registration is intended for local development by default.
+- For public or shared deployments, disable registration and configure explicit CORS allowlists.
+- Session tokens now expire and are stored server-side as hashes.
+- See [`SECURITY.md`](/home/shjung/projects/ontology-anchor-engine/SECURITY.md:1).
+
+## Evaluation and Limits
+
+Evaluation planning documents live under [`docs/evaluation/`](/home/shjung/projects/ontology-anchor-engine/docs/evaluation:1) and [`docs/roadmap/`](/home/shjung/projects/ontology-anchor-engine/docs/roadmap:1).
+
+Current non-goals:
+
+- replacing expert scientific judgment
+- claiming validated performance across all mechanism families
+- serving as a hardened public multi-tenant platform
