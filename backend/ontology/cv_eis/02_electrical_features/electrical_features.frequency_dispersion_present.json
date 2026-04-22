@@ -1,0 +1,13 @@
+{
+  "id": "electrical_features.frequency_dispersion_present",
+  "label": "Frequency dispersion present",
+  "description": "Measured capacitance or impedance changes materially with probing frequency.",
+  "criteria": {
+    "source": "extract_electrical_features",
+    "rule": "same-bias response differs across frequency by more than configured dispersion ratio",
+    "inputs": [
+      "frequency_series",
+      "capacitance_or_impedance_series"
+    ]
+  }
+}

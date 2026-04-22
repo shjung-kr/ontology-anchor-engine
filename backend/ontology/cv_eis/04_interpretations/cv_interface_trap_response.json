@@ -1,0 +1,32 @@
+{
+  "scientific_justification": {
+    "claim_concept": "cv_interpretation.interface_trap_response",
+    "measurement_conditions": [
+      "measurement_conditions.capacitance_voltage_sweep",
+      "measurement_conditions.bias_dependent_impedance"
+    ],
+    "observed_features": [
+      "electrical_features.hysteresis_loop_present",
+      "electrical_features.frequency_dispersion_present",
+      "electrical_features.loss_peak_present"
+    ],
+    "required_features": [
+      "electrical_features.frequency_dispersion_present"
+    ],
+    "assumptions": [
+      "measurement_assumption.small_signal_linearity_holds",
+      "physical_assumption.trap_time_constant_within_measurement_window"
+    ],
+    "mechanism_by_regime": [
+      {
+        "regime": "bias_window.general",
+        "mechanisms": [
+          "electrical_mechanisms.interface_trap_response"
+        ]
+      }
+    ],
+    "explanation_notes": {
+      "ko": "주파수 분산과 히스테리시스 또는 loss peak가 함께 나타나면, 계면 트랩의 충방전이 관측 응답에 기여하는 해석 후보를 우선 제안할 수 있다."
+    }
+  }
+}

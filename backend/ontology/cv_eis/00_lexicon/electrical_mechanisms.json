@@ -1,0 +1,27 @@
+{
+  "electrical_mechanisms.depletion_response": {
+    "category": "electrical_mechanism",
+    "canonical_name": "depletion_response",
+    "description": "Capacitance changes because the depletion width varies with applied bias."
+  },
+  "electrical_mechanisms.interface_trap_response": {
+    "category": "electrical_mechanism",
+    "canonical_name": "interface_trap_response",
+    "description": "Capacitance or conductance includes a measurable contribution from trap occupancy dynamics."
+  },
+  "electrical_mechanisms.charge_transfer_rc": {
+    "category": "electrical_mechanism",
+    "canonical_name": "charge_transfer_rc",
+    "description": "Impedance is governed by a single dominant resistance-capacitance relaxation process."
+  },
+  "electrical_mechanisms.nonideal_capacitive_dispersion": {
+    "category": "electrical_mechanism",
+    "canonical_name": "nonideal_capacitive_dispersion",
+    "description": "Impedance exhibits distributed time constants or constant-phase-element-like behavior."
+  },
+  "electrical_mechanisms.diffusion_warburg_response": {
+    "category": "electrical_mechanism",
+    "canonical_name": "diffusion_warburg_response",
+    "description": "Low-frequency impedance contains a diffusion-limited contribution represented by a Warburg-type tail."
+  }
+}

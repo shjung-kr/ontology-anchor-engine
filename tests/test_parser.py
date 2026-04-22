@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from backend.measurement_validations.parser import build_stats, parse_vi
+from backend.domains.cv_eis.parser import parse_measurement_table
 
 
 def test_parse_vi_with_header():
@@ -15,3 +16,17 @@ def test_parse_vi_with_whitespace_rows():
     assert stats["n_points"] == 3
     assert stats["V_unique"] == 3
     assert stats["I_finite_ratio"] == 1.0
+
+
+def test_parse_measurement_table_detects_cv():
+    parsed = parse_measurement_table("bias capacitance\n-1 12e-9\n0 10e-9\n1 8e-9\n")
+    assert parsed["measurement_kind"] == "cv"
+    assert parsed["columns"] == ["bias", "capacitance"]
+    assert parsed["stats"]["n_rows"] == 3
+
+
+def test_parse_measurement_table_detects_eis():
+    parsed = parse_measurement_table("frequency,z_real,z_imag\n1,10,-1\n10,8,-4\n100,5,-1\n")
+    assert parsed["measurement_kind"] == "eis"
+    assert parsed["columns"] == ["frequency", "z_real", "z_imag"]
+    assert parsed["stats"]["finite_rows"] == 3

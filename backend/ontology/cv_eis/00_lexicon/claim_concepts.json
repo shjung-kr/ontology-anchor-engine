@@ -1,0 +1,62 @@
+{
+  "cv_interpretation.depletion_dominated_capacitance": {
+    "category": "cv_interpretation",
+    "mechanism": "electrical_mechanisms.depletion_response",
+    "labels": {
+      "en": "Depletion-dominated capacitance",
+      "ko": "공핍층 지배 커패시턴스"
+    },
+    "definition": {
+      "en": "The measured capacitance is interpreted as primarily governed by depletion-layer width modulation under applied bias.",
+      "ko": "측정된 커패시턴스가 바이어스에 따른 공핍층 폭 변화에 의해 주로 결정되는 것으로 해석한다."
+    }
+  },
+  "cv_interpretation.interface_trap_response": {
+    "category": "cv_interpretation",
+    "mechanism": "electrical_mechanisms.interface_trap_response",
+    "labels": {
+      "en": "Interface-trap-mediated response",
+      "ko": "계면 트랩 매개 응답"
+    },
+    "definition": {
+      "en": "Bias or frequency dependent capacitance is interpreted as containing a significant contribution from interface trap charging and discharging.",
+      "ko": "바이어스 또는 주파수 의존 커패시턴스에 계면 트랩의 충방전 기여가 유의하게 포함된 것으로 해석한다."
+    }
+  },
+  "eis_interpretation.single_rc_relaxation": {
+    "category": "eis_interpretation",
+    "mechanism": "electrical_mechanisms.charge_transfer_rc",
+    "labels": {
+      "en": "Single RC relaxation",
+      "ko": "단일 RC 완화"
+    },
+    "definition": {
+      "en": "The impedance response is interpreted as being dominated by a single RC-like relaxation process.",
+      "ko": "임피던스 응답이 단일 RC 유사 완화 과정에 의해 지배되는 것으로 해석한다."
+    }
+  },
+  "eis_interpretation.nonideal_interfacial_capacitance": {
+    "category": "eis_interpretation",
+    "mechanism": "electrical_mechanisms.nonideal_capacitive_dispersion",
+    "labels": {
+      "en": "Non-ideal interfacial capacitance",
+      "ko": "비이상적 계면 커패시턴스"
+    },
+    "definition": {
+      "en": "The impedance response is interpreted as reflecting distributed or non-ideal capacitive behavior rather than an ideal capacitor.",
+      "ko": "임피던스 응답이 이상적인 커패시터보다는 분포형 또는 비이상적 용량성 거동을 반영하는 것으로 해석한다."
+    }
+  },
+  "eis_interpretation.diffusion_limited_response": {
+    "category": "eis_interpretation",
+    "mechanism": "electrical_mechanisms.diffusion_warburg_response",
+    "labels": {
+      "en": "Diffusion-limited response",
+      "ko": "확산 지배 응답"
+    },
+    "definition": {
+      "en": "The low-frequency impedance is interpreted as containing a diffusion-limited contribution such as a Warburg-type tail.",
+      "ko": "저주파 임피던스에 Warburg형 꼬리와 같은 확산 지배 성분이 포함된 것으로 해석한다."
+    }
+  }
+}

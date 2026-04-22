@@ -1,0 +1,14 @@
+{
+  "id": "electrical_features.warburg_tail_present",
+  "label": "Warburg-like tail present",
+  "description": "Low-frequency Nyquist response shows an oblique tail consistent with diffusion-limited behavior.",
+  "criteria": {
+    "source": "extract_electrical_features",
+    "rule": "low-frequency tail angle and monotonic extension match configured Warburg-like bounds",
+    "inputs": [
+      "z_real_series",
+      "z_imag_series",
+      "frequency_series"
+    ]
+  }
+}

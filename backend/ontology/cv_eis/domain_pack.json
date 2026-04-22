@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schema/domain_pack.schema.json",
+  "domain": "cv_eis",
+  "version": "0.1.0-draft",
+  "status": "draft",
+  "input_schema": "numeric_pairs_or_table",
+  "ontology": {
+    "root_dir": "backend/ontology/cv_eis",
+    "namespaces": [
+      "00_lexicon",
+      "02_electrical_features",
+      "04_interpretations"
+    ]
+  },
+  "pipeline": {
+    "parser": "backend.domains.cv_eis.parser:parse_measurement_table",
+    "validator": "backend.domains.cv_eis.validation:validate_measurement",
+    "feature_extractor": "backend.domains.cv_eis.features:extract_electrical_features",
+    "proposal_evaluator": "backend.domains.cv_eis.proposals:evaluate_interpretations",
+    "renderer": "backend.domains.cv_eis.renderer:render_narrative",
+    "artifact_writer": "backend.domains.cv_eis.runner:write_artifacts"
+  },
+  "notes": {
+    "ko": "초기 ontology 준비용 domain pack. 아직 domain_registry.json에 등록하지 않았으며, parser/validator/features/proposals 구현 전에 용어축과 feature 카드부터 합의하기 위한 초안이다."
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "scientific_justification": {
+    "claim_concept": "eis_interpretation.single_rc_relaxation",
+    "measurement_conditions": [
+      "measurement_conditions.impedance_spectroscopy_frequency_sweep",
+      "measurement_conditions.small_signal_ac_linearization"
+    ],
+    "observed_features": [
+      "electrical_features.semicircle_present"
+    ],
+    "required_features": [
+      "electrical_features.semicircle_present"
+    ],
+    "assumptions": [
+      "measurement_assumption.small_signal_linearity_holds",
+      "measurement_assumption.equivalent_circuit_is_local_approximation"
+    ],
+    "mechanism_by_regime": [
+      {
+        "regime": "frequency_window.general",
+        "mechanisms": [
+          "electrical_mechanisms.charge_transfer_rc"
+        ]
+      }
+    ],
+    "explanation_notes": {
+      "ko": "Nyquist 상에서 지배적인 단일 semicircle이 확인되면, 가장 먼저 단일 RC 완화 성분을 해석 후보로 제안할 수 있다."
+    }
+  }
+}

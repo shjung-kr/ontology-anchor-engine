@@ -1,0 +1,13 @@
+{
+  "id": "electrical_features.loss_peak_present",
+  "label": "Loss peak present",
+  "description": "A peak is observed in frequency-dependent loss, conductance, or imaginary response.",
+  "criteria": {
+    "source": "extract_electrical_features",
+    "rule": "one or more local maxima survive smoothing and prominence filtering in the target frequency window",
+    "inputs": [
+      "frequency_series",
+      "loss_series"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "electrical_features.hysteresis_loop_present",
+  "label": "Hysteresis loop present",
+  "description": "Forward and reverse bias traces do not overlap, indicating loop area or path dependence.",
+  "criteria": {
+    "source": "extract_electrical_features",
+    "rule": "paired forward/reverse branches show nonzero enclosed area or branch separation above threshold",
+    "inputs": [
+      "forward_trace",
+      "reverse_trace"
+    ]
+  }
+}

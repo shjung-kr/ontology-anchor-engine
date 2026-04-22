@@ -1,0 +1,13 @@
+{
+  "id": "electrical_features.semicircle_present",
+  "label": "Semicircle present",
+  "description": "Nyquist response contains at least one arc-like semicircle consistent with an RC-type relaxation.",
+  "criteria": {
+    "source": "extract_electrical_features",
+    "rule": "(-Im(Z), Re(Z)) trajectory forms a convex arc with a single dominant apex",
+    "inputs": [
+      "z_real_series",
+      "z_imag_series"
+    ]
+  }
+}

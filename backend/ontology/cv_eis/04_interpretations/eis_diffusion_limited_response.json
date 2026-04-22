@@ -1,0 +1,29 @@
+{
+  "scientific_justification": {
+    "claim_concept": "eis_interpretation.diffusion_limited_response",
+    "measurement_conditions": [
+      "measurement_conditions.impedance_spectroscopy_frequency_sweep"
+    ],
+    "observed_features": [
+      "electrical_features.warburg_tail_present",
+      "electrical_features.frequency_dispersion_present"
+    ],
+    "required_features": [
+      "electrical_features.warburg_tail_present"
+    ],
+    "assumptions": [
+      "measurement_assumption.equivalent_circuit_is_local_approximation"
+    ],
+    "mechanism_by_regime": [
+      {
+        "regime": "frequency_window.low_frequency",
+        "mechanisms": [
+          "electrical_mechanisms.diffusion_warburg_response"
+        ]
+      }
+    ],
+    "explanation_notes": {
+      "ko": "저주파 Nyquist tail이 Warburg형 경사를 보이면, 확산 지배 응답 후보를 자연스럽게 제안할 수 있다."
+    }
+  }
+}

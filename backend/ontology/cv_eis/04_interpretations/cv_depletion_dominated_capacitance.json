@@ -1,0 +1,30 @@
+{
+  "scientific_justification": {
+    "claim_concept": "cv_interpretation.depletion_dominated_capacitance",
+    "measurement_conditions": [
+      "measurement_conditions.capacitance_voltage_sweep",
+      "measurement_conditions.small_signal_ac_linearization"
+    ],
+    "observed_features": [
+      "electrical_features.bias_dependent_capacitance_slope"
+    ],
+    "required_features": [
+      "electrical_features.bias_dependent_capacitance_slope"
+    ],
+    "assumptions": [
+      "measurement_assumption.small_signal_linearity_holds",
+      "physical_assumption.depletion_width_modulation_controls_capacitance"
+    ],
+    "mechanism_by_regime": [
+      {
+        "regime": "bias_window.general",
+        "mechanisms": [
+          "electrical_mechanisms.depletion_response"
+        ]
+      }
+    ],
+    "explanation_notes": {
+      "ko": "C-V에서 바이어스에 따른 커패시턴스 변화 기울기가 안정적으로 관찰되면, 우선적으로 공핍층 폭 변조에 의해 지배되는 응답으로 해석할 수 있다."
+    }
+  }
+}

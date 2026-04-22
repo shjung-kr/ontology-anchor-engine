@@ -1,0 +1,13 @@
+{
+  "id": "electrical_features.bias_dependent_capacitance_slope",
+  "label": "Bias-dependent capacitance slope",
+  "description": "Capacitance changes systematically with DC bias, providing a slope-like feature for C-V interpretation.",
+  "criteria": {
+    "source": "extract_electrical_features",
+    "rule": "abs(dC/dV) or abs(d(1/C^2)/dV) exceeds configured threshold over a stable bias window",
+    "inputs": [
+      "bias_series",
+      "capacitance_series"
+    ]
+  }
+}

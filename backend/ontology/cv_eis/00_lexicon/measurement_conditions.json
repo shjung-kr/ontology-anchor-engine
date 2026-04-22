@@ -1,0 +1,63 @@
+{
+  "measurement_conditions.capacitance_voltage_sweep": {
+    "category": "measurement_conditions",
+    "aliases": [
+      "c-v",
+      "cv",
+      "capacitance-voltage",
+      "capacitance voltage sweep",
+      "capacitance bias sweep",
+      "mott-schottky",
+      "1/c^2-v",
+      "c-v sweep",
+      "cv 측정",
+      "c-v 측정",
+      "커패시턴스 전압 스윕",
+      "mott schottky"
+    ],
+    "note": "Bias-dependent capacitance measurement acquired while sweeping DC bias at one or more AC probing frequencies."
+  },
+  "measurement_conditions.impedance_spectroscopy_frequency_sweep": {
+    "category": "measurement_conditions",
+    "aliases": [
+      "eis",
+      "impedance spectroscopy",
+      "electrochemical impedance spectroscopy",
+      "frequency sweep impedance",
+      "nyquist",
+      "bode plot",
+      "z real z imag",
+      "임피던스 분광",
+      "임피던스 스펙트로스코피",
+      "주파수 스윕 임피던스",
+      "나이퀴스트",
+      "보드 플롯"
+    ],
+    "note": "Complex impedance measurement acquired across frequency, optionally at fixed or swept DC bias."
+  },
+  "measurement_conditions.small_signal_ac_linearization": {
+    "category": "measurement_conditions",
+    "aliases": [
+      "small signal",
+      "small-signal",
+      "ac amplitude 10 mv",
+      "linear perturbation",
+      "소신호",
+      "소신호 ac",
+      "작은 ac 진폭"
+    ],
+    "note": "Assumes the AC perturbation is small enough for linearized impedance or capacitance analysis."
+  },
+  "measurement_conditions.bias_dependent_impedance": {
+    "category": "measurement_conditions",
+    "aliases": [
+      "bias dependent eis",
+      "dc bias eis",
+      "biased impedance spectroscopy",
+      "dc offset impedance",
+      "바이어스 의존 eis",
+      "dc 바이어스 임피던스"
+    ],
+    "note": "Impedance or capacitance measured as a function of both frequency and applied DC bias."
+  }
+}

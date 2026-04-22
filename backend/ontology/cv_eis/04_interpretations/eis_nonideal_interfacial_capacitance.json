@@ -1,0 +1,30 @@
+{
+  "scientific_justification": {
+    "claim_concept": "eis_interpretation.nonideal_interfacial_capacitance",
+    "measurement_conditions": [
+      "measurement_conditions.impedance_spectroscopy_frequency_sweep"
+    ],
+    "observed_features": [
+      "electrical_features.semicircle_present",
+      "electrical_features.frequency_dispersion_present"
+    ],
+    "required_features": [
+      "electrical_features.frequency_dispersion_present"
+    ],
+    "assumptions": [
+      "measurement_assumption.equivalent_circuit_is_local_approximation",
+      "measurement_assumption.parasitic_series_resistance_present"
+    ],
+    "mechanism_by_regime": [
+      {
+        "regime": "frequency_window.general",
+        "mechanisms": [
+          "electrical_mechanisms.nonideal_capacitive_dispersion"
+        ]
+      }
+    ],
+    "explanation_notes": {
+      "ko": "반원이 이상적인 모양에서 벗어나거나 주파수 분산이 두드러지면, 분포형 시정수 또는 비이상적 계면 커패시턴스 해석으로 연결하기 좋다."
+    }
+  }
+}

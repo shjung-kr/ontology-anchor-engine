@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "items": [
+    {
+      "id": "measurement_assumption.small_signal_linearity_holds",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Small-signal linearity holds",
+        "ko": "소신호 선형성 성립 가정"
+      },
+      "definition": {
+        "en": "Assume the AC perturbation is small enough that the device response can be treated as locally linear.",
+        "ko": "인가한 AC 진폭이 충분히 작아 소자 응답을 국소 선형계로 취급할 수 있다고 가정한다."
+      }
+    },
+    {
+      "id": "measurement_assumption.parasitic_series_resistance_present",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Parasitic series resistance may be present",
+        "ko": "기생 직렬저항 존재 가능 가정"
+      },
+      "definition": {
+        "en": "Assume contact, wiring, or substrate series resistance may distort high-frequency or high-bias response.",
+        "ko": "접촉, 배선, 기판의 직렬저항이 고주파 또는 고바이어스 응답을 왜곡할 수 있다고 가정한다."
+      }
+    },
+    {
+      "id": "measurement_assumption.parasitic_inductance_present",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Parasitic inductance may be present",
+        "ko": "기생 인덕턴스 존재 가능 가정"
+      },
+      "definition": {
+        "en": "Assume leads, probes, or fixtures may introduce inductive artifacts in the high-frequency impedance response.",
+        "ko": "리드선, 프로브, 픽스처가 고주파 임피던스 응답에 유도성 인공 신호를 만들 수 있다고 가정한다."
+      }
+    },
+    {
+      "id": "measurement_assumption.equivalent_circuit_is_local_approximation",
+      "category": "measurement_assumption",
+      "labels": {
+        "en": "Equivalent circuit is a local approximation",
+        "ko": "등가회로는 국소 근사라는 가정"
+      },
+      "definition": {
+        "en": "Assume any fitted equivalent circuit is an effective local description, not a unique microscopic proof.",
+        "ko": "적합된 등가회로는 유효한 국소 기술일 뿐, 유일한 미시적 증거는 아니라고 가정한다."
+      }
+    },
+    {
+      "id": "physical_assumption.depletion_width_modulation_controls_capacitance",
+      "category": "physical_assumption",
+      "labels": {
+        "en": "Depletion-width modulation controls capacitance",
+        "ko": "공핍층 폭 변조가 커패시턴스를 지배한다는 가정"
+      },
+      "definition": {
+        "en": "Assume the measured junction capacitance mainly reflects bias-dependent depletion width changes.",
+        "ko": "측정된 접합 커패시턴스가 주로 바이어스 의존 공핍층 폭 변화에 의해 정해진다고 가정한다."
+      }
+    },
+    {
+      "id": "physical_assumption.trap_time_constant_within_measurement_window",
+      "category": "physical_assumption",
+      "labels": {
+        "en": "Trap time constants fall within the measurement window",
+        "ko": "트랩 시정수가 측정 창 안에 존재한다는 가정"
+      },
+      "definition": {
+        "en": "Assume trap capture and emission dynamics occur on time scales accessible to the chosen frequency or sweep conditions.",
+        "ko": "트랩 포획 및 방출 동역학이 선택된 주파수 또는 스윕 조건에서 관측 가능한 시간척도에 있다고 가정한다."
+      }
+    }
+  ]
+}

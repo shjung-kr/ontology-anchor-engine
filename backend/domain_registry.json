@@ -58,6 +58,35 @@
         "02_signal_features",
         "04_interpretations"
       ]
+    },
+    "cv_eis": {
+      "title": "C-V / Impedance Interpretation",
+      "description": "Capacitance-voltage and impedance spectroscopy interpretation using ontology-backed electrical features.",
+      "version": "0.1.0-draft",
+      "input_kind": "numeric_pairs_or_table",
+      "runner": "backend.domains.cv_eis.runner:run_cv_eis_domain",
+      "ontology_dir": "backend/ontology/cv_eis",
+      "prompt_dir": "prompts",
+      "tags": [
+        "cv",
+        "eis",
+        "impedance",
+        "electrical-measurement"
+      ],
+      "pipeline": {
+        "parser": "backend.domains.cv_eis.parser:parse_measurement_table",
+        "validator": "backend.domains.cv_eis.validation:validate_measurement",
+        "feature_extractor": "backend.domains.cv_eis.features:extract_electrical_features",
+        "state_builder": "backend.domains.cv_eis.features:build_l1_state",
+        "proposal_evaluator": "backend.domains.cv_eis.proposals:evaluate_interpretations",
+        "renderer": "backend.domains.cv_eis.renderer:render_narrative",
+        "artifact_writer": "backend.domains.cv_eis.runner:write_artifacts"
+      },
+      "ontology_namespaces": [
+        "00_lexicon",
+        "02_electrical_features",
+        "04_interpretations"
+      ]
     }
   }
 }
